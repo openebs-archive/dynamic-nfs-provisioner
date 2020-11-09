@@ -1,0 +1,41 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: openebs-rwx-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: "openebs-rwx"
+  resources:
+    requests:
+      storage: 1Gi
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: busybox
+spec:
+  selector:
+    matchLabels:
+      app: busybox
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: busybox
+    spec:
+      volumes:
+        - name: nfs-volume
+          persistentVolumeClaim:
+            claimName: openebs-rwx-pvc
+      containers:
+        - name: busybox
+          image: busybox
+          command:
+            - sh
+            - -c
+            - 'while true; do date > /mnt/data/index.html; hostname >> /mnt/data/index.html; sleep $(($RANDOM % 5 + 5)); done'
+          volumeMounts:
+            - name: nfs-volume
+              mountPath: /mnt/data

@@ -1,0 +1,5 @@
+/bin/
+nohup.out
+coverage.txt
+profile.out
+.DS_Store

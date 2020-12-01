@@ -29,7 +29,7 @@ install:
 
 before_script:
   - make test
-  #- make verify-src
+  - make verify-src
   - export RELEASE_TAG="$TRAVIS_TAG"
   - export BRANCH="$TRAVIS_BRANCH"
 

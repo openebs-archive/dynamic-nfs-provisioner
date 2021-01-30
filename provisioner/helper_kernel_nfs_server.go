@@ -36,6 +36,9 @@ const (
 
 	// NFSPVFinalizer represents finalizer string used by NFSPV
 	NFSPVFinalizer = "nfs.openebs.io/finalizer"
+
+	//NFS Server Port
+	NFSServerPort = 2049
 )
 
 var (
@@ -210,7 +213,7 @@ func (p *Provisioner) createDeployment(nfsServerOpts *KernelNFSServerOptions) er
 							[]corev1.ContainerPort{
 								corev1.ContainerPort{
 									Name:          "nfs",
-									ContainerPort: 2049,
+									ContainerPort: NFSServerPort,
 								},
 							},
 						).
@@ -327,7 +330,7 @@ func (p *Provisioner) createService(nfsServerOpts *KernelNFSServerOptions) error
 			[]corev1.ServicePort{
 				corev1.ServicePort{
 					Name: "nfs",
-					Port: 2049,
+					Port: NFSServerPort,
 				},
 			},
 		).

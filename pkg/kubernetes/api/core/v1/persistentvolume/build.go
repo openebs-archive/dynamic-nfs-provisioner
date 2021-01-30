@@ -188,6 +188,15 @@ func (b *Builder) WithNFS(server, path string, readOnly bool) *Builder {
 	return b
 }
 
+// WithMountOptions sets the MountOptions field in PV with provided arguments
+func (b *Builder) WithMountOptions(mountOptions []string) *Builder {
+	if len(mountOptions) == 0 {
+		return b
+	}
+	b.pv.object.Spec.MountOptions = mountOptions
+	return b
+}
+
 // Build returns the PV API instance
 func (b *Builder) Build() (*corev1.PersistentVolume, error) {
 	if len(b.errs) > 0 {

@@ -78,6 +78,7 @@ func (p *Provisioner) ProvisionKernalNFSServer(opts pvController.ProvisionOption
 		WithReclaimPolicy(*opts.StorageClass.ReclaimPolicy).
 		WithAccessModes(pvc.Spec.AccessModes).
 		WithCapacityQty(pvc.Spec.Resources.Requests[v1.ResourceName(v1.ResourceStorage)]).
+		WithMountOptions(opts.StorageClass.MountOptions).
 		WithNFS(nfsService, "/", false)
 
 	//Build the pvObject

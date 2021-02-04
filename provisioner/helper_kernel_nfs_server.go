@@ -39,6 +39,9 @@ const (
 
 	//NFS Server Port
 	NFSServerPort = 2049
+
+	//RPC Bind Port
+	RPCBindPort = 2049
 )
 
 var (
@@ -215,6 +218,10 @@ func (p *Provisioner) createDeployment(nfsServerOpts *KernelNFSServerOptions) er
 									Name:          "nfs",
 									ContainerPort: NFSServerPort,
 								},
+								corev1.ContainerPort{
+									Name:          "rpcbind",
+									ContainerPort: RPCBindPort,
+								},
 							},
 						).
 						WithPrivilegedSecurityContext(&secContext).
@@ -331,6 +338,10 @@ func (p *Provisioner) createService(nfsServerOpts *KernelNFSServerOptions) error
 				corev1.ServicePort{
 					Name: "nfs",
 					Port: NFSServerPort,
+				},
+				corev1.ServicePort{
+					Name: "rpcbind",
+					Port: RPCBindPort,
 				},
 			},
 		).

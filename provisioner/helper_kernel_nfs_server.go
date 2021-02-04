@@ -41,7 +41,7 @@ const (
 	NFSServerPort = 2049
 
 	//RPC Bind Port
-	RPCBindPort = 2049
+	RPCBindPort = 111
 )
 
 var (

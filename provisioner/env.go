@@ -36,6 +36,10 @@ const (
 	// ProvisionerExportsSC is the environment variable that provides the
 	// default storage class to be used for exports PVC mount used by NFS Server.
 	ProvisionerExportsSC menv.ENVKey = "OPENEBS_IO_EXPORTS_SC"
+
+	// ProvisionerNFSServerUseClusterIP is the environment variable that
+	// allows user to specify if ClusterIP should be used in NFS K8s Service
+	ProvisionerNFSServerUseClusterIP menv.ENVKey = "OPENEBS_IO_NFS_SERVER_USE_CLUSTERIP"
 )
 
 var (

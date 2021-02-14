@@ -420,6 +420,18 @@ func (p *Provisioner) getNFSServerAddress(nfsServerOpts *KernelNFSServerOptions)
 		return "", errors.Wrapf(err, "failed to create NFS Server for PVC{%v}", nfsServerOpts.pvName)
 	}
 
+	//Get the NFS Service to extract Cluster IP
+	if p.useClusterIP {
+		//nfsService := nil
+		nfsService, err := service.NewKubeClient().
+			WithNamespace(p.namespace).
+			Get(nfsServerOpts.serviceName, metav1.GetOptions{})
+		if err != nil || nfsService == nil {
+			return "", errors.Wrapf(err, "failed to get NFS Service for PVC{%v}", nfsServerOpts.serviceName)
+		}
+		return nfsService.Spec.ClusterIP, nil
+	}
+
 	// Return the cluster local nfs service ip
 	// <service-name>.<namespace>.svc.cluster.local
 	return nfsServerOpts.serviceName + "." + p.namespace + ".svc.cluster.local", nil

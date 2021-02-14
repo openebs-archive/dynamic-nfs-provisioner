@@ -55,7 +55,7 @@ import (
 //  it with global information used across PV create and delete operations.
 func NewProvisioner(stopCh chan struct{}, kubeClient *clientset.Clientset) (*Provisioner, error) {
 
-	namespace := getOpenEBSNamespace() //menv.Get(menv.OpenEBSNamespace)
+	namespace := getOpenEBSNamespace()
 	if len(strings.TrimSpace(namespace)) == 0 {
 		return nil, fmt.Errorf("Cannot start Provisioner: failed to get namespace")
 	}
@@ -71,6 +71,7 @@ func NewProvisioner(stopCh chan struct{}, kubeClient *clientset.Clientset) (*Pro
 				Value: getDefaultNFSServerType(),
 			},
 		},
+		useClusterIP: menv.Truthy(ProvisionerNFSServerUseClusterIP),
 	}
 	p.getVolumeConfig = p.GetVolumeConfig
 

@@ -197,6 +197,7 @@ func (p *Provisioner) createDeployment(nfsServerOpts *KernelNFSServerOptions) er
 		WithNamespace(p.namespace).
 		WithLabelsNew(nfsDeployLabelSelector).
 		WithSelectorMatchLabelsNew(nfsDeployLabelSelector).
+		WithStrategyTypeRecreate().
 		WithPodTemplateSpecBuilder(
 			pts.NewBuilder().
 				WithLabelsNew(nfsDeployLabelSelector).

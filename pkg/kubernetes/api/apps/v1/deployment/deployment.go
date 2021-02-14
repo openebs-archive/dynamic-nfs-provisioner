@@ -334,6 +334,11 @@ func (b *Builder) WithStrategyType(
 	return b
 }
 
+//WithStrategyTypeRecreate sets the strategy field of the deployment as Recreate
+func (b *Builder) WithStrategyTypeRecreate() *Builder {
+	return b.WithStrategyType(appsv1.RecreateDeploymentStrategyType)
+}
+
 // WithPodTemplateSpecBuilder sets the template field of the deployment
 func (b *Builder) WithPodTemplateSpecBuilder(
 	tmplbuilder *templatespec.Builder,

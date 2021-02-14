@@ -81,6 +81,15 @@ func (p *Provisioner) ProvisionKernalNFSServer(opts pvController.ProvisionOption
 		WithMountOptions(opts.StorageClass.MountOptions).
 		WithNFS(nfsService, "/", false)
 
+	//Note: The nfs server is launched by the nfs-server-alpine.
+	//When "/" is replaced with "/nfsshare", the mount fails.
+	//
+	//Ref: https://github.com/sjiveson/nfs-server-alpine
+	//Due to the fsid=0 parameter set in the /etc/exports file,
+	//there's no need to specify the folder name when mounting from a client.
+	//For example, this works fine even though the folder being mounted and
+	//shared is /nfsshare
+
 	//Build the pvObject
 	pvObj, err := pvObjBuilder.Build()
 

@@ -427,7 +427,7 @@ func (p *Provisioner) getNFSServerAddress(nfsServerOpts *KernelNFSServerOptions)
 			WithNamespace(p.namespace).
 			Get(nfsServerOpts.serviceName, metav1.GetOptions{})
 		if err != nil || nfsService == nil {
-			return "", errors.Wrapf(err, "failed to get NFS Service for PVC{%v}", nfsServerOpts.serviceName)
+			return "", errors.Wrapf(err, "failed to get NFS Service for PVC{%v}", nfsServerOpts.pvcName)
 		}
 		return nfsService.Spec.ClusterIP, nil
 	}

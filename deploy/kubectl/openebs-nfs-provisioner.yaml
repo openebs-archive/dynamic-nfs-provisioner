@@ -117,7 +117,9 @@ spec:
             fieldRef:
               fieldPath: spec.serviceAccountName
         - name: OPENEBS_IO_ENABLE_ANALYTICS
-          value: "false"
+          value: "true"
+        - name: OPENEBS_IO_NFS_SERVER_USE_CLUSTERIP
+          value: "true"
         - name: OPENEBS_IO_INSTALLER_TYPE
           value: "openebs-operator-nfs"
         # LEADER_ELECTION_ENABLED is used to enable/disable leader election. By default
@@ -149,8 +151,8 @@ metadata:
     cas.openebs.io/config: |
       - name: NFSServerType
         value: "kernel"
-      - name: BackendStorageClass
-        value: "openebs-hostpath"
+      #- name: BackendStorageClass
+      #  value: "openebs-hostpath"
 provisioner: openebs.io/nfsrwx
 reclaimPolicy: Delete
 ---

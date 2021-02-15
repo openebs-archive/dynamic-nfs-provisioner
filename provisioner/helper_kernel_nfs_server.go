@@ -197,6 +197,7 @@ func (p *Provisioner) createDeployment(nfsServerOpts *KernelNFSServerOptions) er
 		WithNamespace(p.namespace).
 		WithLabelsNew(nfsDeployLabelSelector).
 		WithSelectorMatchLabelsNew(nfsDeployLabelSelector).
+		WithStrategyTypeRecreate().
 		WithPodTemplateSpecBuilder(
 			pts.NewBuilder().
 				WithLabelsNew(nfsDeployLabelSelector).
@@ -418,6 +419,18 @@ func (p *Provisioner) getNFSServerAddress(nfsServerOpts *KernelNFSServerOptions)
 	err := p.createNFSServer(nfsServerOpts)
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to create NFS Server for PVC{%v}", nfsServerOpts.pvName)
+	}
+
+	//Get the NFS Service to extract Cluster IP
+	if p.useClusterIP {
+		//nfsService := nil
+		nfsService, err := service.NewKubeClient().
+			WithNamespace(p.namespace).
+			Get(nfsServerOpts.serviceName, metav1.GetOptions{})
+		if err != nil || nfsService == nil {
+			return "", errors.Wrapf(err, "failed to get NFS Service for PVC{%v}", nfsServerOpts.pvcName)
+		}
+		return nfsService.Spec.ClusterIP, nil
 	}
 
 	// Return the cluster local nfs service ip

@@ -34,6 +34,8 @@ type Provisioner struct {
 	defaultConfig []mconfig.Config
 	// getVolumeConfig is a reference to a function
 	getVolumeConfig GetVolumeConfigFn
+	//determine if clusterIP or clusterDNS should be used
+	useClusterIP bool
 }
 
 //VolumeConfig struct contains the merged configuration of the PVC

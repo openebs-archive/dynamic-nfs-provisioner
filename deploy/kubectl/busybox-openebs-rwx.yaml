@@ -35,7 +35,7 @@ spec:
           command:
             - sh
             - -c
-            - 'while true; do date > /mnt/data/index.html; hostname >> /mnt/data/index.html; sleep $(($RANDOM % 5 + 5)); done'
+            - 'while true; do touch /mnt/data/index.html; date >> /mnt/data/index.html; hostname >> /mnt/data/index.html; sleep $(($RANDOM % 5 + 5)); tail -1 /mnt/data/index.html; done'
           volumeMounts:
             - name: nfs-volume
               mountPath: /mnt/data

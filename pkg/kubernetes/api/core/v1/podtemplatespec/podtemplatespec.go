@@ -214,6 +214,7 @@ func (b *Builder) WithNodeSelectorNew(nodeselectors map[string]string) *Builder 
 	return b
 }
 
+//WithNodeSelectorByValue overrides the NodeSelector with new values
 func (b *Builder) WithNodeSelectorByValue(nodeselectors map[string]string) *Builder {
 	// copy of original map
 	newnodeselectors := map[string]string{}

@@ -287,7 +287,7 @@ func TestBuilderWithEnvsNew(t *testing.T) {
 	}{
 		"Test Builder with envList": {
 			envList: []corev1.EnvVar{
-				corev1.EnvVar{},
+				{},
 			},
 			builder: &Builder{con: &container{
 				corev1.Container{},
@@ -324,7 +324,7 @@ func TestBuilderWithPortsNew(t *testing.T) {
 	}{
 		"Test Builder with portList": {
 			portList: []corev1.ContainerPort{
-				corev1.ContainerPort{},
+				{},
 			},
 			builder: &Builder{con: &container{
 				corev1.Container{},
@@ -396,7 +396,7 @@ func TestBuilderWithVolumeMountsNew(t *testing.T) {
 	}{
 		"Test Builder with volume mounts": {
 			mounts: []corev1.VolumeMount{
-				corev1.VolumeMount{},
+				{},
 			},
 			builder: &Builder{con: &container{
 				corev1.Container{},

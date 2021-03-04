@@ -37,10 +37,10 @@ const (
 	// NFSPVFinalizer represents finalizer string used by NFSPV
 	NFSPVFinalizer = "nfs.openebs.io/finalizer"
 
-	//NFS Server Port
+	//NFSServerPort set the NFS Server Port
 	NFSServerPort = 2049
 
-	//RPC Bind Port
+	//RPCBindPort set the RPC Bind Port
 	RPCBindPort = 111
 )
 
@@ -80,7 +80,7 @@ func (p *Provisioner) createBackendPVC(nfsServerOpts *KernelNFSServerOptions) er
 	klog.V(4).Infof("Verifying if PVC(%v) for NFS storage was already created.", pvcName)
 
 	//Check if the PVC is already created. This can happen
-	//if the previous reconcilation of PVC-PV, resulted in
+	//if the previous reconciliation of PVC-PV, resulted in
 	//creating a PVC, but was not yet available for 60+ seconds
 	_, err := persistentvolumeclaim.NewKubeClient().
 		WithNamespace(p.namespace).
@@ -172,7 +172,7 @@ func (p *Provisioner) createDeployment(nfsServerOpts *KernelNFSServerOptions) er
 	klog.V(4).Infof("Verifying if Deployment(%v) for NFS storage was already created.", deployName)
 
 	//Check if the Deployment is already created. This can happen
-	//if the previous reconcilation of PVC-PV, resulted in
+	//if the previous reconciliation of PVC-PV, resulted in
 	//creating a Deployment, but was not yet available for 60+ seconds
 	_, err := deployment.NewKubeClient().
 		WithNamespace(p.namespace).
@@ -207,7 +207,7 @@ func (p *Provisioner) createDeployment(nfsServerOpts *KernelNFSServerOptions) er
 						WithImage("itsthenetwork/nfs-server-alpine").
 						WithEnvsNew(
 							[]corev1.EnvVar{
-								corev1.EnvVar{
+								{
 									Name:  "SHARED_DIRECTORY",
 									Value: "/nfsshare",
 								},
@@ -215,11 +215,11 @@ func (p *Provisioner) createDeployment(nfsServerOpts *KernelNFSServerOptions) er
 						).
 						WithPortsNew(
 							[]corev1.ContainerPort{
-								corev1.ContainerPort{
+								{
 									Name:          "nfs",
 									ContainerPort: NFSServerPort,
 								},
-								corev1.ContainerPort{
+								{
 									Name:          "rpcbind",
 									ContainerPort: RPCBindPort,
 								},
@@ -228,7 +228,7 @@ func (p *Provisioner) createDeployment(nfsServerOpts *KernelNFSServerOptions) er
 						WithPrivilegedSecurityContext(&secContext).
 						WithVolumeMountsNew(
 							[]corev1.VolumeMount{
-								corev1.VolumeMount{
+								{
 									Name:      "exports-dir",
 									MountPath: "/nfsshare",
 								},
@@ -313,7 +313,7 @@ func (p *Provisioner) createService(nfsServerOpts *KernelNFSServerOptions) error
 	klog.V(4).Infof("Verifying if Service(%v) for NFS storage was already created.", svcName)
 
 	//Check if the Service is already created. This can happen
-	//if the previous reconcilation of PVC-PV, resulted in
+	//if the previous reconciliation of PVC-PV, resulted in
 	//creating a Service, but was not yet available for 60+ seconds
 	_, err := service.NewKubeClient().
 		WithNamespace(p.namespace).
@@ -336,11 +336,11 @@ func (p *Provisioner) createService(nfsServerOpts *KernelNFSServerOptions) error
 		WithName(svcName).
 		WithPorts(
 			[]corev1.ServicePort{
-				corev1.ServicePort{
+				{
 					Name: "nfs",
 					Port: NFSServerPort,
 				},
-				corev1.ServicePort{
+				{
 					Name: "rpcbind",
 					Port: RPCBindPort,
 				},

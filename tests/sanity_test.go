@@ -98,7 +98,7 @@ var _ = Describe("TEST NFS PV", func() {
 								).
 								WithVolumeMountsNew(
 									[]corev1.VolumeMount{
-										corev1.VolumeMount{
+										{
 											Name:      "demo-vol1",
 											MountPath: "/mnt/store1",
 										},
@@ -114,7 +114,7 @@ var _ = Describe("TEST NFS PV", func() {
 				Build()
 			Expect(err).ShouldNot(
 				HaveOccurred(),
-				"while building delpoyment {%s} in namespace {%s}",
+				"while building deployment {%s} in namespace {%s}",
 				deployName,
 				namespaceObj.Name,
 			)

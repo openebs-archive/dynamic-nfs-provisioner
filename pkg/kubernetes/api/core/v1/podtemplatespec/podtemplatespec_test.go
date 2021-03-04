@@ -354,7 +354,7 @@ func TestBuilderWithTolerations(t *testing.T) {
 	}{
 		"Test Builder with tolerations": {
 			tolerations: []corev1.Toleration{
-				corev1.Toleration{},
+				{},
 			},
 			builder: &Builder{podtemplatespec: &PodTemplateSpec{
 				Object: &corev1.PodTemplateSpec{},
@@ -391,7 +391,7 @@ func TestBuilderWithTolerationsNew(t *testing.T) {
 	}{
 		"Test Builder with tolerations": {
 			tolerations: []corev1.Toleration{
-				corev1.Toleration{},
+				{},
 			},
 			builder: &Builder{podtemplatespec: &PodTemplateSpec{
 				Object: &corev1.PodTemplateSpec{},

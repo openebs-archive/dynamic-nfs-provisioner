@@ -61,15 +61,15 @@ $ helm upgrade [RELEASE_NAME] [CHART] --install
 
 ## Configuration
 
-The following table lists the configurable parameters of the OpenEBS LocalPV Provisioner chart and their default values.
+The following table lists the configurable parameters of the OpenEBS NFSPV Provisioner chart and their default values.
 
 | Parameter                                   | Description                                   | Default                                   |
 | ------------------------------------------- | --------------------------------------------- | ----------------------------------------- | 
 | `analytics.enabled`                         | Enable sending stats to Google Analytics          | `true`                          |
 | `imagePullSecrets`                          | Provides image pull secrect                       | `""`                            |
 | `nfspv.enabled`                             | Enable NFSPV Provisioner                          | `true`                          |
-| `nfspv.image.registry`                      | Registry for LocalPV Provisioner image            | `""`                            |
-| `nfspv.image.repository`                    | Image repository for NFSPV Provisioner            | `openebs/localpv-provisioner`   |
+| `nfspv.image.registry`                      | Registry for NFSPV Provisioner image              | `""`                            |
+| `nfspv.image.repository`                    | Image repository for NFSPV Provisioner            | `openebs/provisioner-nfs-amd64` |
 | `nfspvpv.image.tag`                         |	Image tag for NFSPV Provisioner	                  | `0.2.0`                         |
 | `nfspv.image.pullPolicy`                    | Image pull policy for NFSPV Provisioner           | `IfNotPresent`                  |
 | `nfspv.annotations`                         | Annotations for NFSPV Provisioner metadata        | `""`                            |

@@ -38,7 +38,7 @@ Create the name of the service account to use
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "localpv.chart" -}}
+{{- define "nfspv.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
@@ -46,7 +46,7 @@ Create chart name and version as used by the chart label.
 Meta labels
 */}}
 {{- define "nfspv.common.metaLabels" -}}
-chart: {{ include "localpv.chart" . }}
+chart: {{ include "nfspv.chart" . }}
 heritage: {{ .Release.Service }}
 openebs.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}

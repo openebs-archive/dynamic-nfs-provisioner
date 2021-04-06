@@ -13,7 +13,7 @@ This project is under active development.
 
 ## Prerequisties ##
 
-Please ensure that an NFS client is functioning on all nodes that will run a pod that mounts an 'openebs-rwx' volume. 
+Please ensure that an NFS client is functioning on all nodes that will run a pod that mounts an `openebs-rwx` volume. 
 
 Here's how to prepare an NFS client on some common Operating Systems:
 

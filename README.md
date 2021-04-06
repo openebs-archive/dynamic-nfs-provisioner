@@ -27,8 +27,8 @@ Ensure that the default NFS client is operating. To do this start PowerShell as 
 - **Fedora, CentOS, RedHat**: Install the `nfs-utils` package if not already installed.
 
 - **FreeBSD**: 
-  - Edit the /etc/rc.conf file by setting or appending `nfs_client_enable="YES"`. 
-  - Run `service nfsclient start`
+   1) Edit the /etc/rc.conf file by setting or appending `nfs_client_enable="YES"`. 
+   2) Run `service nfsclient start`
 
 
 ## Install

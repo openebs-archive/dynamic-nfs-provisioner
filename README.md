@@ -30,6 +30,12 @@ Ensure that the default NFS client is operating. To do this start PowerShell as 
    1) Edit the /etc/rc.conf file by setting or appending `nfs_client_enable="YES"`. 
    2) Run `service nfsclient start`
 
+- **FreeBSD**: 
+<ol>
+   <li>Edit the /etc/rc.conf file by setting or appending `nfs_client_enable="YES"`.</li>
+   <li>Run `service nfsclient start`</li>
+</ol>
+
 
 ## Install
 

@@ -22,7 +22,7 @@ Here's how to prepare an NFS client on some common Operating Systems:
 - **MacOS:** Should work out of the box.
 
 - **Windows:**
-Ensure that the default NFS client is operating. To do this start PowerShell as administrator, and run `Install-WindowsFeature NFS-Client` if it's a Windows server or `Enable-WindowsOptionalFeature -FeatureName ServicesForNFS-ClientOnly, ClientForNFS-Infrastructure -Online -NoRestart` if it's a Windows host with a Desktop environment.
+Ensure that the default NFS client is operating. To do this start PowerShell as Administrator, and run `Install-WindowsFeature NFS-Client` if it's a Windows server or `Enable-WindowsOptionalFeature -FeatureName ServicesForNFS-ClientOnly, ClientForNFS-Infrastructure -Online -NoRestart` if it's a Windows host with a Desktop environment.
 
 - **Fedora, CentOS, RedHat**: Install the `nfs-utils` package if not already installed.
 

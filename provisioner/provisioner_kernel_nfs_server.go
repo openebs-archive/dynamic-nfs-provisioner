@@ -36,10 +36,11 @@ func (p *Provisioner) ProvisionKernalNFSServer(opts pvController.ProvisionOption
 
 	//Extract the details to create a NFS Server
 	nfsServerOpts := &KernelNFSServerOptions{
-		pvName:              name,
-		provisionerNS:       p.namespace,
-		capacity:            capacity.String(),
-		backendStorageClass: volumeConfig.GetBackendStorageClassFromConfig(),
+		pvName:                name,
+		provisionerNS:         p.namespace,
+		capacity:              capacity.String(),
+		backendStorageClass:   volumeConfig.GetBackendStorageClassFromConfig(),
+		nfsServerCustomConfig: volumeConfig.GetCustomNFSServerConfig(),
 	}
 
 	nfsService, err := p.getNFSServerAddress(nfsServerOpts)

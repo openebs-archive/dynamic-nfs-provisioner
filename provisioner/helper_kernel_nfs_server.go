@@ -28,6 +28,7 @@ import (
 	volume "github.com/openebs/dynamic-nfs-provisioner/pkg/kubernetes/api/core/v1/volume"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	//  dynamic_client "k8s.io/client-go/dynamic"
 )
 
 const (
@@ -55,13 +56,14 @@ var (
 // will launch Kernel NFS Server using the provided storage
 // class
 type KernelNFSServerOptions struct {
-	provisionerNS       string
-	pvName              string
-	capacity            string
-	backendStorageClass string
-	pvcName             string
-	serviceName         string
-	deploymentName      string
+	provisionerNS         string
+	pvName                string
+	capacity              string
+	backendStorageClass   string
+	pvcName               string
+	serviceName           string
+	deploymentName        string
+	nfsServerCustomConfig string
 }
 
 // validate checks that the required fields to create NFS Server
@@ -100,7 +102,7 @@ func (p *Provisioner) createBackendPVC(nfsServerOpts *KernelNFSServerOptions) er
 		WithLabels(nfsServerOpts.getLabels()).
 		WithCapacity(nfsServerOpts.capacity).
 		WithAccessModeRWO().
-		WithStorageClass(nfsServerOpts.backendStorageClass)
+		WithStorageClass(nfsServerOpts.backendStorageClass).WithAccessModeRWO()
 
 	pvcObj, err := pvcObjBuilder.Build()
 
@@ -204,12 +206,16 @@ func (p *Provisioner) createDeployment(nfsServerOpts *KernelNFSServerOptions) er
 				WithContainerBuildersNew(
 					container.NewBuilder().
 						WithName("nfs-server").
-						WithImage("itsthenetwork/nfs-server-alpine").
+						WithImage("watcher00090/nfs-server-alpine:latest").
 						WithEnvsNew(
 							[]corev1.EnvVar{
 								{
 									Name:  "SHARED_DIRECTORY",
 									Value: "/nfsshare",
+								},
+								{
+									Name:  "CUSTOM_EXPORTS_CONFIG",
+									Value: nfsServerOpts.nfsServerCustomConfig,
 								},
 							},
 						).

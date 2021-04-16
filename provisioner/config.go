@@ -40,6 +40,10 @@ const (
 	//KeyPVBackendStorageClass defines default provisioner to be used
 	// to create the data(export) directory for NFS server
 	KeyPVBackendStorageClass = "BackendStorageClass"
+
+	//CustomServerConfig defines the server configuration to use,
+	// if it is set. Otherwise, use the default NFS server configuration.
+	CustomServerConfig = "CustomServerConfig"
 )
 
 const (
@@ -118,6 +122,14 @@ func (c *VolumeConfig) GetBackendStorageClassFromConfig() string {
 		return ""
 	}
 	return backingSC
+}
+
+func (c *VolumeConfig) GetCustomNFSServerConfig() string {
+	customServerConfig := c.getValue(CustomServerConfig)
+	if len(strings.TrimSpace(customServerConfig)) == 0 {
+		return ""
+	}
+	return customServerConfig
 }
 
 //getValue is a utility function to extract the value

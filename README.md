@@ -13,22 +13,23 @@ This project is under active development.
 
 ## Prerequisties ##
 
-Please ensure that an NFS client is functioning on all nodes that will run a pod that mounts an `openebs-rwx` volume. 
+Please ensure that an NFS client is functioning on all nodes that will run a pod that mounts an 'openebs-rwx' volume. 
 
 Here's how to prepare an NFS client on some common Operating Systems:
 
-- **Ubuntu, Debian:** Install the `nfs-common` package if not already installed.
+**Ubuntu, Debian:** Install the `nfs-common` package if not already installed.
 
-- **MacOS:** Should work out of the box.
+**MacOS:** Should work out of the box.
 
-- **Windows:**
-Ensure that the default NFS client is operating. To do this start PowerShell as Administrator, and run `Install-WindowsFeature NFS-Client` if it's a Windows server or `Enable-WindowsOptionalFeature -FeatureName ServicesForNFS-ClientOnly, ClientForNFS-Infrastructure -Online -NoRestart` if it's a Windows host with a Desktop environment.
+**Windows:**
+Ensure that the default NFS client is operating. To do this start PowerShell as administrator, and run `Install-WindowsFeature NFS-Client` if it's a Windows server or `Enable-WindowsOptionalFeature -FeatureName ServicesForNFS-ClientOnly, ClientForNFS-Infrastructure -Online -NoRestart` if it's a Windows host with a Desktop environment.
 
-- **Fedora, CentOS, RedHat**: Install the `nfs-utils` package if not already installed.
+**Fedora, CentOS, RedHat**: Install the `nfs-utils` package if not already installed.
 
-- **FreeBSD**: 
-   1) Edit the /etc/rc.conf file by setting or appending `nfs_client_enable="YES"`
-   2) Run `service nfsclient start`
+**FreeBSD**: 
+1. Edit the /etc/rc.conf file by setting or appending `nfs_client_enable="YES"`. 
+2. Run `service nfsclient start`
+
 
 ## Install
 

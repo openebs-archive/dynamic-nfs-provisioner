@@ -35,9 +35,10 @@ before_script:
 
 script:
   - make provisioner-nfs-image PROVISIONER_NFS_IMAGE=provisioner-nfs-amd64
+  - make nfs-server-image NFS_SERVER_IMAGE=nfs-server-alpine-amd64
 
 after_success:
-  - make push PROVISIONER_NFS_IMAGE=provisioner-nfs-amd64
+  - make push PROVISIONER_NFS_IMAGE=provisioner-nfs-amd64 NFS_SERVER_IMAGE=nfs-server-alpine-amd64
 
 notifications:
   email:

@@ -147,6 +147,7 @@ PROVISIONER_NFS=provisioner-nfs
 # Once travis is deprecated, this field will be replaced by image name
 # used in Makefile.buildx.mk
 PROVISIONER_NFS_IMAGE?=provisioner-nfs-amd64
+NFS_SERVER_IMAGE?=nfs-server-alpine-amd64
 
 #Use this to build provisioner-nfs
 .PHONY: provisioner-nfs
@@ -165,6 +166,13 @@ provisioner-nfs-image: provisioner-nfs
 	@cd buildscripts/provisioner-nfs && docker build -t ${IMAGE_ORG}/${PROVISIONER_NFS_IMAGE}:${IMAGE_TAG} ${DBUILD_ARGS} . --no-cache
 	@rm buildscripts/provisioner-nfs/${PROVISIONER_NFS}
 
+.PHONY: nfs-server-image
+nfs-server-image:
+	@echo "----------------------------"
+	@echo "--> nfs-server image    "
+	@echo "----------------------------"
+	@cd nfs-server-container && docker build -t ${IMAGE_ORG}/${NFS_SERVER_IMAGE}:${IMAGE_TAG} . --no-cache
+
 .PHONY: license-check
 license-check:
 	@echo "--> Checking license header..."
@@ -182,6 +190,7 @@ license-check:
 .PHONY: push
 push:
 	DIMAGE=${IMAGE_ORG}/${PROVISIONER_NFS_IMAGE} ./buildscripts/push.sh
+	DIMAGE=${IMAGE_ORG}/${NFS_SERVER_IMAGE} ./buildscripts/push.sh
 
 # include the buildx recipes
 include Makefile.buildx.mk

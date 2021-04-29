@@ -207,7 +207,6 @@ func (p *Provisioner) createDeployment(nfsServerOpts *KernelNFSServerOptions) er
 					container.NewBuilder().
 						WithName("nfs-server").
 						WithImage("openebs/nfs-server-alpine:latest").
-						WithImagePullPolicy(corev1.PullAlways).
 						WithEnvsNew(
 							[]corev1.EnvVar{
 								{

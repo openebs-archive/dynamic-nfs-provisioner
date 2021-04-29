@@ -28,7 +28,6 @@ import (
 	volume "github.com/openebs/dynamic-nfs-provisioner/pkg/kubernetes/api/core/v1/volume"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	//  dynamic_client "k8s.io/client-go/dynamic"
 )
 
 const (

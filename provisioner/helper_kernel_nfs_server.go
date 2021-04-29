@@ -102,7 +102,7 @@ func (p *Provisioner) createBackendPVC(nfsServerOpts *KernelNFSServerOptions) er
 		WithLabels(nfsServerOpts.getLabels()).
 		WithCapacity(nfsServerOpts.capacity).
 		WithAccessModeRWO().
-		WithStorageClass(nfsServerOpts.backendStorageClass).WithAccessModeRWO()
+		WithStorageClass(nfsServerOpts.backendStorageClass)
 
 	pvcObj, err := pvcObjBuilder.Build()
 

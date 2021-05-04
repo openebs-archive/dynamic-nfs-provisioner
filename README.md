@@ -11,7 +11,8 @@ NFS Volumes using different kinds of block storage available on the Kubernetes n
 
 This project is under active development. 
 
-## Prerequisties ##
+## Prerequisites ##
+
 
 Please ensure that an NFS client is functioning on all nodes that will run a pod that mounts an `openebs-rwx` volume. 
 

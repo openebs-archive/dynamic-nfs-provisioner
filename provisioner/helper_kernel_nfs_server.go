@@ -55,13 +55,14 @@ var (
 // will launch Kernel NFS Server using the provided storage
 // class
 type KernelNFSServerOptions struct {
-	provisionerNS       string
-	pvName              string
-	capacity            string
-	backendStorageClass string
-	pvcName             string
-	serviceName         string
-	deploymentName      string
+	provisionerNS         string
+	pvName                string
+	capacity              string
+	backendStorageClass   string
+	pvcName               string
+	serviceName           string
+	deploymentName        string
+	nfsServerCustomConfig string
 }
 
 // validate checks that the required fields to create NFS Server
@@ -204,12 +205,16 @@ func (p *Provisioner) createDeployment(nfsServerOpts *KernelNFSServerOptions) er
 				WithContainerBuildersNew(
 					container.NewBuilder().
 						WithName("nfs-server").
-						WithImage("itsthenetwork/nfs-server-alpine").
+						WithImage("openebs/nfs-server-alpine-amd64:ci").
 						WithEnvsNew(
 							[]corev1.EnvVar{
 								{
 									Name:  "SHARED_DIRECTORY",
 									Value: "/nfsshare",
+								},
+								{
+									Name:  "CUSTOM_EXPORTS_CONFIG",
+									Value: nfsServerOpts.nfsServerCustomConfig,
 								},
 							},
 						).

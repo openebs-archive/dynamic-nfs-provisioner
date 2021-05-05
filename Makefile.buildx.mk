@@ -34,24 +34,34 @@ else
 endif
 
 DOCKERX_IMAGE_PROVISIONER_NFS:=${IMAGE_ORG}/provisioner-nfs:${TAG}
+DOCKERX_IMAGE_NFS_SERVER:=${IMAGE_ORG}/nfs-server-alpine:${TAG}
 
-.PHONY: docker.buildx
-docker.buildx:
-	export DOCKER_CLI_EXPERIMENTAL=enabled
-	@if ! docker buildx ls | grep -q container-builder; then\
-		docker buildx create --platform ${PLATFORMS} --name container-builder --use;\
-	fi
-	@docker buildx build --platform ${PLATFORMS} \
-		-t "$(DOCKERX_IMAGE_NAME)" ${DBUILD_ARGS} -f $(PWD)/buildscripts/$(COMPONENT)/$(COMPONENT).Dockerfile \
-		. ${PUSH_ARG}
-	@echo "--> Build docker image: $(DOCKERX_IMAGE_NAME)"
-	@echo
+# enabling experimental Docker CLI features
+export DOCKER_CLI_EXPERIMENTAL=enabled
+
+ifeq ($(shell docker buildx ls | grep -q container-builder)), 1)
+	docker buildx create --platform ${PLATFORMS} --name container-builder --use
+endif
 
 .PHONY: docker.buildx.provisioner-nfs
-docker.buildx.provisioner-nfs: DOCKERX_IMAGE_NAME=$(DOCKERX_IMAGE_PROVISIONER_NFS)
-docker.buildx.provisioner-nfs: COMPONENT=$(PROVISIONER_NFS)
-docker.buildx.provisioner-nfs: docker.buildx
+docker.buildx.provisioner-nfs:
+	@docker buildx build --platform ${PLATFORMS} \
+		-t "$(DOCKERX_IMAGE_PROVISIONER_NFS)" ${DBUILD_ARGS} -f $(PWD)/buildscripts/$(PROVISIONER_NFS)/$(PROVISIONER_NFS).Dockerfile \
+		. ${PUSH_ARG}
+	@echo "--> Build docker image: $(DOCKERX_IMAGE_PROVISIONER_NFS)"
+	@echo
 
 .PHONY: buildx.push.provisioner-nfs
 buildx.push.provisioner-nfs:
 	BUILDX=true DIMAGE=${IMAGE_ORG}/provisioner-nfs ./buildscripts/push.sh
+
+.PHONY: docker.buildx.nfs-server
+docker.buildx.nfs-server:
+	@cd nfs-server-container && \
+		docker buildx build --platform ${PLATFORMS} -t "$(DOCKERX_IMAGE_NFS_SERVER)" . ${PUSH_ARG}
+	@echo "--> Build docker image: $(DOCKERX_IMAGE_NFS_SERVER)"
+	@echo
+
+.PHONY: buildx.push.nfs-server
+buildx.push.nfs-server:
+	BUILDX=true DIMAGE=${IMAGE_ORG}/nf-server-alpine ./buildscripts/push.sh

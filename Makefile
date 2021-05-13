@@ -41,11 +41,11 @@ ifeq (${IMAGE_TAG}, )
   export IMAGE_TAG
 endif
 
-ifeq (${TRAVIS_TAG}, )
+ifeq (${RELEASE_TAG}, )
   BASE_TAG = ci
   export BASE_TAG
 else
-  BASE_TAG = $(TRAVIS_TAG:v%=%)
+  BASE_TAG = $(RELEASE_TAG:v%=%)
   export BASE_TAG
 endif
 
@@ -143,11 +143,8 @@ verify-src:
 # Specify the name for the binaries
 PROVISIONER_NFS=provisioner-nfs
 
-# This variable is added specifically to build amd64 images from travis.
-# Once travis is deprecated, this field will be replaced by image name
-# used in Makefile.buildx.mk
-PROVISIONER_NFS_IMAGE?=provisioner-nfs-amd64
-NFS_SERVER_IMAGE?=nfs-server-alpine-amd64
+PROVISIONER_NFS_IMAGE?=provisioner-nfs
+NFS_SERVER_IMAGE?=nfs-server-alpine
 
 #Use this to build provisioner-nfs
 .PHONY: provisioner-nfs

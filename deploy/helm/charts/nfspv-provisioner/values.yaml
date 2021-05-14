@@ -35,7 +35,7 @@ nfspv:
   image:
     # Make sure that registry name end with a '/'.
     # For example : quay.io/ is a correct value here and quay.io is incorrect
-    registry: openebs
+    registry: 
     repository: openebs/provisioner-nfs
     tag:
     pullPolicy: IfNotPresent

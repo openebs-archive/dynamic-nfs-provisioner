@@ -6,4 +6,4 @@ The OpenEBS NFSPV Provisioner has been installed check its status by running:
 $ kubectl get pods -n {{ .Release.Namespace }}
 
 For more information, visit our Slack at https://openebs.io/community or view
-the documentation online at https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/develop/developer.md .
+the documentation online at https://github.com/openebs/dynamic-nfs-provisioner/.

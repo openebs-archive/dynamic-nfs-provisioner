@@ -35,8 +35,8 @@ nfspv:
   image:
     # Make sure that registry name end with a '/'.
     # For example : quay.io/ is a correct value here and quay.io is incorrect
-    registry:
-    repository: openebs/provisioner-nfs-amd64
+    registry: openebs
+    repository: openebs/provisioner-nfs
     tag:
     pullPolicy: IfNotPresent
   enableLeaderElection: "true"
@@ -64,6 +64,7 @@ nfsStorageClass:
   name: openebs-kernel-nfs
   reclaimPolicy: Delete
   nfsServerType: kernel
+  backendStorageClass: ""
 
 nfsServer:
    useClusterIP: "true"

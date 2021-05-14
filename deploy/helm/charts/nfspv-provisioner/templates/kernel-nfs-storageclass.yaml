@@ -8,5 +8,9 @@ metadata:
     cas.openebs.io/config: |
       - name: NFSServerType
         value: {{ .Values.nfsStorageClass.nfsServerType }}
+{{- if .Values.nfsStorageClass.backendStorageClass }}
+      - name: BackendStorageClass
+        value: {{ .Values.nfsStorageClass.backendStorageClass }}
+{{- end }}
 provisioner: openebs.io/nfsrwx
 reclaimPolicy: {{ .Values.nfsStorageClass.reclaimPolicy }}

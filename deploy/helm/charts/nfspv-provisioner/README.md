@@ -66,11 +66,11 @@ The following table lists the configurable parameters of the OpenEBS NFSPV Provi
 | Parameter                                   | Description                                   | Default                                   |
 | ------------------------------------------- | --------------------------------------------- | ----------------------------------------- | 
 | `analytics.enabled`                         | Enable sending stats to Google Analytics          | `true`                          |
-| `imagePullSecrets`                          | Provides image pull secrect                       | `""`                            |
+| `imagePullSecrets`                          | Provides image pull secret                       | `""`                            |
 | `nfspv.enabled`                             | Enable NFSPV Provisioner                          | `true`                          |
 | `nfspv.image.registry`                      | Registry for NFSPV Provisioner image              | `""`                            |
 | `nfspv.image.repository`                    | Image repository for NFSPV Provisioner            | `openebs/provisioner-nfs-amd64` |
-| `nfspvpv.image.tag`                         |	Image tag for NFSPV Provisioner	                  | `0.2.0`                         |
+| `nfspv.image.tag`                           | Image tag for NFSPV Provisioner	                  | `0.2.0`                         |
 | `nfspv.image.pullPolicy`                    | Image pull policy for NFSPV Provisioner           | `IfNotPresent`                  |
 | `nfspv.annotations`                         | Annotations for NFSPV Provisioner metadata        | `""`                            |
 | `nfspv.nodeSelector`                        | Nodeselector for NFSPV Provisioner pods           | `""`                            |

@@ -1,0 +1,16 @@
+#Storage classes for OpenEBS NFS Dynamic PV
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: {{ .Values.nfsStorageClass.name }}
+  annotations:
+    openebs.io/cas-type: nfsrwx
+    cas.openebs.io/config: |
+      - name: NFSServerType
+        value: {{ .Values.nfsStorageClass.nfsServerType }}
+{{- if .Values.nfsStorageClass.backendStorageClass }}
+      - name: BackendStorageClass
+        value: {{ .Values.nfsStorageClass.backendStorageClass }}
+{{- end }}
+provisioner: openebs.io/nfsrwx
+reclaimPolicy: {{ .Values.nfsStorageClass.reclaimPolicy }}

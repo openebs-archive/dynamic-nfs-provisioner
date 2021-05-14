@@ -1,0 +1,73 @@
+# Default values for nfspv-provisioner.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+rbac:
+  # rbac.create: `true` if rbac resources should be created
+  create: true
+  # rbac.pspEnabled: `true` if PodSecurityPolicy resources should be created
+  pspEnabled: false
+
+podSecurityContext: {}
+# fsGroup: 2000
+
+imagePullSecrets:
+ #- name: image-pull-secret
+
+fullnameOverride: ""
+nameOverride: ""
+
+nfspv:
+  name: nfspv-provisioner
+  enabled: true
+  annotations: {}
+  podLabels:
+    name: openebs-nfspv-provisioner
+  image:
+    # Make sure that registry name end with a '/'.
+    # For example : quay.io/ is a correct value here and quay.io is incorrect
+    registry: 
+    repository: openebs/provisioner-nfs
+    tag:
+    pullPolicy: IfNotPresent
+  enableLeaderElection: "true"
+  resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  #   requests:
+  #     cpu: 100m
+  #     memory: 128Mi
+  #   limits:
+  #     cpu: 100m
+  #     memory: 128Mi
+  # If set to false, containers created by the nfspv provisioner will run without extra privileges.
+  privileged: true
+  nodeSelector: { }
+  tolerations: [ ]
+  affinity: { }
+  healthCheck:
+    initialDelaySeconds: 30
+    periodSeconds: 60
+
+nfsStorageClass:
+  name: openebs-kernel-nfs
+  reclaimPolicy: Delete
+  nfsServerType: kernel
+  backendStorageClass: ""
+
+nfsServer:
+   useClusterIP: "true"
+
+analytics:
+  enabled: "true"

@@ -3,12 +3,12 @@
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: {{ include "nfspv.fullname" . }}
-  {{- with .Values.nfspv.annotations }}
+  name: {{ include "nfsProvisioner.fullname" . }}
+  {{- with .Values.nfsProvisioner.annotations }}
   annotations: {{ toYaml . | nindent 4 }}
   {{- end }}
   labels:
-  {{- include "nfspv.labels" . | nindent 4 }}
+  {{- include "nfsProvisioner.labels" . | nindent 4 }}
 rules:
   - apiGroups: ["*"]
     resources: ["nodes", "nodes/proxy"]
@@ -42,17 +42,17 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ include "nfspv.fullname" . }}-psp
-  {{- with .Values.nfspv.annotations }}
+  name: {{ include "nfsProvisioner.fullname" . }}-psp
+  {{- with .Values.nfsProvisioner.annotations }}
   annotations: {{ toYaml . | nindent 4 }}
   {{- end }}
   labels:
-  {{- include "nfspv.labels" . | nindent 4 }}
+  {{- include "nfsProvisioner.labels" . | nindent 4 }}
 rules:
   - apiGroups: ['policy']
     resources: ['podsecuritypolicies']
     verbs:     ['use']
     resourceNames:
-      - {{ include "nfspv.fullname" . }}-psp
+      - {{ include "nfsProvisioner.fullname" . }}-psp
 {{- end }}
 {{- end }}

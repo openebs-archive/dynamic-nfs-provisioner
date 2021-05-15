@@ -1,20 +1,20 @@
-{{- if .Values.nfspv.enabled }}
+{{- if .Values.nfsProvisioner.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "nfspv.fullname" . }}
+  name: {{ include "nfsProvisioner.fullname" . }}
   namespace: {{ .Release.Namespace }}
-  {{- if .Values.nfspv.annotations }}
-  annotations: {{- with .Values.nfspv.annotations }}
+  {{- if .Values.nfsProvisioner.annotations }}
+  annotations: {{- with .Values.nfsProvisioner.annotations }}
     {{ toYaml . | nindent 4 }}
   {{- end }}
   {{- end }}
   labels:
-  {{- include "nfspv.labels" . | nindent 4 }}
+  {{- include "nfsProvisioner.labels" . | nindent 4 }}
 spec:
   selector:
     matchLabels:
-      {{- include "nfspv.selectorLabels" . | nindent 8 }}
+      {{- include "nfsProvisioner.selectorLabels" . | nindent 8 }}
   replicas: 1
   strategy:
     type: Recreate
@@ -22,8 +22,8 @@ spec:
   template:
     metadata:
       labels:
-        {{- include "nfspv.labels" . | nindent 8  }}
-        {{- with .Values.nfspv.podLabels -}}
+        {{- include "nfsProvisioner.labels" . | nindent 8  }}
+        {{- with .Values.nfsProvisioner.podLabels -}}
         {{ toYaml . | nindent 8  }}
         {{- end }}
     spec:
@@ -31,18 +31,18 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "nfspv.serviceAccountName" . }}
+      serviceAccountName: {{ include "nfsProvisioner.serviceAccountName" . }}
       {{- if .Values.podSecurityContext }}
       securityContext:
           {{- toYaml .Values.podSecurityContext | nindent 8 }}
       {{- end }}
       containers:
-        - name: {{ include "nfspv.fullname" . }}
-          imagePullPolicy: {{ .Values.nfspv.image.pullPolicy }}
-          image: "{{ .Values.nfspv.image.registry }}{{ .Values.nfspv.image.repository }}:{{ default .Chart.AppVersion .Values.nfspv.image.tag }}"
-          {{- if .Values.nfspv.resources  }}
+        - name: {{ include "nfsProvisioner.fullname" . }}
+          imagePullPolicy: {{ .Values.nfsProvisioner.image.pullPolicy }}
+          image: "{{ .Values.nfsProvisioner.image.registry }}{{ .Values.nfsProvisioner.image.repository }}:{{ default .Chart.AppVersion .Values.nfsProvisioner.image.tag }}"
+          {{- if .Values.nfsProvisioner.resources  }}
           resources:
-          {{- toYaml .Values.nfspv.resources | nindent 12 }}
+          {{- toYaml .Values.nfsProvisioner.resources | nindent 12 }}
           {{ end }}
           env:
             # OPENEBS_IO_K8S_MASTER enables openebs provisioner to connect to K8s
@@ -78,7 +78,7 @@ spec:
           # LEADER_ELECTION_ENABLED is used to enable/disable leader election. By default
           # leader election is enabled.
             - name: LEADER_ELECTION_ENABLED
-              value: "{{ .Values.nfspv.enableLeaderElection }}"
+              value: "{{ .Values.nfsProvisioner.enableLeaderElection }}"
           # Process name used for matching is limited to the 15 characters
           # present in the pgrep output.
           # So fullname can't be used here with pgrep (>15 chars).A regular expression
@@ -91,18 +91,18 @@ spec:
                 - sh
                 - -c
                 - test `pgrep -c "^provisioner-nfs.*"` = 1
-            initialDelaySeconds: {{ .Values.nfspv.healthCheck.initialDelaySeconds }}
-            periodSeconds: {{ .Values.nfspv.healthCheck.periodSeconds }}
-{{- if .Values.nfspv.nodeSelector }}
+            initialDelaySeconds: {{ .Values.nfsProvisioner.healthCheck.initialDelaySeconds }}
+            periodSeconds: {{ .Values.nfsProvisioner.healthCheck.periodSeconds }}
+{{- if .Values.nfsProvisioner.nodeSelector }}
       nodeSelector:
-{{ toYaml .Values.nfspv.nodeSelector | indent 8 }}
+{{ toYaml .Values.nfsProvisioner.nodeSelector | indent 8 }}
 {{- end }}
-{{- if .Values.nfspv.tolerations }}
+{{- if .Values.nfsProvisioner.tolerations }}
       tolerations:
-{{ toYaml .Values.nfspv.tolerations | indent 8 }}
+{{ toYaml .Values.nfsProvisioner.tolerations | indent 8 }}
 {{- end }}
-{{- if .Values.nfspv.affinity }}
+{{- if .Values.nfsProvisioner.affinity }}
       affinity:
-{{ toYaml .Values.nfspv.affinity | indent 8 }}
+{{ toYaml .Values.nfsProvisioner.affinity | indent 8 }}
 {{- end }}
 {{- end }}

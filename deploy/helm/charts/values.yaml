@@ -26,12 +26,12 @@ imagePullSecrets:
 fullnameOverride: ""
 nameOverride: ""
 
-nfspv:
-  name: nfspv-provisioner
+nfsProvisioner:
+  name: nfs-provisioner
   enabled: true
   annotations: {}
   podLabels:
-    name: openebs-nfspv-provisioner
+    name: openebs-nfs-provisioner
   image:
     # Make sure that registry name end with a '/'.
     # For example : quay.io/ is a correct value here and quay.io is incorrect
@@ -51,7 +51,7 @@ nfspv:
   #   limits:
   #     cpu: 100m
   #     memory: 128Mi
-  # If set to false, containers created by the nfspv provisioner will run without extra privileges.
+  # If set to false, containers created by the nfs provisioner will run without extra privileges.
   privileged: true
   nodeSelector: {}
   tolerations: []

@@ -1,8 +1,8 @@
-#  OpenEBS NFSPV Provisioner
+#  OpenEBS NFS PV Provisioner
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-A Helm chart for openebs dynamic nfspv provisioner. This chart bootstraps OpenEBS Dynamic NFSPV provisioner deployment on a [Kubernetes](http://kubernetes.io) cluster using the  [Helm](https://helm.sh) package manager.
+A Helm chart for openebs dynamic nfs provisioner. This chart bootstraps OpenEBS Dynamic NFS PV provisioner deployment on a [Kubernetes](http://kubernetes.io) cluster using the  [Helm](https://helm.sh) package manager.
 
 
 **Homepage:** <http://www.openebs.io/>
@@ -20,7 +20,7 @@ A Helm chart for openebs dynamic nfspv provisioner. This chart bootstraps OpenEB
 ## Get Repo Info
 
 ```console
-helm repo add openebs-nfspv https://openebs.github.io/dynamic-nfspv-provisioner
+helm repo add openebs-nfs https://openebs.github.io/dynamic-nfs-provisioner
 helm repo update
 ```
 
@@ -28,11 +28,11 @@ _See [helm repo](https://helm.sh/docs/helm/helm_repo/) for command documentation
 
 ## Install Chart
 
-Please visit the [link](https://openebs.github.io/dynamic-nfspv-provisioner/) for install instructions via helm3.
+Please visit the [link](https://openebs.github.io/dynamic-nfs-provisioner/) for install instructions via helm3.
 
 ```console
 # Helm
-$ helm install [RELEASE_NAME] openebs-nfspv/nfspv-provisioner
+$ helm install [RELEASE_NAME] openebs-nfs/nfs-provisioner
 ```
 
 _See [configuration](#configuration) below._
@@ -61,33 +61,33 @@ $ helm upgrade [RELEASE_NAME] [CHART] --install
 
 ## Configuration
 
-The following table lists the configurable parameters of the OpenEBS NFSPV Provisioner chart and their default values.
+The following table lists the configurable parameters of the OpenEBS NFS PV Provisioner chart and their default values.
 
 | Parameter                                   | Description                                   | Default                                   |
 | ------------------------------------------- | --------------------------------------------- | ----------------------------------------- | 
 | `analytics.enabled`                         | Enable sending stats to Google Analytics          | `true`                          |
 | `imagePullSecrets`                          | Provides image pull secret                       | `""`                            |
-| `nfspv.enabled`                             | Enable NFSPV Provisioner                          | `true`                          |
-| `nfspv.image.registry`                      | Registry for NFSPV Provisioner image              | `""`                            |
-| `nfspv.image.repository`                    | Image repository for NFSPV Provisioner            | `openebs/provisioner-nfs-amd64` |
-| `nfspv.image.tag`                           | Image tag for NFSPV Provisioner	                  | `0.2.0`                         |
-| `nfspv.image.pullPolicy`                    | Image pull policy for NFSPV Provisioner           | `IfNotPresent`                  |
-| `nfspv.annotations`                         | Annotations for NFSPV Provisioner metadata        | `""`                            |
-| `nfspv.nodeSelector`                        | Nodeselector for NFSPV Provisioner pods           | `""`                            |
-| `nfspv.tolerations`                         | NFSPV Provisioner pod toleration values           | `""`                            |
-| `nfspv.securityContext`                     | Seurity context for container                     | `""`                            |
-| `nfspv.healthCheck.initialDelaySeconds`     | Delay before liveness probe is initiated          | `30`                            |
-| `nfspv.healthCheck.periodSeconds`           | How often to perform the liveness probe           | `60`                            | 
-| `nfspv.enableLeaderElection`                | Enable leader election                            | `true`                          |
+| `nfsProvisioner.enabled`                             | Enable NFS PV Provisioner                          | `true`                          |
+| `nfsProvisioner.image.registry`                      | Registry for NFS PV Provisioner image              | `""`                            |
+| `nfsProvisioner.image.repository`                    | Image repository for NFS PV Provisioner            | `openebs/provisioner-nfs` |
+| `nfsProvisioner.image.tag`                           | Image tag for NFS PV Provisioner	                  | `0.2.0`                         |
+| `nfsProvisioner.image.pullPolicy`                    | Image pull policy for NFS PV Provisioner           | `IfNotPresent`                  |
+| `nfsProvisioner.annotations`                         | Annotations for NFS PV Provisioner metadata        | `""`                            |
+| `nfsProvisioner.nodeSelector`                        | Nodeselector for NFS PV Provisioner pods           | `""`                            |
+| `nfsProvisioner.tolerations`                         | NFS PV Provisioner pod toleration values           | `""`                            |
+| `nfsProvisioner.securityContext`                     | Security context for container                     | `""`                            |
+| `nfsProvisioner.healthCheck.initialDelaySeconds`     | Delay before liveness probe is initiated          | `30`                            |
+| `nfsProvisioner.healthCheck.periodSeconds`           | How often to perform the liveness probe           | `60`                            | 
+| `nfsProvisioner.enableLeaderElection`                | Enable leader election                            | `true`                          |
 | `rbac.create`                               | Enable RBAC Resources                             | `true`                          |
 | `rbac.pspEnabled`                           | Create pod security policy resources              | `false`                         |
-| `nfspv.affinity`                            | NFSPV Provisioner pod affinity                    | `{}`                            | 
+| `nfsProvisioner.affinity`                            | NFS PV Provisioner pod affinity                    | `{}`                            | 
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`.
 
 Alternatively, a YAML file that specifies the values for the parameters can be provided while installing the chart. For example,
 
 ```bash
-helm install <release-name> -f values.yaml ----namespace openebs nfspv-provisioner
+helm install <release-name> -f values.yaml ----namespace openebs nfs-provisioner
 ```
 
 > **Tip**: You can use the default [values.yaml](values.yaml)

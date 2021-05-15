@@ -2,14 +2,14 @@
 apiVersion: policy/v1beta1
 kind: PodSecurityPolicy
 metadata:
-  name: {{ template "nfspv.fullname" . }}-psp
-  {{- with .Values.nfspv.annotations }}
+  name: {{ template "nfsProvisioner.fullname" . }}-psp
+  {{- with .Values.nfsProvisioner.annotations }}
   annotations: {{ toYaml . | nindent 4 }}
   {{- end }}
   labels:
-  {{- include "nfspv.labels" . | nindent 4 }}
+  {{- include "nfsProvisioner.labels" . | nindent 4 }}
 spec:
-  privileged: {{ .Values.nfspv.privileged }}
+  privileged: {{ .Values.nfsProvisioner.privileged }}
   allowPrivilegeEscalation: true
   allowedCapabilities: ['*']
   volumes: ['*']

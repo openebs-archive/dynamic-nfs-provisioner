@@ -4,19 +4,19 @@
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: {{ include "nfspv.fullname" . }}
-  {{- with .Values.nfspv.annotations }}
+  name: {{ include "nfsProvisioner.fullname" . }}
+  {{- with .Values.nfsProvisioner.annotations }}
   annotations: {{ toYaml . | nindent 4 }}
   {{- end }}
   labels:
-  {{- include "nfspv.labels" . | nindent 4 }}
+  {{- include "nfsProvisioner.labels" . | nindent 4 }}
 roleRef:
   kind: ClusterRole
-  name: {{ include "nfspv.fullname" . }}
+  name: {{ include "nfsProvisioner.fullname" . }}
   apiGroup: rbac.authorization.k8s.io
 subjects:
   - kind: ServiceAccount
-    name: {{ include "nfspv.serviceAccountName" . }}
+    name: {{ include "nfsProvisioner.serviceAccountName" . }}
     namespace: {{ .Release.Namespace }}
 
 {{- if .Values.rbac.pspEnabled }}
@@ -24,20 +24,20 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: {{ include "nfspv.fullname" . }}-psp
-  {{- with .Values.nfspv.annotations }}
+  name: {{ include "nfsProvisioner.fullname" . }}-psp
+  {{- with .Values.nfsProvisioner.annotations }}
   annotations: {{ toYaml . | nindent 4 }}
   {{- end }}
   labels:
-  {{- include "nfspv.labels" . | nindent 4 }}
+  {{- include "nfsProvisioner.labels" . | nindent 4 }}
 roleRef:
   kind: ClusterRole
-  name: {{ include "nfspv.fullname" . }}-psp
+  name: {{ include "nfsProvisioner.fullname" . }}-psp
   apiGroup: rbac.authorization.k8s.io
 subjects:
   # Authorize specific service accounts:
   - kind: ServiceAccount
-    name: {{ include "nfspv.serviceAccountName" . }}
+    name: {{ include "nfsProvisioner.serviceAccountName" . }}
     namespace: {{ .Release.Namespace }}
 {{- end }}
 {{- end }}

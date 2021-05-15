@@ -1,5 +1,5 @@
 apiVersion: v2
-name: nfspv-provisioner
+name: nfs-provisioner
 description: Helm chart for OpenEBS Dynamic NFS PV. For instructions to install OpenEBS Dynamic NFS PV using helm chart, refer to https://openebs.github.io/dynamic-nfs-provisioner.
 type: application
 # This is the chart version. This version number should be incremented each time you make changes
@@ -13,7 +13,8 @@ home: http://www.openebs.io/
 keywords:
   - storage
   - nfs
-  - dynamic-nfspv
+  - dynamic-nfs-pv
+  - kubernetes
 sources:
   - https://github.com/openebs/dynamic-nfs-provisioner
 

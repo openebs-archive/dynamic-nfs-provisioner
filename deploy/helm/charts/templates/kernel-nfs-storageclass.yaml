@@ -13,5 +13,12 @@ metadata:
       - name: BackendStorageClass
         value: {{ .Values.nfsStorageClass.backendStorageClass }}
 {{- end }}
+{{- if .Values.nfsStorageClass.customServerConfig }}
+      - name: CustomServerConfig
+        value: {{ .Values.nfsStorageClass.customServerConfig }}
+{{- end }}
+{{- if .Values.nfsStorageClass.isDefaultClass }}
+    storageclass.kubernetes.io/is-default-class: "true"
+{{- end }}
 provisioner: openebs.io/nfsrwx
 reclaimPolicy: {{ .Values.nfsStorageClass.reclaimPolicy }}

@@ -64,7 +64,14 @@ nfsStorageClass:
   name: openebs-kernel-nfs
   reclaimPolicy: Delete
   nfsServerType: kernel
+  isDefaultClass: false
   backendStorageClass: ""
+  # The customServerConfig key passes a custom /etc/exports configuration to
+  # the NFS servers created using this StorageClass.
+  # The configuration settings are not validated, and can lead to security
+  # vulnerability.
+  # USING THIS IS NOT RECOMMENDED
+  customServerConfig: ""
 
 nfsServer:
   useClusterIP: "true"

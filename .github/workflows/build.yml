@@ -20,7 +20,7 @@ on:
       - 'develop'
       - 'v*'
     paths-ignore:
-      - 'deploy/**'
+      - 'deploy/helm/**'
       - 'MAINTAINERS'
       - '*.md'
       - 'LICENSE'

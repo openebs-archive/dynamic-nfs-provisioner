@@ -21,7 +21,7 @@ podSecurityContext: {}
 # fsGroup: 2000
 
 imagePullSecrets:
- #- name: image-pull-secret
+# - name: image-pull-secret
 
 fullnameOverride: ""
 nameOverride: ""
@@ -35,7 +35,7 @@ nfspv:
   image:
     # Make sure that registry name end with a '/'.
     # For example : quay.io/ is a correct value here and quay.io is incorrect
-    registry: 
+    registry:
     repository: openebs/provisioner-nfs
     tag:
     pullPolicy: IfNotPresent
@@ -53,9 +53,9 @@ nfspv:
   #     memory: 128Mi
   # If set to false, containers created by the nfspv provisioner will run without extra privileges.
   privileged: true
-  nodeSelector: { }
-  tolerations: [ ]
-  affinity: { }
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
   healthCheck:
     initialDelaySeconds: 30
     periodSeconds: 60
@@ -67,7 +67,7 @@ nfsStorageClass:
   backendStorageClass: ""
 
 nfsServer:
-   useClusterIP: "true"
+  useClusterIP: "true"
 
 analytics:
   enabled: "true"

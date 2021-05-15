@@ -1,3 +1,4 @@
+---
 # Bind the Service Account with the Role Privileges.
 {{- if .Values.rbac.create }}
 kind: ClusterRoleBinding

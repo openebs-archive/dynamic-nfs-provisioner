@@ -28,14 +28,45 @@ _See [helm repo](https://helm.sh/docs/helm/helm_repo/) for command documentation
 
 ## Install Chart
 
-The chart requires a StorageClass to provision the backend volume for the NFS share. If a StorageClass is not specified (use `--set-string nfsStorageClass.backendStorageClass` to specify -- details given below), the default StorageClass is used.
-
-Please visit this [link](https://helm.sh/docs/) for helm 3 installation instructions.
+Run the following command to install the OpenEBS Dynamic NFS Provisioner helm chart using the default StorageClass as the Backend StorageClass:
 
 ```console
 # Helm
 helm install [RELEASE_NAME] openebs-nfs/nfs-provisioner --namespace [NAMESPACE] --create-namespace
 ```
+
+The chart requires a StorageClass to provision the backend volume for the NFS share. You can use the `--set-string nfsStorageClass.backendStorageClass=<storageclass-name>` flag in the `helm install` command to specify the Backend StorageClass. If a StorageClass is not specified, the default StorageClass is used.
+
+Use the command below to get the name of the default StorageClasses in your cluster:
+
+```console
+kubectl get sc -o=jsonpath='{range .items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")]}{@.metadata.name}{"\n"}{end}'
+```
+
+Sample command to install the OpenEBS Dynamic NFS Provisioner helm chart using the default StorageClass as BackendStorageClass:
+
+```console
+helm install openebs-nfs openebs-nfs/nfs-provisioner --namespace openebs --create-namespace
+```
+
+If you do not have an available StorageClass, you can install the [OpenEBS Dynamic LocalPV Provisioner helm chart](https://openebs.github.io/dynamic-localpv-provisioner) and use the 'openebs-hostpath' StorageClass as Backend Storage Class. Sample commands:
+
+```console
+# Add openebs-localpv repo
+helm repo add openebs-localpv https://openebs.github.io/dynamic-localpv-provisioner
+helm repo update
+
+# Install localpv-provisioner
+helm install openebs-localpv openebs-localpv/localpv-provisioner -n openebs --create-namespace \
+	--set openebsNDM.enabled=false \
+	--set deviceClass.enabled=false
+
+# Install nfs-provisioner
+helm install openebs-nfs openebs-nfs/nfs-provisioner -n openebs \
+	--set-string nfsStorageClass.backendStorageClass="openebs-hostpath"
+```
+
+Please visit this [link](https://helm.sh/docs/) for helm 3 installation instructions.
 
 _See [configuration](#configuration) below._
 

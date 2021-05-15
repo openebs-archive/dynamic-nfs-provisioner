@@ -30,7 +30,7 @@ _See [helm repo](https://helm.sh/docs/helm/helm_repo/) for command documentation
 
 The chart requires a StorageClass to provision the backend volume for the NFS share. If a StorageClass is not specified (use `--set-string nfsStorageClass.backendStorageClass` to specify -- details given below), the default StorageClass is used.
 
-Please visit this [link](https://openebs.github.io/dynamic-nfs-provisioner/) for helm 3 installation instructions.
+Please visit this [link](https://helm.sh/docs/) for helm 3 installation instructions.
 
 ```console
 # Helm

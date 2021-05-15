@@ -26,7 +26,7 @@ helm repo update
 Run the following command to install the OpenEBS Dynamic NFS Provisioner helm chart using the default StorageClass as the Backend StorageClass:
 ```console
 helm install [RELEASE_NAME] openebs-nfs/nfs-provisioner --namespace [NAMESPACE] --create-namespace
-```nfsStorageClass.backendStorageClass=<storageclass-name>
+```
 
 The chart requires a StorageClass to provision the backend volume for the NFS share. You can use the `--set-string nfsStorageClass.backendStorageClass=<storageclass-name>` flag in the `helm install` command to specify the Backend StorageClass. If a StorageClass is not specified, the default StorageClass is used.
 

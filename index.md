@@ -51,7 +51,7 @@ helm repo update
 # Install localpv-provisioner
 helm install openebs-localpv openebs-localpv/localpv-provisioner -n openebs --create-namespace \
 	--set openebsNDM.enabled=false \
-	--set deviceClass.enabled=false \
+	--set deviceClass.enabled=false
 
 # Install nfs-provisioner
 helm install openebs-nfs openebs-nfs/nfs-provisioner -n openebs \

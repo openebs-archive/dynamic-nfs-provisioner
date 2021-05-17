@@ -121,6 +121,9 @@ helm install openebs-nfs openebs-nfs/nfs-provisioner --namespace openebs --creat
 | `nfsProvisioner.image.pullPolicy`     | Image pull policy for NFS Provisioner image   | `IfNotPresent`                  |
 | `nfsProvisioner.annotations`          | Annotations for NFS Provisioner metadata      | `""`                            |
 | `nfsProvisioner.nodeSelector`         | Nodeselector for NFS Provisioner pod          | `""`                            |
+| `nfsProvisioner.nfsServerAlpineImage.registry`         | Registry for nfs-server-alpine          | `""`                            |
+| `nfsProvisioner.nfsServerAlpineImage.repository`         | Image repository for nfs-server-alpine          | `openebs/nfs-server-alpine`                            |
+| `nfsProvisioner.nfsServerAlpineImage.tag`         | Image tag for nfs-server-alpine          | `""`                            |
 | `nfsProvisioner.resources`            | Resource request and limit for the container  | `true`                          |
 | `nfsProvisioner.securityContext`      | Security context for container                | `""`                            |
 | `nfsProvisioner.tolerations`          | NFS Provisioner pod toleration values         | `""`                            |

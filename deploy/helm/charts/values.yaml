@@ -40,6 +40,13 @@ nfsProvisioner:
     tag:
     pullPolicy: IfNotPresent
   enableLeaderElection: "true"
+  # Specify image name of nfs-server-alpine used for creating nfs server deployment
+  # If not mentioned, default value openebs/nfs-server-alpine:tag will be used where
+  # the tag will be the same as a provisioner-nfs image tag
+  nfsServerAlpineImage:
+    registry:
+    repository: openebs/nfs-server-alpine
+    tag:
   resources:
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little

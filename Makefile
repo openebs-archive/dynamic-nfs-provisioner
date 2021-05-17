@@ -38,16 +38,12 @@ PACKAGES_IT = $(shell go list ./... | grep -v 'vendor\|pkg/client/generated' | g
 
 ifeq (${IMAGE_TAG}, )
   IMAGE_TAG = ci
-  export IMAGE_TAG
 endif
 
-ifeq (${RELEASE_TAG}, )
-  BASE_TAG = ci
-  export BASE_TAG
-else
-  BASE_TAG = $(RELEASE_TAG:v%=%)
-  export BASE_TAG
+ifneq (${RELEASE_TAG}, )
+  IMAGE_TAG = $(RELEASE_TAG:v%=%)
 endif
+export IMAGE_TAG
 
 # The images can be pushed to any docker/image registeries
 # like docker hub, quay. The registries are specified in 
@@ -146,13 +142,20 @@ PROVISIONER_NFS=provisioner-nfs
 PROVISIONER_NFS_IMAGE?=provisioner-nfs
 NFS_SERVER_IMAGE?=nfs-server-alpine
 
+# final tag name for provisioner nfs image
+PROVISIONER_NFS_IMAGE_TAG=${IMAGE_ORG}/${PROVISIONER_NFS_IMAGE}:${IMAGE_TAG}
+
+# final tag name for nfs-server image
+NFS_SERVER_IMAGE_TAG=${IMAGE_ORG}/${NFS_SERVER_IMAGE}:${IMAGE_TAG}
+
 #Use this to build provisioner-nfs
 .PHONY: provisioner-nfs
 provisioner-nfs:
+	@echo ${RELEASE_TAG} ${IMAGE_TAG} ${NFS_SERVER_IMAGE_TAG}
 	@echo "----------------------------"
 	@echo "--> provisioner-nfs    "
 	@echo "----------------------------"
-	@PNAME=${PROVISIONER_NFS} CTLNAME=${PROVISIONER_NFS} sh -c "'$(PWD)/buildscripts/build.sh'"
+	@PNAME=${PROVISIONER_NFS} CTLNAME=${PROVISIONER_NFS} NFSSERVERIMG=${NFS_SERVER_IMAGE_TAG} sh -c "'$(PWD)/buildscripts/build.sh'"
 
 .PHONY: provisioner-nfs-image
 provisioner-nfs-image: provisioner-nfs
@@ -160,7 +163,7 @@ provisioner-nfs-image: provisioner-nfs
 	@echo "--> provisioner-nfs image "
 	@echo "-------------------------------"
 	@cp bin/provisioner-nfs/${PROVISIONER_NFS} buildscripts/provisioner-nfs/
-	@cd buildscripts/provisioner-nfs && docker build -t ${IMAGE_ORG}/${PROVISIONER_NFS_IMAGE}:${IMAGE_TAG} ${DBUILD_ARGS} . --no-cache
+	@cd buildscripts/provisioner-nfs && docker build -t ${PROVISIONER_NFS_IMAGE_TAG} ${DBUILD_ARGS} . --no-cache
 	@rm buildscripts/provisioner-nfs/${PROVISIONER_NFS}
 
 .PHONY: nfs-server-image
@@ -168,7 +171,7 @@ nfs-server-image:
 	@echo "----------------------------"
 	@echo "--> nfs-server image    "
 	@echo "----------------------------"
-	@cd nfs-server-container && docker build -t ${IMAGE_ORG}/${NFS_SERVER_IMAGE}:${IMAGE_TAG} . --no-cache
+	@cd nfs-server-container && docker build -t ${NFS_SERVER_IMAGE_TAG} . --no-cache
 
 .PHONY: license-check
 license-check:

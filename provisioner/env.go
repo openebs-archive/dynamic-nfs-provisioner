@@ -40,11 +40,23 @@ const (
 	// ProvisionerNFSServerUseClusterIP is the environment variable that
 	// allows user to specify if ClusterIP should be used in NFS K8s Service
 	ProvisionerNFSServerUseClusterIP menv.ENVKey = "OPENEBS_IO_NFS_SERVER_USE_CLUSTERIP"
+
+	// NFSServerImageKey is the environment variable that
+	// store the container image name to be used for nfs-server deployment
+	//
+	// Note: If image name is not mentioned then provisioner.ProvisionerNFSServerImage
+	//
+	NFSServerImageKey menv.ENVKey = "OPENEBS_IO_NFS_SERVER_IMG"
 )
 
 var (
 	defaultNFSServerType = "kernel"
 	defaultExportsSC     = ""
+
+	// NFSServerDefaultImage specifies the image name to be used in
+	// nfs server deployment. If image name is mentioned as a env variable
+	// provisioner.NFSServerImageKey then value from env variable will be used
+	NFSServerDefaultImage string
 )
 
 func getOpenEBSNamespace() string {
@@ -60,4 +72,8 @@ func getDefaultNFSServerType() string {
 
 func getOpenEBSServiceAccountName() string {
 	return menv.Get(menv.OpenEBSServiceAccount)
+}
+
+func getNFSServerImage() string {
+	return menv.GetOrDefault(NFSServerImageKey, string(NFSServerDefaultImage))
 }

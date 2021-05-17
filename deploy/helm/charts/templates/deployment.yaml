@@ -75,12 +75,8 @@ spec:
               value: "{{ .Values.nfsServer.useClusterIP }}"
             - name: OPENEBS_IO_INSTALLER_TYPE
               value: "charts-helm"
-            # OPENEBS_IO_NFS_SERVER_IMG defines the nfs-server-alpine image name to be used
-            # while creating nfs volume
-            - name: OPENEBS_IO_NFS_SERVER_IMG
-              value: "{{ .Values.nfsProvisioner.nfsServerAlpineImage }}"
-            # LEADER_ELECTION_ENABLED is used to enable/disable leader election. By default
-            # leader election is enabled.
+          # LEADER_ELECTION_ENABLED is used to enable/disable leader election. By default
+          # leader election is enabled.
             - name: LEADER_ELECTION_ENABLED
               value: "{{ .Values.nfsProvisioner.enableLeaderElection }}"
           # Process name used for matching is limited to the 15 characters

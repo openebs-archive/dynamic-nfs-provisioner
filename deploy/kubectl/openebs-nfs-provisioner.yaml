@@ -122,6 +122,10 @@ spec:
           value: "true"
         - name: OPENEBS_IO_INSTALLER_TYPE
           value: "openebs-operator-nfs"
+        # OPENEBS_IO_NFS_SERVER_IMG defines the nfs-server-alpine image name to be used
+        # while creating nfs volume
+        #- name: OPENEBS_IO_NFS_SERVER_IMG
+        #  value: openebs/nfs-server-alpine:ci
         # LEADER_ELECTION_ENABLED is used to enable/disable leader election. By default
         # leader election is enabled.
         #- name: LEADER_ELECTION_ENABLED

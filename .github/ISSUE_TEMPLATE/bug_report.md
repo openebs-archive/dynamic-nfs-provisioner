@@ -20,7 +20,8 @@ Steps to reproduce the bug should be clear and easily reproducible to help peopl
 <!-- (Pasting long output into a [GitHub gist](https://gist.github.com) or other [Pastebin](https://pastebin.com/) is fine.) -->
 
 * `kubectl get pods -n <openebs_namespace> --show-labels`
-* `kubectl logs <upgrade_job_pod> -n <openebs_namespace>`
+* `kubectl get pvc -n <openebs_namespace>`
+* `kubectl get pvc -n <application_namespace>`
 
 **Anything else we need to know?:**
 Add any other context about the problem here.

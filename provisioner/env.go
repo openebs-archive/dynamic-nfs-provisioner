@@ -56,7 +56,7 @@ var (
 	// NFSServerDefaultImage specifies the image name to be used in
 	// nfs server deployment. If image name is mentioned as a env variable
 	// provisioner.NFSServerImageKey then value from env variable will be used
-	NFSServerDefaultImage = "openebs/nfs-server-alpine:latest"
+	NFSServerDefaultImage string
 )
 
 func getOpenEBSNamespace() string {

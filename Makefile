@@ -151,7 +151,6 @@ NFS_SERVER_IMAGE_TAG=${IMAGE_ORG}/${NFS_SERVER_IMAGE}:${IMAGE_TAG}
 #Use this to build provisioner-nfs
 .PHONY: provisioner-nfs
 provisioner-nfs:
-	@echo ${RELEASE_TAG} ${IMAGE_TAG} ${NFS_SERVER_IMAGE_TAG}
 	@echo "----------------------------"
 	@echo "--> provisioner-nfs    "
 	@echo "----------------------------"

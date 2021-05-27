@@ -137,7 +137,7 @@ spec:
             command:
             - sh
             - -c
-            - test `pgrep -c "^provisioner-nfs.*"` = 1
+            - test `pgrep "^provisioner-nfs.*"` = 1
           initialDelaySeconds: 30
           periodSeconds: 60
 ---

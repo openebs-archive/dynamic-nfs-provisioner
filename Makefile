@@ -36,15 +36,6 @@ PACKAGES = $(shell go list ./... | grep -v 'vendor\|pkg/client/generated\|tests'
 # list only the integration tests code directories
 PACKAGES_IT = $(shell go list ./... | grep -v 'vendor\|pkg/client/generated' | grep 'tests')
 
-ifeq (${IMAGE_TAG}, )
-  IMAGE_TAG = ci
-endif
-
-ifneq (${RELEASE_TAG}, )
-  IMAGE_TAG = $(RELEASE_TAG:v%=%)
-endif
-export IMAGE_TAG
-
 # The images can be pushed to any docker/image registeries
 # like docker hub, quay. The registries are specified in 
 # the `buildscripts/push` script.
@@ -64,8 +55,33 @@ export IMAGE_TAG
 
 ifeq (${IMAGE_ORG}, )
   IMAGE_ORG = openebs
-  export IMAGE_ORG
 endif
+
+# Default tag for the image
+# If IMAGE_TAG is mentioned then TAG will be set to IMAGE_TAG
+# If RELEASE_TAG is mentioned then TAG will be set to RELEAE_TAG
+# If both are mentioned then TAG will be set to RELEASE_TAG
+TAG=ci
+
+ifneq (${IMAGE_TAG}, )
+  TAG=${IMAGE_TAG:v%=%}
+endif
+
+ifneq (${RELEASE_TAG}, )
+  TAG=${RELEASE_TAG:v%=%}
+endif
+
+# Specify the name for the binaries
+PROVISIONER_NFS=provisioner-nfs
+
+PROVISIONER_NFS_IMAGE?=provisioner-nfs
+NFS_SERVER_IMAGE?=nfs-server-alpine
+
+# final tag name for provisioner nfs image
+PROVISIONER_NFS_IMAGE_TAG=${IMAGE_ORG}/${PROVISIONER_NFS_IMAGE}:${TAG}
+
+# final tag name for nfs-server image
+NFS_SERVER_IMAGE_TAG=${IMAGE_ORG}/${NFS_SERVER_IMAGE}:${TAG}
 
 # Specify the date of build
 DBUILD_DATE=$(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
@@ -82,7 +98,10 @@ ifeq (${DBUILD_SITE_URL}, )
   export DBUILD_SITE_URL
 endif
 
-export DBUILD_ARGS=--build-arg DBUILD_DATE=${DBUILD_DATE} --build-arg DBUILD_REPO_URL=${DBUILD_REPO_URL} --build-arg DBUILD_SITE_URL=${DBUILD_SITE_URL}
+export DBUILD_ARGS=--build-arg DBUILD_DATE=${DBUILD_DATE} --build-arg DBUILD_REPO_URL=${DBUILD_REPO_URL} --build-arg DBUILD_SITE_URL=${DBUILD_SITE_URL} --build-arg RELEASE_TAG=${TAG}
+
+# include the buildx recipes
+include Makefile.buildx.mk
 
 .PHONY: all
 all: test provisioner-nfs-image
@@ -136,18 +155,6 @@ verify-src:
 	@echo "--> Checking for git changes post running tests";
 	$(PWD)/buildscripts/check-diff.sh "format"
 
-# Specify the name for the binaries
-PROVISIONER_NFS=provisioner-nfs
-
-PROVISIONER_NFS_IMAGE?=provisioner-nfs
-NFS_SERVER_IMAGE?=nfs-server-alpine
-
-# final tag name for provisioner nfs image
-PROVISIONER_NFS_IMAGE_TAG=${IMAGE_ORG}/${PROVISIONER_NFS_IMAGE}:${IMAGE_TAG}
-
-# final tag name for nfs-server image
-NFS_SERVER_IMAGE_TAG=${IMAGE_ORG}/${NFS_SERVER_IMAGE}:${IMAGE_TAG}
-
 #Use this to build provisioner-nfs
 .PHONY: provisioner-nfs
 provisioner-nfs:
@@ -190,6 +197,3 @@ license-check:
 push:
 	DIMAGE=${IMAGE_ORG}/${PROVISIONER_NFS_IMAGE} ./buildscripts/push.sh
 	DIMAGE=${IMAGE_ORG}/${NFS_SERVER_IMAGE} ./buildscripts/push.sh
-
-# include the buildx recipes
-include Makefile.buildx.mk

@@ -30,9 +30,25 @@ import (
 // ProvisionKernalNFSServer is invoked by the Provisioner to create a NFS
 //  with kernel NFS server
 func (p *Provisioner) ProvisionKernalNFSServer(opts pvController.ProvisionOptions, volumeConfig *VolumeConfig) (*v1.PersistentVolume, error) {
+	var leaseTime, graceTime int
+	var leaseErr, graceErr error
+
 	pvc := opts.PVC
 	name := opts.PVName
 	capacity := opts.PVC.Spec.Resources.Requests[v1.ResourceName(v1.ResourceStorage)]
+
+	leaseTime, leaseErr = volumeConfig.GetNFSServerLeaseTime()
+	graceTime, graceErr = volumeConfig.GetNFServerGraceTime()
+	if leaseErr != nil || graceErr != nil {
+		klog.Errorf("Error parsing lease/grace time, leaseError=%s graceError=%s", leaseErr, graceErr)
+		alertlog.Logger.Errorw("",
+			"eventcode", "nfs.pv.provision.failure",
+			"msg", "Failed to provision NFS PV",
+			"rname", opts.PVName,
+			"reason", "Parsing failed for lease/grace time",
+			"storagetype", "nfs-kernel",
+		)
+	}
 
 	//Extract the details to create a NFS Server
 	nfsServerOpts := &KernelNFSServerOptions{
@@ -41,6 +57,8 @@ func (p *Provisioner) ProvisionKernalNFSServer(opts pvController.ProvisionOption
 		capacity:              capacity.String(),
 		backendStorageClass:   volumeConfig.GetBackendStorageClassFromConfig(),
 		nfsServerCustomConfig: volumeConfig.GetCustomNFSServerConfig(),
+		leaseTime:             leaseTime,
+		graceTime:             graceTime,
 	}
 
 	nfsService, err := p.getNFSServerAddress(nfsServerOpts)

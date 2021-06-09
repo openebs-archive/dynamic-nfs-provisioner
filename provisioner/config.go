@@ -18,6 +18,7 @@ limitations under the License.
 package provisioner
 
 import (
+	"strconv"
 	"strings"
 
 	mconfig "github.com/openebs/maya/pkg/apis/openebs.io/v1alpha1"
@@ -44,6 +45,14 @@ const (
 	//CustomServerConfig defines the server configuration to use,
 	// if it is set. Otherwise, use the default NFS server configuration.
 	CustomServerConfig = "CustomServerConfig"
+
+	// LeaseTime defines the renewl period(in seconds) for client state
+	// if not set then default value(90s) will be used
+	LeaseTime = "LeaseTime"
+
+	// GraceTime defines the recovery period(in seconds) to reclaim locks
+	// If it is not set then default value(90s) will be used
+	GraceTime = "GraceTime"
 )
 
 const (
@@ -130,6 +139,22 @@ func (c *VolumeConfig) GetCustomNFSServerConfig() string {
 		return ""
 	}
 	return customServerConfig
+}
+
+func (c *VolumeConfig) GetNFSServerLeaseTime() (int, error) {
+	leaseTime := c.getValue(LeaseTime)
+	if len(strings.TrimSpace(leaseTime)) == 0 {
+		return 0, nil
+	}
+	return strconv.Atoi(leaseTime)
+}
+
+func (c *VolumeConfig) GetNFServerGraceTime() (int, error) {
+	graceTime := c.getValue(GraceTime)
+	if len(strings.TrimSpace(graceTime)) == 0 {
+		return 0, nil
+	}
+	return strconv.Atoi(graceTime)
 }
 
 //getValue is a utility function to extract the value

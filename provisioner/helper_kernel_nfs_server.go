@@ -17,6 +17,8 @@ limitations under the License.
 package provisioner
 
 import (
+	"strconv"
+
 	errors "github.com/pkg/errors"
 	"k8s.io/klog"
 
@@ -63,6 +65,14 @@ type KernelNFSServerOptions struct {
 	serviceName           string
 	deploymentName        string
 	nfsServerCustomConfig string
+
+	// leaseTime defines the renewl period(in seconds) for client state
+	// this should be in range from 10 to 3600 seconds
+	leaseTime int
+
+	// graceTime defines the recovery period(in seconds) to reclaim
+	// the locks and state
+	graceTime int
 }
 
 // validate checks that the required fields to create NFS Server
@@ -215,6 +225,14 @@ func (p *Provisioner) createDeployment(nfsServerOpts *KernelNFSServerOptions) er
 								{
 									Name:  "CUSTOM_EXPORTS_CONFIG",
 									Value: nfsServerOpts.nfsServerCustomConfig,
+								},
+								{
+									Name:  "NFS_LEASE_TIME",
+									Value: strconv.Itoa(nfsServerOpts.leaseTime),
+								},
+								{
+									Name:  "NFS_GRACE_TIME",
+									Value: strconv.Itoa(nfsServerOpts.graceTime),
 								},
 							},
 						).

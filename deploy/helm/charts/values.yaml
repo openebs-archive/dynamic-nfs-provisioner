@@ -79,6 +79,12 @@ nfsStorageClass:
   # vulnerability.
   # USING THIS IS NOT RECOMMENDED
   customServerConfig: ""
+  # leaseTime defines the renewal period(in seconds) for client state
+  leaseTime:
+  # graceTime defines the recovery period(in seconds) to reclaim locks
+  # setting graceTime and leaseTime lower will reduce the io pause time during nfs server restart
+  graceTime:
+
 
 nfsServer:
   useClusterIP: "true"

@@ -36,19 +36,6 @@ PACKAGES = $(shell go list ./... | grep -v 'vendor\|pkg/client/generated\|tests'
 # list only the integration tests code directories
 PACKAGES_IT = $(shell go list ./... | grep -v 'vendor\|pkg/client/generated' | grep 'tests')
 
-ifeq (${IMAGE_TAG}, )
-  IMAGE_TAG = ci
-  export IMAGE_TAG
-endif
-
-ifeq (${RELEASE_TAG}, )
-  BASE_TAG = ci
-  export BASE_TAG
-else
-  BASE_TAG = $(RELEASE_TAG:v%=%)
-  export BASE_TAG
-endif
-
 # The images can be pushed to any docker/image registeries
 # like docker hub, quay. The registries are specified in 
 # the `buildscripts/push` script.
@@ -68,8 +55,33 @@ endif
 
 ifeq (${IMAGE_ORG}, )
   IMAGE_ORG = openebs
-  export IMAGE_ORG
 endif
+
+# Default tag for the image
+# If IMAGE_TAG is mentioned then TAG will be set to IMAGE_TAG
+# If RELEASE_TAG is mentioned then TAG will be set to RELEAE_TAG
+# If both are mentioned then TAG will be set to RELEASE_TAG
+TAG=ci
+
+ifneq (${IMAGE_TAG}, )
+  TAG=${IMAGE_TAG:v%=%}
+endif
+
+ifneq (${RELEASE_TAG}, )
+  TAG=${RELEASE_TAG:v%=%}
+endif
+
+# Specify the name for the binaries
+PROVISIONER_NFS=provisioner-nfs
+
+PROVISIONER_NFS_IMAGE?=provisioner-nfs
+NFS_SERVER_IMAGE?=nfs-server-alpine
+
+# final tag name for provisioner nfs image
+PROVISIONER_NFS_IMAGE_TAG=${IMAGE_ORG}/${PROVISIONER_NFS_IMAGE}:${TAG}
+
+# final tag name for nfs-server image
+NFS_SERVER_IMAGE_TAG=${IMAGE_ORG}/${NFS_SERVER_IMAGE}:${TAG}
 
 # Specify the date of build
 DBUILD_DATE=$(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
@@ -86,7 +98,10 @@ ifeq (${DBUILD_SITE_URL}, )
   export DBUILD_SITE_URL
 endif
 
-export DBUILD_ARGS=--build-arg DBUILD_DATE=${DBUILD_DATE} --build-arg DBUILD_REPO_URL=${DBUILD_REPO_URL} --build-arg DBUILD_SITE_URL=${DBUILD_SITE_URL}
+export DBUILD_ARGS=--build-arg DBUILD_DATE=${DBUILD_DATE} --build-arg DBUILD_REPO_URL=${DBUILD_REPO_URL} --build-arg DBUILD_SITE_URL=${DBUILD_SITE_URL} --build-arg RELEASE_TAG=${TAG}
+
+# include the buildx recipes
+include Makefile.buildx.mk
 
 .PHONY: all
 all: test provisioner-nfs-image
@@ -140,19 +155,13 @@ verify-src:
 	@echo "--> Checking for git changes post running tests";
 	$(PWD)/buildscripts/check-diff.sh "format"
 
-# Specify the name for the binaries
-PROVISIONER_NFS=provisioner-nfs
-
-PROVISIONER_NFS_IMAGE?=provisioner-nfs
-NFS_SERVER_IMAGE?=nfs-server-alpine
-
 #Use this to build provisioner-nfs
 .PHONY: provisioner-nfs
 provisioner-nfs:
 	@echo "----------------------------"
 	@echo "--> provisioner-nfs    "
 	@echo "----------------------------"
-	@PNAME=${PROVISIONER_NFS} CTLNAME=${PROVISIONER_NFS} sh -c "'$(PWD)/buildscripts/build.sh'"
+	@PNAME=${PROVISIONER_NFS} CTLNAME=${PROVISIONER_NFS} NFSSERVERIMG=${NFS_SERVER_IMAGE_TAG} sh -c "'$(PWD)/buildscripts/build.sh'"
 
 .PHONY: provisioner-nfs-image
 provisioner-nfs-image: provisioner-nfs
@@ -160,7 +169,7 @@ provisioner-nfs-image: provisioner-nfs
 	@echo "--> provisioner-nfs image "
 	@echo "-------------------------------"
 	@cp bin/provisioner-nfs/${PROVISIONER_NFS} buildscripts/provisioner-nfs/
-	@cd buildscripts/provisioner-nfs && docker build -t ${IMAGE_ORG}/${PROVISIONER_NFS_IMAGE}:${IMAGE_TAG} ${DBUILD_ARGS} . --no-cache
+	@cd buildscripts/provisioner-nfs && docker build -t ${PROVISIONER_NFS_IMAGE_TAG} ${DBUILD_ARGS} . --no-cache
 	@rm buildscripts/provisioner-nfs/${PROVISIONER_NFS}
 
 .PHONY: nfs-server-image
@@ -168,7 +177,7 @@ nfs-server-image:
 	@echo "----------------------------"
 	@echo "--> nfs-server image    "
 	@echo "----------------------------"
-	@cd nfs-server-container && docker build -t ${IMAGE_ORG}/${NFS_SERVER_IMAGE}:${IMAGE_TAG} . --no-cache
+	@cd nfs-server-container && docker build -t ${NFS_SERVER_IMAGE_TAG} . --no-cache
 
 .PHONY: license-check
 license-check:
@@ -188,6 +197,3 @@ license-check:
 push:
 	DIMAGE=${IMAGE_ORG}/${PROVISIONER_NFS_IMAGE} ./buildscripts/push.sh
 	DIMAGE=${IMAGE_ORG}/${NFS_SERVER_IMAGE} ./buildscripts/push.sh
-
-# include the buildx recipes
-include Makefile.buildx.mk

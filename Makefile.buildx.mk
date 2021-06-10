@@ -12,10 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ifeq (${TAG}, )
-	export TAG=ci
-endif
-
 # default list of platforms for which multiarch image is built
 ifeq (${PLATFORMS}, )
 	export PLATFORMS="linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le"
@@ -33,9 +29,6 @@ else
 	export PUSH_ARG="--push"
 endif
 
-DOCKERX_IMAGE_PROVISIONER_NFS:=${IMAGE_ORG}/provisioner-nfs:${TAG}
-DOCKERX_IMAGE_NFS_SERVER:=${IMAGE_ORG}/nfs-server-alpine:${TAG}
-
 # enabling experimental Docker CLI features
 export DOCKER_CLI_EXPERIMENTAL=enabled
 
@@ -46,9 +39,9 @@ endif
 .PHONY: docker.buildx.provisioner-nfs
 docker.buildx.provisioner-nfs:
 	@docker buildx build --platform ${PLATFORMS} \
-		-t "$(DOCKERX_IMAGE_PROVISIONER_NFS)" ${DBUILD_ARGS} -f $(PWD)/buildscripts/$(PROVISIONER_NFS)/$(PROVISIONER_NFS).Dockerfile \
+		-t "$(PROVISIONER_NFS_IMAGE_TAG)" ${DBUILD_ARGS} -f $(PWD)/buildscripts/$(PROVISIONER_NFS)/$(PROVISIONER_NFS).Dockerfile \
 		. ${PUSH_ARG}
-	@echo "--> Build docker image: $(DOCKERX_IMAGE_PROVISIONER_NFS)"
+	@echo "--> Build docker image: $(PROVISIONER_NFS_IMAGE_TAG)"
 	@echo
 
 .PHONY: buildx.push.provisioner-nfs
@@ -58,8 +51,8 @@ buildx.push.provisioner-nfs:
 .PHONY: docker.buildx.nfs-server
 docker.buildx.nfs-server:
 	@cd nfs-server-container && \
-		docker buildx build --platform ${PLATFORMS} -t "$(DOCKERX_IMAGE_NFS_SERVER)" . ${PUSH_ARG}
-	@echo "--> Build docker image: $(DOCKERX_IMAGE_NFS_SERVER)"
+		docker buildx build --platform ${PLATFORMS} -t "$(NFS_SERVER_IMAGE_TAG)" . ${PUSH_ARG}
+	@echo "--> Build docker image: $(NFS_SERVER_IMAGE_TAG)"
 	@echo
 
 .PHONY: buildx.push.nfs-server

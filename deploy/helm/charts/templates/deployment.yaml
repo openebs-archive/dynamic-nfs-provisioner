@@ -94,7 +94,7 @@ spec:
               command:
                 - sh
                 - -c
-                - test `pgrep -c "^provisioner-nfs.*"` = 1
+                - test `pgrep "^provisioner-nfs.*"` = 1
             initialDelaySeconds: {{ .Values.nfsProvisioner.healthCheck.initialDelaySeconds }}
             periodSeconds: {{ .Values.nfsProvisioner.healthCheck.periodSeconds }}
 {{- if .Values.nfsProvisioner.nodeSelector }}

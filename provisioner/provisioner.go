@@ -182,17 +182,20 @@ func (p *Provisioner) Delete(pv *v1.PersistentVolume) (err error) {
 
 // sendEventOrIgnore sends anonymous nfs-pv provision/delete events
 func sendEventOrIgnore(pvcName, pvName, capacity, stgType, method string) {
+	if !menv.Truthy(menv.OpenEBSEnableAnalytics) {
+		return
+	}
+
 	if method == analytics.VolumeProvision {
 		stgType = "nfs-" + stgType
 	}
-	if menv.Truthy(menv.OpenEBSEnableAnalytics) {
-		analytics.New().Build().ApplicationBuilder().
-			SetVolumeType(stgType, method).
-			SetDocumentTitle(pvName).
-			SetCampaignName(pvcName).
-			SetLabel(analytics.EventLabelCapacity).
-			//TODO SetReplicaCount("", method).
-			SetCategory(method).
-			SetVolumeCapacity(capacity).Send()
-	}
+
+	analytics.New().Build().ApplicationBuilder().
+		SetVolumeType(stgType, method).
+		SetDocumentTitle(pvName).
+		SetCampaignName(pvcName).
+		SetLabel(analytics.EventLabelCapacity).
+		SetReplicaCount("", method).
+		SetCategory(method).
+		SetVolumeCapacity(capacity).Send()
 }

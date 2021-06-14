@@ -48,11 +48,13 @@ const (
 
 	// LeaseTime defines the renewl period(in seconds) for client state
 	// if not set then default value(90s) will be used
-	LeaseTime = "LeaseTime"
+	LeaseTime        = "LeaseTime"
+	DefaultLeaseTime = 90
 
 	// GraceTime defines the recovery period(in seconds) to reclaim locks
 	// If it is not set then default value(90s) will be used
-	GraceTime = "GraceTime"
+	GraceTime        = "GraceTime"
+	DefaultGraceTime = 90
 )
 
 const (
@@ -144,17 +146,33 @@ func (c *VolumeConfig) GetCustomNFSServerConfig() string {
 func (c *VolumeConfig) GetNFSServerLeaseTime() (int, error) {
 	leaseTime := c.getValue(LeaseTime)
 	if len(strings.TrimSpace(leaseTime)) == 0 {
-		return 0, nil
+		return DefaultLeaseTime, nil
 	}
-	return strconv.Atoi(leaseTime)
+	leaseTimeVal, err := strconv.Atoi(leaseTime)
+	if err != nil {
+		return 0, err
+	}
+	if leaseTimeVal == 0 {
+		leaseTimeVal = DefaultLeaseTime
+	}
+
+	return leaseTimeVal, nil
 }
 
 func (c *VolumeConfig) GetNFServerGraceTime() (int, error) {
 	graceTime := c.getValue(GraceTime)
 	if len(strings.TrimSpace(graceTime)) == 0 {
-		return 0, nil
+		return DefaultGraceTime, nil
 	}
-	return strconv.Atoi(graceTime)
+	graceTimeVal, err := strconv.Atoi(graceTime)
+	if err != nil {
+		return 0, err
+	}
+
+	if graceTimeVal == 0 {
+		graceTimeVal = DefaultGraceTime
+	}
+	return graceTimeVal, nil
 }
 
 //getValue is a utility function to extract the value

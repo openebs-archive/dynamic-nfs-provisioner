@@ -18,6 +18,7 @@ limitations under the License.
 package provisioner
 
 import (
+	"strconv"
 	"strings"
 
 	mconfig "github.com/openebs/maya/pkg/apis/openebs.io/v1alpha1"
@@ -44,6 +45,16 @@ const (
 	//CustomServerConfig defines the server configuration to use,
 	// if it is set. Otherwise, use the default NFS server configuration.
 	CustomServerConfig = "CustomServerConfig"
+
+	// LeaseTime defines the renewl period(in seconds) for client state
+	// if not set then default value(90s) will be used
+	LeaseTime        = "LeaseTime"
+	DefaultLeaseTime = 90
+
+	// GraceTime defines the recovery period(in seconds) to reclaim locks
+	// If it is not set then default value(90s) will be used
+	GraceTime        = "GraceTime"
+	DefaultGraceTime = 90
 )
 
 const (
@@ -130,6 +141,38 @@ func (c *VolumeConfig) GetCustomNFSServerConfig() string {
 		return ""
 	}
 	return customServerConfig
+}
+
+func (c *VolumeConfig) GetNFSServerLeaseTime() (int, error) {
+	leaseTime := c.getValue(LeaseTime)
+	if len(strings.TrimSpace(leaseTime)) == 0 {
+		return DefaultLeaseTime, nil
+	}
+	leaseTimeVal, err := strconv.Atoi(leaseTime)
+	if err != nil {
+		return 0, err
+	}
+	if leaseTimeVal == 0 {
+		leaseTimeVal = DefaultLeaseTime
+	}
+
+	return leaseTimeVal, nil
+}
+
+func (c *VolumeConfig) GetNFServerGraceTime() (int, error) {
+	graceTime := c.getValue(GraceTime)
+	if len(strings.TrimSpace(graceTime)) == 0 {
+		return DefaultGraceTime, nil
+	}
+	graceTimeVal, err := strconv.Atoi(graceTime)
+	if err != nil {
+		return 0, err
+	}
+
+	if graceTimeVal == 0 {
+		graceTimeVal = DefaultGraceTime
+	}
+	return graceTimeVal, nil
 }
 
 //getValue is a utility function to extract the value

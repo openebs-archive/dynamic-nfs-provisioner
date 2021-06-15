@@ -31,6 +31,21 @@ stop()
   exit
 }
 
+get_nfs_args() {
+  declare -n args=$1
+
+  args=(--debug 8 --no-udp --no-nfs-version 2 --no-nfs-version 3)
+
+  # here we are checking if variable exist and its value is not null
+  if [ ! -z ${NFS_GRACE_TIME:+x} ]; then
+    args+=( --grace-time ${NFS_GRACE_TIME})
+  fi
+
+  if [ ! -z ${NFS_LEASE_TIME:+x} ]; then
+    args+=( --lease-time ${NFS_LEASE_TIME})
+  fi
+}
+
 # Check if the SHARED_DIRECTORY variable is empty
 if [ -z "${SHARED_DIRECTORY}" ]; then
   echo "The SHARED_DIRECTORY environment variable is unset or null, exiting..."
@@ -132,7 +147,8 @@ while true; do
     # /usr/sbin/rpc.statd
 
     echo "Starting NFS in the background..."
-    /usr/sbin/rpc.nfsd --debug 8 --no-udp --no-nfs-version 2 --no-nfs-version 3
+    get_nfs_args nfs_args
+    /usr/sbin/rpc.nfsd ${nfs_args[@]}
     echo "Exporting File System..."
     if /usr/sbin/exportfs -rv; then
       /usr/sbin/exportfs

@@ -17,6 +17,14 @@ metadata:
       - name: CustomServerConfig
         value: {{ .Values.nfsStorageClass.customServerConfig }}
 {{- end }}
+{{- if .Values.nfsStorageClass.leaseTime }}
+      - name: LeaseTime
+        value: {{ .Values.nfsStorageClass.leaseTime }}
+{{- end }}
+{{- if .Values.nfsStorageClass.graceTime }}
+      - name: GraceTime
+        value: {{ .Values.nfsStorageClass.graceTime }}
+{{- end }}
 {{- if .Values.nfsStorageClass.isDefaultClass }}
     storageclass.kubernetes.io/is-default-class: "true"
 {{- end }}

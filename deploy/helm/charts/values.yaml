@@ -40,6 +40,13 @@ nfsProvisioner:
     tag:
     pullPolicy: IfNotPresent
   enableLeaderElection: "true"
+  # Specify image name of nfs-server-alpine used for creating nfs server deployment
+  # If not mentioned, default value openebs/nfs-server-alpine:tag will be used where
+  # the tag will be the same as a provisioner-nfs image tag
+  nfsServerAlpineImage:
+    registry:
+    repository: openebs/nfs-server-alpine
+    tag:
   resources:
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
@@ -72,6 +79,12 @@ nfsStorageClass:
   # vulnerability.
   # USING THIS IS NOT RECOMMENDED
   customServerConfig: ""
+  # leaseTime defines the renewal period(in seconds) for client state
+  leaseTime:
+  # graceTime defines the recovery period(in seconds) to reclaim locks
+  # setting graceTime and leaseTime lower will reduce the io pause time during nfs server restart
+  graceTime:
+
 
 nfsServer:
   useClusterIP: "true"

@@ -121,14 +121,21 @@ helm install openebs-nfs openebs-nfs/nfs-provisioner --namespace openebs --creat
 | `nfsProvisioner.image.pullPolicy`     | Image pull policy for NFS Provisioner image   | `IfNotPresent`                  |
 | `nfsProvisioner.annotations`          | Annotations for NFS Provisioner metadata      | `""`                            |
 | `nfsProvisioner.nodeSelector`         | Nodeselector for NFS Provisioner pod          | `""`                            |
+| `nfsProvisioner.nfsServerAlpineImage.registry`         | Registry for nfs-server-alpine          | `""`                            |
+| `nfsProvisioner.nfsServerAlpineImage.repository`         | Image repository for nfs-server-alpine          | `openebs/nfs-server-alpine`                            |
+| `nfsProvisioner.nfsServerAlpineImage.tag`         | Image tag for nfs-server-alpine          | `""`                            |
 | `nfsProvisioner.resources`            | Resource request and limit for the container  | `true`                          |
 | `nfsProvisioner.securityContext`      | Security context for container                | `""`                            |
 | `nfsProvisioner.tolerations`          | NFS Provisioner pod toleration values         | `""`                            |
 | `nfsStorageClass.backendStorageClass` | StorageClass to be used to provision the backend volume. If not specified, the default StorageClass is used. | `""`                         |
 | `nfsStorageClass.isDefaultClass`      | Make 'openebs-kernel-nfs' the default StorageClass | `"false"`                         |
 | `nfsStorageClass.reclaimPolicy`       | ReclaimPolicy for NFS PVs                      | `"Delete"`                     |
+| `nfsStorageClass.leaseTime`       | Renewal period(in seconds) for NFS client state                      | `90`                     |
+| `nfsStorageClass.graceTime`       | Recovery period(in seconds) to reclaim locks for NFS client                      | `90`                     |
 | `rbac.create`                         | Enable RBAC Resources                          | `true`                         |
 | `rbac.pspEnabled`                     | Create pod security policy resources           | `false`                        |
+
+
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`.
 
 Alternatively, a YAML file that specifies the values for the parameters can be provided while installing the chart. For example,

@@ -32,8 +32,7 @@ Ensure that the default NFS client is operating. To do this start PowerShell as 
    2) Run `service nfsclient start`
 
 ## Install
-
-Install NFS Provisioner
+### Install NFS Provisioner through operator
 ```
 kubectl apply -f deploy/kubectl/openebs-nfs-provisioner.yaml
 ```
@@ -63,6 +62,14 @@ reclaimPolicy: Delete
 ```
 
 You can now use `openebs-rwx` storage class to create RWX volumes.
+
+### Install NFS Provisioner through Helm
+```
+helm repo add openebs-nfs https://openebs.github.io/dynamic-nfs-provisioner
+helm install [RELEASE_NAME] openebs-nfs/nfs-provisioner --namespace openebs --create-namespace
+```
+
+Refer https://github.com/openebs/dynamic-nfs-provisioner/tree/develop/deploy/helm/charts for the list of configuration parameter of the dynamic-nfs-provisioner chart.
 
 ## Contributing
 

@@ -32,7 +32,7 @@ Ensure that the default NFS client is operating. To do this start PowerShell as 
    2) Run `service nfsclient start`
 
 ## Install
-### Install NFS Provisioner through operator
+### Install NFS Provisioner through kubectl
 ```
 kubectl apply -f deploy/kubectl/openebs-nfs-provisioner.yaml
 ```

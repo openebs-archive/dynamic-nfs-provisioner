@@ -52,6 +52,12 @@ metadata:
         value: "kernel"
       - name: BackendStorageClass
         value: "openebs-hostpath"
+      #  LeaseTime defines the renewal period(in seconds) for client state
+      #- name: LeaseTime
+      #  value: 30
+      #  GraceTime defines the recovery period(in seconds) to reclaim locks
+      #- name: GraceTime
+      #  value: 30
 provisioner: openebs.io/nfsrwx
 reclaimPolicy: Delete
 ```

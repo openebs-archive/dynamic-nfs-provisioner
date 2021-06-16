@@ -130,8 +130,8 @@ helm install openebs-nfs openebs-nfs/nfs-provisioner --namespace openebs --creat
 | `nfsStorageClass.backendStorageClass` | StorageClass to be used to provision the backend volume. If not specified, the default StorageClass is used. | `""`                         |
 | `nfsStorageClass.isDefaultClass`      | Make 'openebs-kernel-nfs' the default StorageClass | `"false"`                         |
 | `nfsStorageClass.reclaimPolicy`       | ReclaimPolicy for NFS PVs                      | `"Delete"`                     |
-| `nfsStorageClass.leaseTime`       | Renewal period(in seconds) for NFS client state                      | `""`                     |
-| `nfsStorageClass.graceTime`       | Recovery period(in seconds) to reclaim locks for NFS client                      | `""`                     |
+| `nfsStorageClass.leaseTime`       | Renewal period(in seconds) for NFS client state                      | `90`                     |
+| `nfsStorageClass.graceTime`       | Recovery period(in seconds) to reclaim locks for NFS client                      | `90`                     |
 | `rbac.create`                         | Enable RBAC Resources                          | `true`                         |
 | `rbac.pspEnabled`                     | Create pod security policy resources           | `false`                        |
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`.

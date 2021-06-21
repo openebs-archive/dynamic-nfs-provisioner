@@ -16,6 +16,8 @@
 
 set -e
 
+## NOTE: This test should ran from openebs/dynamic-nfs-provisioner directory
+
 echo "Install openebs-hostpath operator"
 
 kubectl apply -f https://raw.githubusercontent.com/openebs/charts/gh-pages/hostpath-operator.yaml
@@ -50,7 +52,7 @@ volumeBindingMode: WaitForFirstConsumer
 EOF
 
 ## Installing OpenEBS dynamic nfs provisioner
-kubectl apply -f ../deploy/kubectl/openebs-nfs-provisioner.yaml
+kubectl apply -f ./deploy/kubectl/openebs-nfs-provisioner.yaml
 sleep 10
 
 echo "Waiting for openebs-nfs-provisioner"

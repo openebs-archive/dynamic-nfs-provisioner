@@ -16,8 +16,10 @@
 
 set -e
 
+## NOTE: This test should ran from openebs/dynamic-nfs-provisioner directory
+
 echo "Running non-root application test"
-cd non-root-test
+cd ./ci/non-root-test
 ./non-root-test.sh
 rc=$?
 if [ $rc -ne 0 ]; then

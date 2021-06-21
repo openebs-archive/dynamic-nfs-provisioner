@@ -41,12 +41,12 @@ import (
 	"k8s.io/klog"
 	pvController "sigs.k8s.io/sig-storage-lib-external-provisioner/controller"
 
+	"github.com/openebs/dynamic-nfs-provisioner/pkg/metrics"
 	mconfig "github.com/openebs/maya/pkg/apis/openebs.io/v1alpha1"
 	menv "github.com/openebs/maya/pkg/env/v1alpha1"
 	analytics "github.com/openebs/maya/pkg/usage"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
-	"github.com/openebs/dynamic-nfs-provisioner/pkg/metrics"
 
 	//metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"

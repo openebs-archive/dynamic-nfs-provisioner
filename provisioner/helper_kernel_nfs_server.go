@@ -73,6 +73,10 @@ type KernelNFSServerOptions struct {
 	// graceTime defines the recovery period(in seconds) to reclaim
 	// the locks and state
 	graceTime int
+
+	// fsGID defines the filesystem group ID if set then nfs share
+	// volume permissions will be updated by OR'ing with rw-rw----
+	fsGroup *int64
 }
 
 // validate checks that the required fields to create NFS Server
@@ -212,6 +216,9 @@ func (p *Provisioner) createDeployment(nfsServerOpts *KernelNFSServerOptions) er
 		WithPodTemplateSpecBuilder(
 			pts.NewBuilder().
 				WithLabelsNew(nfsDeployLabelSelector).
+				WithSecurityContext(&corev1.PodSecurityContext{
+					FSGroup: nfsServerOpts.fsGroup,
+				}).
 				WithContainerBuildersNew(
 					container.NewBuilder().
 						WithName("nfs-server").

@@ -49,6 +49,11 @@ func (p *Provisioner) ProvisionKernalNFSServer(opts pvController.ProvisionOption
 			"storagetype", "nfs-kernel",
 		)
 	}
+	fsGID, err := volumeConfig.GetFSGroupID()
+	if err != nil {
+		klog.Errorf("Error parsing group id error: %s", err.Error())
+		return nil, err
+	}
 
 	//Extract the details to create a NFS Server
 	nfsServerOpts := &KernelNFSServerOptions{
@@ -59,6 +64,7 @@ func (p *Provisioner) ProvisionKernalNFSServer(opts pvController.ProvisionOption
 		nfsServerCustomConfig: volumeConfig.GetCustomNFSServerConfig(),
 		leaseTime:             leaseTime,
 		graceTime:             graceTime,
+		fsGroup:               fsGID,
 	}
 
 	nfsService, err := p.getNFSServerAddress(nfsServerOpts)

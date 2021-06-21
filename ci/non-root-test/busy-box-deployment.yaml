@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: busy-box
+  labels:
+    app: busy-box
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: busy-box
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: busy-box
+    spec:
+      containers:
+      - name: perfrunner
+        image: busybox:latest
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/sh"]
+        args: ["-c", "while true ;do sleep 50; done"]
+        volumeMounts:
+        - mountPath: /datadir
+          name: busy-box-vol
+        tty: true
+      securityContext:
+        runAsUser: 175
+        runAsGroup: 175
+      volumes:
+      - name: busy-box-vol
+        persistentVolumeClaim:
+          claimName: non-root-nfs-pvc
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: non-root-nfs-pvc
+spec:
+  storageClassName: openebs-non-root-rwx
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1G
+---

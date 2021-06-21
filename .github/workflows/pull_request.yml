@@ -69,6 +69,14 @@ jobs:
           kubernetes version: ${{ matrix.kubernetes }}
           github token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Install NFS utils
+        run: |
+          sudo apt-get update
+          sudo apt install nfs-common
+      
+      - name: Build images locally
+        run: make provisioner-nfs-image || exit 1;
+
       - name: Running sanity tests
         run: |
           ./ci/setup.sh

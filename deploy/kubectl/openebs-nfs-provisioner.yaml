@@ -155,8 +155,8 @@ metadata:
     cas.openebs.io/config: |
       - name: NFSServerType
         value: "kernel"
-      #- name: BackendStorageClass
-      #  value: "openebs-hostpath"
+      - name: BackendStorageClass
+        value: "openebs-hostpath"
       #  LeaseTime defines the renewl period(in seconds) for client state
       #- name: LeaseTime
       #  value: 30

@@ -18,6 +18,7 @@ package tests
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"os"
 	"time"
@@ -25,17 +26,23 @@ import (
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	storagev1 "k8s.io/api/storage/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
+	types "k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/strategicpatch"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	deploymentutil "k8s.io/kubectl/pkg/util/deployment"
 )
 
 // KubeClient interface for k8s API
 type KubeClient struct {
 	kubernetes.Interface
+	config *rest.Config
 }
 
 // Client for KubeClient
@@ -87,6 +94,10 @@ func initK8sClient(kubeConfigPath string) error {
 	if found {
 		encoder = serializerInfo.Serializer
 	}
+	Client = &KubeClient{
+		Interface: client,
+		config:    config,
+	}
 	return nil
 }
 
@@ -118,6 +129,10 @@ func (k *KubeClient) waitForPods(podNamespace, labelSelector string, expectedPha
 		dumpLog++
 	}
 	return nil
+}
+
+func (k *KubeClient) listPods(podNamespace string, labelSelector string) (*corev1.PodList, error) {
+	return k.CoreV1().Pods(podNamespace).List(metav1.ListOptions{LabelSelector: labelSelector})
 }
 
 func (k *KubeClient) createNamespace(namespace string) error {
@@ -196,9 +211,12 @@ func (k *KubeClient) createPVC(pvc *corev1.PersistentVolumeClaim) error {
 			return err
 		}
 	}
-
 	_, err = k.waitForPVCBound(pvc.Name, pvc.Namespace)
 	return err
+}
+
+func (k *KubeClient) getPVC(pvcNamespace, pvcName string) (*corev1.PersistentVolumeClaim, error) {
+	return k.CoreV1().PersistentVolumeClaims(pvcNamespace).Get(pvcName, metav1.GetOptions{})
 }
 
 func (k *KubeClient) deletePVC(namespace, pvc string) error {
@@ -223,6 +241,61 @@ func (k *KubeClient) createDeployment(deployment *appsv1.Deployment) error {
 	return nil
 }
 
+func (k *KubeClient) applyDeployment(deployment *appsv1.Deployment) error {
+	// TODO: Use server side apply
+	_, err := k.AppsV1().Deployments(deployment.Namespace).Create(deployment)
+	if err != nil && !k8serrors.IsAlreadyExists(err) {
+		return errors.Errorf("Failed to create deployment %s/%s, err=%s", deployment.Namespace, deployment.Name, err)
+	}
+	if err == nil {
+		return nil
+	}
+
+	currentDeployment, err := k.AppsV1().
+		Deployments(deployment.Namespace).
+		Get(deployment.Name, metav1.GetOptions{})
+
+	data, _, err := getPatchData(currentDeployment, deployment)
+	if err != nil {
+		return err
+	}
+
+	// Patch the depployment
+	_, err = k.AppsV1().
+		Deployments(deployment.Namespace).
+		Patch(deployment.Name,
+			types.StrategicMergePatchType,
+			data,
+		)
+	if err != nil {
+		return err
+	}
+
+	for {
+		deployObj, err := k.AppsV1().Deployments(deployment.Namespace).
+			Get(deployment.Name, metav1.GetOptions{})
+		if err != nil {
+			return err
+		}
+		revision, err := deploymentutil.Revision(deployObj)
+		if err != nil {
+			return err
+		}
+		statusViewer := DeploymentStatusViewer{}
+		msg, rolledOut, err := statusViewer.Status(deployObj, revision)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("rollout status: %s\n", msg)
+		if rolledOut {
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
+
+	return nil
+}
+
 func (k *KubeClient) deleteDeployment(namespace, deployment string) error {
 	return k.AppsV1().Deployments(namespace).Delete(deployment, &metav1.DeleteOptions{})
 }
@@ -236,5 +309,34 @@ func dumpK8sObject(obj runtime.Object) {
 	buf := new(bytes.Buffer)
 	encoder.Encode(obj, buf)
 	fmt.Println(string(buf.Bytes()))
+}
 
+func (k *KubeClient) createStorageClass(sc *storagev1.StorageClass) error {
+	_, err := k.StorageV1().StorageClasses().Create(sc)
+	if err != nil {
+		if !k8serrors.IsAlreadyExists(err) {
+			return err
+		}
+	}
+	return nil
+}
+
+func (k *KubeClient) deleteStorageClass(scName string) error {
+	return k.StorageV1().StorageClasses().Delete(scName, &metav1.DeleteOptions{})
+}
+
+func getPatchData(oldObj, newObj interface{}) ([]byte, []byte, error) {
+	oldData, err := json.Marshal(oldObj)
+	if err != nil {
+		return nil, nil, fmt.Errorf("marshal old object failed: %v", err)
+	}
+	newData, err := json.Marshal(newObj)
+	if err != nil {
+		return nil, nil, fmt.Errorf("mashal new object failed: %v", err)
+	}
+	patchBytes, err := strategicpatch.CreateTwoWayMergePatch(oldData, newData, oldObj)
+	if err != nil {
+		return nil, nil, fmt.Errorf("CreateTwoWayMergePatch failed: %v", err)
+	}
+	return patchBytes, oldData, nil
 }

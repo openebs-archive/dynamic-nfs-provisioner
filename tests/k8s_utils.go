@@ -140,7 +140,6 @@ func (k *KubeClient) WaitForNamespaceCleanup(ns string) error {
 	dumpLog := 0
 	for {
 		nsObj, err := k.CoreV1().Namespaces().Get(ns, metav1.GetOptions{})
-
 		if k8serrors.IsNotFound(err) {
 			return nil
 		}

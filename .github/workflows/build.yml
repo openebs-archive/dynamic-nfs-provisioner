@@ -208,3 +208,36 @@ jobs:
           platforms: linux/amd64, linux/arm64, linux/arm/v7, linux/ppc64le
           tags: |
             ${{ steps.docker_meta.outputs.tags }}
+
+  sanity-test:
+    # to ignore builds on release
+    if: ${{ (github.event.ref_type != 'tag') }}
+    runs-on: ubuntu-latest
+    needs: ['provisioner-nfs', 'nfs-server']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up Go 1.14
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.14.7
+
+      - name: Setup Minikube-Kubernetes
+        uses: manusa/actions-setup-minikube@v2.3.0
+        with:
+          minikube version: v1.16.0
+          kubernetes version: v1.19.2
+
+      - name: Install NFS utils
+        run: |
+          sudo apt-get update
+          sudo apt install nfs-common
+
+      - name: Installation
+        run: |
+          ./tests/install-localpv.sh
+          ./tests/install-nfs-provisioner.sh
+
+      - name: Running sanity tests
+        run: make sanity-test

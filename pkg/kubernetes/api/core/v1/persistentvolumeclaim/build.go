@@ -40,7 +40,7 @@ func BuildFrom(pvc *corev1.PersistentVolumeClaim) *Builder {
 		b := NewBuilder()
 		b.errs = append(
 			b.errs,
-			errors.New("failed to build cstorvolumeclaim object: nil pvc"),
+			errors.New("failed to build pvc object"),
 		)
 		return b
 	}

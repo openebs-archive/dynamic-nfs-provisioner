@@ -24,20 +24,16 @@ import (
 	pvc "github.com/openebs/dynamic-nfs-provisioner/pkg/kubernetes/api/core/v1/persistentvolumeclaim"
 	pts "github.com/openebs/dynamic-nfs-provisioner/pkg/kubernetes/api/core/v1/podtemplatespec"
 	volume "github.com/openebs/dynamic-nfs-provisioner/pkg/kubernetes/api/core/v1/volume"
-	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var _ = Describe("TEST NFS PV", func() {
 	var (
-		pvcObj        *corev1.PersistentVolumeClaim
 		accessModes   = []corev1.PersistentVolumeAccessMode{corev1.ReadWriteMany}
 		capacity      = "2Gi"
 		deployName    = "busybox-nfs"
 		label         = "demo=nfs-deployment"
 		pvcName       = "pvc-nfs"
-		deployObj     *appsv1.Deployment
 		labelselector = map[string]string{
 			"demo": "nfs-deployment",
 		}
@@ -50,9 +46,9 @@ var _ = Describe("TEST NFS PV", func() {
 			)
 
 			By("building a pvc")
-			pvcObj, err = pvc.NewBuilder().
+			pvcObj, err := pvc.NewBuilder().
 				WithName(pvcName).
-				WithNamespace(namespaceObj.Name).
+				WithNamespace(applicationNamespace).
 				WithStorageClass(scName).
 				WithAccessModes(accessModes).
 				WithCapacity(capacity).Build()
@@ -60,16 +56,16 @@ var _ = Describe("TEST NFS PV", func() {
 				HaveOccurred(),
 				"while building pvc {%s} in namespace {%s}",
 				pvcName,
-				namespaceObj.Name,
+				applicationNamespace,
 			)
 
 			By("creating above pvc")
-			_, err = ops.PVCClient.WithNamespace(namespaceObj.Name).Create(pvcObj)
+			err = Client.createPVC(pvcObj)
 			Expect(err).To(
 				BeNil(),
 				"while creating pvc {%s} in namespace {%s}",
 				pvcName,
-				namespaceObj.Name,
+				applicationNamespace,
 			)
 		})
 	})
@@ -78,9 +74,9 @@ var _ = Describe("TEST NFS PV", func() {
 		It("should create a deployment and a running pod", func() {
 
 			By("building a deployment")
-			deployObj, err = deploy.NewBuilder().
+			deployObj, err := deploy.NewBuilder().
 				WithName(deployName).
-				WithNamespace(namespaceObj.Name).
+				WithNamespace(applicationNamespace).
 				WithLabelsNew(labelselector).
 				WithSelectorMatchLabelsNew(labelselector).
 				WithPodTemplateSpecBuilder(
@@ -116,22 +112,21 @@ var _ = Describe("TEST NFS PV", func() {
 				HaveOccurred(),
 				"while building deployment {%s} in namespace {%s}",
 				deployName,
-				namespaceObj.Name,
+				applicationNamespace,
 			)
 
 			By("creating above deployment")
-			_, err = ops.DeployClient.WithNamespace(namespaceObj.Name).
-				Create(deployObj)
+			err = Client.createDeployment(deployObj)
 			Expect(err).To(
 				BeNil(),
 				"while creating deployment {%s} in namespace {%s}",
 				deployName,
-				namespaceObj.Name,
+				applicationNamespace,
 			)
 
 			By("verifying pod count as 1")
-			podCount := ops.GetPodRunningCountEventually(namespaceObj.Name, label, 1)
-			Expect(podCount).To(Equal(1), "while verifying pod count")
+			err = Client.waitForPods(applicationNamespace, label, corev1.PodRunning, 1)
+			Expect(err).To(BeNil(), "while verifying pod count")
 
 		})
 	})
@@ -140,17 +135,17 @@ var _ = Describe("TEST NFS PV", func() {
 		It("should not have any deployment or running pod", func() {
 
 			By("deleting above deployment")
-			err = ops.DeployClient.WithNamespace(namespaceObj.Name).Delete(deployName, &metav1.DeleteOptions{})
+			err = Client.deleteDeployment(applicationNamespace, deployName)
 			Expect(err).To(
 				BeNil(),
 				"while deleting deployment {%s} in namespace {%s}",
 				deployName,
-				namespaceObj.Name,
+				applicationNamespace,
 			)
 
 			By("verifying pod count as 0")
-			podCount := ops.GetPodRunningCountEventually(namespaceObj.Name, label, 0)
-			Expect(podCount).To(Equal(0), "while verifying pod count")
+			err = Client.waitForPods(applicationNamespace, label, corev1.PodRunning, 0)
+			Expect(err).To(BeNil(), "while verifying pod count")
 
 		})
 	})
@@ -159,12 +154,12 @@ var _ = Describe("TEST NFS PV", func() {
 		It("should delete the pvc", func() {
 
 			By("deleting above pvc")
-			err = ops.PVCClient.Delete(pvcName, &metav1.DeleteOptions{})
+			err = Client.deletePVC(applicationNamespace, pvcName)
 			Expect(err).To(
 				BeNil(),
 				"while deleting pvc {%s} in namespace {%s}",
 				pvcName,
-				namespaceObj.Name,
+				applicationNamespace,
 			)
 
 		})

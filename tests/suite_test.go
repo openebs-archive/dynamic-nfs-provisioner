@@ -18,6 +18,7 @@ package tests
 
 import (
 	"flag"
+	"fmt"
 
 	"os"
 	"testing"
@@ -25,10 +26,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	ns "github.com/openebs/dynamic-nfs-provisioner/pkg/kubernetes/api/core/v1/namespace"
-	"github.com/openebs/maya/tests"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	// auth plugins
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -36,8 +34,7 @@ import (
 
 var (
 	kubeConfigPath              string
-	namespace                   = "nfs-tests-ns"
-	namespaceObj                *corev1.Namespace
+	applicationNamespace        = "nfs-tests-ns"
 	err                         error
 	NFSProvisionerLabelSelector = "openebs.io/component-name=openebs-nfs-provisioner"
 	OpenEBSNamespace            = "openebs"
@@ -48,40 +45,30 @@ func TestSource(t *testing.T) {
 	RunSpecs(t, "Test application deployment")
 }
 
-func init() {
-	flag.StringVar(&kubeConfigPath, "kubeconfig", os.Getenv("KUBECONFIG"), "path to kubeconfig to invoke kubernetes API calls")
-}
-
-var ops *tests.Operations
-
 var _ = BeforeSuite(func() {
-
-	ops = tests.NewOperations(tests.WithKubeConfigPath(kubeConfigPath))
+	flag.StringVar(&kubeConfigPath, "kubeconfig", os.Getenv("KUBECONFIG"), "path to kubeconfig to invoke kubernetes API calls")
+	flag.Parse()
+	if err := initK8sClient(kubeConfigPath); err != nil {
+		panic(fmt.Sprintf("failed to initialize k8s client err=%s", err))
+	}
 
 	By("waiting for openebs-nfs-provisioner pod to come into running state")
-	provPodCount := ops.GetPodRunningCountEventually(
-		string(OpenEBSNamespace),
-		string(NFSProvisionerLabelSelector),
-		1,
-	)
-	Expect(provPodCount).To(Equal(1))
+	err := Client.waitForPods(string(OpenEBSNamespace), string(NFSProvisionerLabelSelector), corev1.PodRunning, 1)
+	Expect(err).To(BeNil(), "while waiting for nfs deployment to be ready")
 
 	By("building a namespace")
-	namespaceObj, err = ns.NewBuilder().
-		WithGenerateName(namespace).
-		APIObject()
-	Expect(err).ShouldNot(HaveOccurred(), "while building namespace {%s}", namespaceObj.GenerateName)
-
-	By("creating above namespace")
-	namespaceObj, err = ops.NSClient.Create(namespaceObj)
-	Expect(err).To(BeNil(), "while creating namespace {%s}", namespaceObj.GenerateName)
+	err = Client.createNamespace(applicationNamespace)
+	Expect(err).To(BeNil(), "while creating namespace {%s}", applicationNamespace)
 
 })
 
 var _ = AfterSuite(func() {
+	if Client == nil {
+		return
+	}
 
 	By("deleting namespace")
-	err = ops.NSClient.Delete(namespaceObj.Name, &metav1.DeleteOptions{})
-	Expect(err).To(BeNil(), "while deleting namespace {%s}", namespaceObj.Name)
+	err = Client.destroyNamespace(applicationNamespace)
+	Expect(err).To(BeNil(), "while deleting namespace {%s}", applicationNamespace)
 
 })

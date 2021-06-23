@@ -87,13 +87,12 @@ func initK8sClient(kubeConfigPath string) error {
 		return nil
 	}
 
-	Client = &KubeClient{client}
-
 	scheme := runtime.NewScheme()
 	serializerInfo, found := runtime.SerializerInfoForMediaType(serializer.NewCodecFactory(scheme).SupportedMediaTypes(), "application/yaml")
 	if found {
 		encoder = serializerInfo.Serializer
 	}
+
 	Client = &KubeClient{
 		Interface: client,
 		config:    config,

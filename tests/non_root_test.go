@@ -208,6 +208,13 @@ var _ = Describe("TEST NON ROOT USER ACCESSING NFS VOLUME", func() {
 				podList.Items[0].Name,
 				"busybox",
 				applicationNamespace)
+			fmt.Printf(
+				"When non root application tried to access volume "+
+					"without suplemental groups stdout: {%s} stderr: {%s} error: {%s}",
+				stdOut,
+				stdError,
+				err.Error(),
+			)
 			Expect(stdError).NotTo(
 				BeNil(),
 				"non root application without suplemental groups shouldn't access the volume",
@@ -215,14 +222,6 @@ var _ = Describe("TEST NON ROOT USER ACCESSING NFS VOLUME", func() {
 			Expect(stdError).Should(
 				ContainSubstring("Permission denied"),
 				"non root application without suplemental groups shouldn't access the volume",
-			)
-
-			fmt.Printf(
-				"When non root application tried to access volume "+
-					"without suplemental groups stdout: {%s} stderr: {%s} error: {%s}",
-				stdOut,
-				stdError,
-				err.Error(),
 			)
 		})
 	})

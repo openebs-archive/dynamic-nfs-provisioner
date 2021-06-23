@@ -38,7 +38,7 @@ function waitForDeployment() {
 			continue
 		fi
 
-		replicas=$(kubectl get deployment -n ${NS} ${DEPLOY} -o json | jq ".status.readyReplicas")
+		replicas=$(kubectl get deployment -n ${NS} ${DEPLOY} -o jsonpath='{.status.readyReplicas}')
 		if [ "$replicas" == "1" ]; then
 			break
 		else

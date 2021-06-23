@@ -17,6 +17,7 @@ limitations under the License.
 package tests
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"time"
@@ -26,6 +27,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 )
@@ -37,6 +40,9 @@ type KubeClient struct {
 
 // Client for KubeClient
 var Client *KubeClient
+
+// encoder to print object in yaml format
+var encoder runtime.Encoder
 
 // getHomeDir gets the home directory for the system.
 // It is required to locate the .kube/config file
@@ -75,6 +81,12 @@ func initK8sClient(kubeConfigPath string) error {
 	}
 
 	Client = &KubeClient{client}
+
+	scheme := runtime.NewScheme()
+	serializerInfo, found := runtime.SerializerInfoForMediaType(serializer.NewCodecFactory(scheme).SupportedMediaTypes(), "application/yaml")
+	if found {
+		encoder = serializerInfo.Serializer
+	}
 	return nil
 }
 
@@ -127,7 +139,7 @@ func (k *KubeClient) createNamespace(namespace string) error {
 func (k *KubeClient) WaitForNamespaceCleanup(ns string) error {
 	dumpLog := 0
 	for {
-		_, err := k.CoreV1().Namespaces().Get(ns, metav1.GetOptions{})
+		nsObj, err := k.CoreV1().Namespaces().Get(ns, metav1.GetOptions{})
 
 		if k8serrors.IsNotFound(err) {
 			return nil
@@ -139,6 +151,7 @@ func (k *KubeClient) WaitForNamespaceCleanup(ns string) error {
 
 		if dumpLog > 6 {
 			fmt.Printf("Waiting for cleanup of namespace %s\n", ns)
+			dumpK8sObject(nsObj)
 			dumpLog = 0
 		}
 
@@ -203,6 +216,9 @@ func (k *KubeClient) deletePVC(namespace, pvc string) error {
 func (k *KubeClient) createDeployment(deployment *appsv1.Deployment) error {
 	_, err := k.AppsV1().Deployments(deployment.Namespace).Create(deployment)
 	if err != nil {
+		if k8serrors.IsAlreadyExists(err) {
+			return nil
+		}
 		return errors.Errorf("Failed to create deployment %s/%s, err=%s", deployment.Namespace, deployment.Name, err)
 	}
 	return nil
@@ -210,4 +226,16 @@ func (k *KubeClient) createDeployment(deployment *appsv1.Deployment) error {
 
 func (k *KubeClient) deleteDeployment(namespace, deployment string) error {
 	return k.AppsV1().Deployments(namespace).Delete(deployment, &metav1.DeleteOptions{})
+}
+
+func dumpK8sObject(obj runtime.Object) {
+	if encoder == nil {
+		fmt.Printf("encoder not initilized\n")
+		return
+	}
+
+	buf := new(bytes.Buffer)
+	encoder.Encode(obj, buf)
+	fmt.Println(string(buf.Bytes()))
+
 }

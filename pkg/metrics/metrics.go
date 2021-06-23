@@ -67,7 +67,7 @@ var (
 		prometheus.CounterOpts{
 			Subsystem: NfsVolumeProvisionerSubsystem,
 			Name:      "persistentvolume_create_failed_total",
-			Help:      "Total number of apiserver requests failed",
+			Help:      "Total number of persistent volume creation failed attempts",
 		},
 		[]string{Process},
 	)

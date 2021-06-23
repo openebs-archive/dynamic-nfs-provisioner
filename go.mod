@@ -1,6 +1,6 @@
 module github.com/openebs/dynamic-nfs-provisioner
 
-go 1.13
+go 1.15
 
 replace (
 	k8s.io/api => k8s.io/api v0.17.3

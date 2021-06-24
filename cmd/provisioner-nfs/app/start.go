@@ -19,9 +19,14 @@ package app
 import (
 	"flag"
 	"fmt"
+	"net/http"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
+	"github.com/openebs/dynamic-nfs-provisioner/pkg/metrics"
 	"github.com/openebs/dynamic-nfs-provisioner/provisioner"
 	"github.com/openebs/maya/pkg/util"
 )
@@ -29,10 +34,20 @@ import (
 var (
 	cmdName = "provisioner"
 	usage   = fmt.Sprintf("%s", cmdName)
+
+	// defaultMetricsPath defines the path where prometheus metrics are exposed
+	defaultMetricsPath = "/metrics"
+	// defaultListenAddress defines the address where prometheus metrics are exposed
+	defaultListenAddress = ":8085"
 )
 
 // StartProvisioner will start a new dynamic NFS provisioner
 func StartProvisioner() (*cobra.Command, error) {
+	var (
+		metricsPath   string
+		listenAddress string
+	)
+
 	// Create a new command.
 	cmd := &cobra.Command{
 		Use:   usage,
@@ -44,6 +59,9 @@ func StartProvisioner() (*cobra.Command, error) {
 			util.CheckErr(Start(cmd), util.Fatal)
 		},
 	}
+
+	cmd.Flags().StringVar(&metricsPath, "metrics-path", defaultMetricsPath, "path under which to expose metrics")
+	cmd.Flags().StringVar(&listenAddress, "listen-address", defaultListenAddress, "address on which to expose metrics")
 
 	// add the default command line flags as global flags to cobra command
 	// flagset
@@ -57,5 +75,23 @@ func StartProvisioner() (*cobra.Command, error) {
 
 // Start will initialize and run the dynamic provisioner daemon
 func Start(cmd *cobra.Command) error {
+	metricPath := cmd.Flag("metrics-path").Value.String()
+	metricListenAddress := cmd.Flag("listen-address").Value.String()
+
+	prometheus.MustRegister([]prometheus.Collector{
+		metrics.PersistentVolumeDeleteTotal,
+		metrics.PersistentVolumeDeleteFailedTotal,
+		metrics.PersistentVolumeCreateTotal,
+		metrics.PersistentVolumeCreateFailedTotal,
+	}...)
+
+	go func() {
+		http.Handle(metricPath, promhttp.Handler())
+		fmt.Printf("Starting metric server at address [%s]", metricListenAddress)
+		if err := http.ListenAndServe(metricListenAddress, nil); err != nil {
+			fmt.Printf("Failed to start metric server at [%s]: %v", metricListenAddress, err)
+		}
+	}()
+
 	return provisioner.Start()
 }

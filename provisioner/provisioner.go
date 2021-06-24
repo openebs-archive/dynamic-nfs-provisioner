@@ -41,6 +41,7 @@ import (
 	"k8s.io/klog"
 	pvController "sigs.k8s.io/sig-storage-lib-external-provisioner/controller"
 
+	"github.com/openebs/dynamic-nfs-provisioner/pkg/metrics"
 	mconfig "github.com/openebs/maya/pkg/apis/openebs.io/v1alpha1"
 	menv "github.com/openebs/maya/pkg/env/v1alpha1"
 	analytics "github.com/openebs/maya/pkg/usage"
@@ -116,7 +117,13 @@ func (p *Provisioner) Provision(opts pvController.ProvisionOptions) (*v1.Persist
 	sendEventOrIgnore(pvc.Name, name, size.String(), nfsServerType, analytics.VolumeProvision)
 
 	if nfsServerType == "kernel" {
-		return p.ProvisionKernalNFSServer(opts, pvCASConfig)
+		pv, err := p.ProvisionKernalNFSServer(opts, pvCASConfig)
+		if err != nil {
+			metrics.PersistentVolumeCreateFailedTotal.WithLabelValues(metrics.ProvisionerRequestCreate).Inc()
+			return nil, err
+		}
+		metrics.PersistentVolumeCreateTotal.WithLabelValues(metrics.ProvisionerRequestCreate).Inc()
+		return pv, nil
 	}
 
 	alertlog.Logger.Errorw("",
@@ -160,15 +167,19 @@ func (p *Provisioner) Delete(pv *v1.PersistentVolume) (err error) {
 			err = p.DeleteKernalNFSServer(pv)
 		}
 
-		if err != nil {
-			alertlog.Logger.Errorw("",
-				"eventcode", "nfs.pv.delete.failure",
-				"msg", "Failed to delete NFS PV",
-				"rname", pv.Name,
-				"reason", "failed to delete NFS Server",
-				"storagetype", pvType,
-			)
+		if err == nil {
+			metrics.PersistentVolumeDeleteTotal.WithLabelValues(metrics.ProvisionerRequestDelete).Inc()
+			return nil
 		}
+
+		alertlog.Logger.Errorw("",
+			"eventcode", "nfs.pv.delete.failure",
+			"msg", "Failed to delete NFS PV",
+			"rname", pv.Name,
+			"reason", "failed to delete NFS Server",
+			"storagetype", pvType,
+		)
+		metrics.PersistentVolumeDeleteFailedTotal.WithLabelValues(metrics.ProvisionerRequestDelete).Inc()
 		return err
 	}
 	klog.Infof("Retained volume %v", pv.Name)

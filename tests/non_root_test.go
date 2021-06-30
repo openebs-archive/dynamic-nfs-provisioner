@@ -41,7 +41,13 @@ var _ = Describe("TEST NON ROOT USER ACCESSING NFS VOLUME", func() {
 		deployName       = "busybox-non-root-nfs"
 		label            = "demo=non-root-nfs-deployment"
 		pvcName          = "non-root-nfs-pvc"
-		labelselector    = map[string]string{
+		scNFSCASConfig   = `- name: NFSServerType
+  value: "kernel"
+- name: BackendStorageClass
+  value: "openebs-hostpath"
+- name: FSGID
+  value: "120"`
+		labelselector = map[string]string{
 			"demo": "non-root-nfs-deployment",
 		}
 		appDeploymentBuilder = deploy.NewBuilder().
@@ -103,13 +109,8 @@ var _ = Describe("TEST NON ROOT USER ACCESSING NFS VOLUME", func() {
 				ObjectMeta: metav1.ObjectMeta{
 					Name: scName,
 					Annotations: map[string]string{
-						"openebs.io/cas-type": "nfsrwx",
-						"cas.openebs.io/config": `- name: NFSServerType
-  value: "kernel"
-- name: BackendStorageClass
-  value: "openebs-hostpath"
-- name: FSGID
-  value: "120"`,
+						"openebs.io/cas-type":   "nfsrwx",
+						"cas.openebs.io/config": scNFSCASConfig,
 					},
 				},
 				Provisioner: "openebs.io/nfsrwx",

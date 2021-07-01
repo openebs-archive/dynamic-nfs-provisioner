@@ -30,15 +30,21 @@ replace (
 )
 
 require (
+	github.com/container-storage-interface/spec v1.2.0
+	github.com/kubernetes-csi/csi-lib-utils v0.9.1
 	github.com/onsi/ginkgo v1.12.0
 	github.com/onsi/gomega v1.9.0
 	github.com/openebs/maya v1.12.1
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
-	k8s.io/api v0.17.3
+	golang.org/x/net v0.0.0-20200707034311-ab3426394381
+	golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd
+	google.golang.org/grpc v1.29.0
+	k8s.io/api v0.19.0
 	k8s.io/apimachinery v0.17.3
 	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/klog v1.0.0
+	k8s.io/utils v0.0.0-20200124190032-861946025e34
 	sigs.k8s.io/sig-storage-lib-external-provisioner v4.1.0+incompatible
 )

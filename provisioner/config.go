@@ -55,6 +55,9 @@ const (
 	// If it is not set then default value(90s) will be used
 	GraceTime        = "GraceTime"
 	DefaultGraceTime = 90
+
+	// FSGroupID defines the permissions of nfs share volume
+	FSGroupID = "FSGID"
 )
 
 const (
@@ -173,6 +176,20 @@ func (c *VolumeConfig) GetNFServerGraceTime() (int, error) {
 		graceTimeVal = DefaultGraceTime
 	}
 	return graceTimeVal, nil
+}
+
+// GetFSGroupID fetches the group ID permissions from
+// StorageClass if specified
+func (c *VolumeConfig) GetFSGroupID() (*int64, error) {
+	fsGIDStr := c.getValue(FSGroupID)
+	if len(strings.TrimSpace(fsGIDStr)) == 0 {
+		return nil, nil
+	}
+	fsGIDInt, err := strconv.ParseInt(fsGIDStr, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	return &fsGIDInt, nil
 }
 
 //getValue is a utility function to extract the value

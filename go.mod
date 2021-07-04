@@ -41,5 +41,6 @@ require (
 	k8s.io/apimachinery v0.17.3
 	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/klog v1.0.0
+	k8s.io/kubectl v0.0.0
 	sigs.k8s.io/sig-storage-lib-external-provisioner v4.1.0+incompatible
 )

@@ -60,11 +60,18 @@ func NewProvisioner(stopCh chan struct{}, kubeClient *clientset.Clientset) (*Pro
 		return nil, fmt.Errorf("Cannot start Provisioner: failed to get namespace")
 	}
 
+	nfsServerNs := getNfsServerNamespace()
+	if nfsServerNs == "" {
+		// set to provisioner namespace
+		nfsServerNs = namespace
+	}
+
 	p := &Provisioner{
 		stopCh: stopCh,
 
-		kubeClient: kubeClient,
-		namespace:  namespace,
+		kubeClient:      kubeClient,
+		namespace:       namespace,
+		serverNamespace: nfsServerNs,
 		defaultConfig: []mconfig.Config{
 			{
 				Name:  KeyPVNFSServerType,

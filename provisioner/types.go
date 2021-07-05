@@ -26,14 +26,25 @@ import (
 //Provisioner struct has the configuration and utilities required
 // across the different work-flows.
 type Provisioner struct {
-	stopCh     chan struct{}
+	stopCh chan struct{}
+
 	kubeClient *clientset.Clientset
-	namespace  string
+
+	// namespace in which provisioner is running
+	namespace string
+
+	// serverNamespace in which nfs server deployments gets created
+	// can be set through env variable NFS_SERVER_NAMESPACE
+	// default value is Provisioner.namespace
+	serverNamespace string
+
 	// defaultConfig is the default configurations
 	// provided from ENV or Code
 	defaultConfig []mconfig.Config
+
 	// getVolumeConfig is a reference to a function
 	getVolumeConfig GetVolumeConfigFn
+
 	//determine if clusterIP or clusterDNS should be used
 	useClusterIP bool
 }

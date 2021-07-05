@@ -273,6 +273,57 @@ func (b *Builder) WithAffinity(affinity *corev1.Affinity) *Builder {
 	return b
 }
 
+// WithNodeAffinityMatchExpressions sets matchexpressions under
+// nodeAffinity
+// NOTE: If nil is passed then match expressions will not be
+//		 propogated to node affinity.
+// CAUTION: Don't invoke WithAffinity func after calling this function
+//			It will overwrite MatchExpression
+func (b *Builder) WithNodeAffinityMatchExpressions(
+	mExpressions []corev1.NodeSelectorRequirement) *Builder {
+	if len(mExpressions) == 0 {
+		return b
+	}
+
+	if b.podtemplatespec.Object.Spec.Affinity == nil {
+		b.podtemplatespec.Object.Spec.Affinity = &corev1.Affinity{}
+	}
+	if b.podtemplatespec.Object.Spec.Affinity.NodeAffinity == nil {
+		b.podtemplatespec.Object.Spec.Affinity.NodeAffinity = &corev1.NodeAffinity{}
+	}
+	if b.podtemplatespec.
+		Object.
+		Spec.
+		Affinity.
+		NodeAffinity.
+		RequiredDuringSchedulingIgnoredDuringExecution == nil {
+		b.podtemplatespec.
+			Object.
+			Spec.
+			Affinity.
+			NodeAffinity.
+			RequiredDuringSchedulingIgnoredDuringExecution = &corev1.NodeSelector{}
+	}
+	b.podtemplatespec.
+		Object.
+		Spec.
+		Affinity.
+		NodeAffinity.
+		RequiredDuringSchedulingIgnoredDuringExecution.
+		NodeSelectorTerms = append(b.podtemplatespec.
+		Object.
+		Spec.
+		Affinity.
+		NodeAffinity.
+		RequiredDuringSchedulingIgnoredDuringExecution.
+		NodeSelectorTerms,
+		corev1.NodeSelectorTerm{
+			MatchExpressions: mExpressions,
+		},
+	)
+	return b
+}
+
 // WithTolerationsByValue sets pod toleration.
 // If provided tolerations argument is empty it does not complain.
 func (b *Builder) WithTolerationsByValue(tolerations ...corev1.Toleration) *Builder {

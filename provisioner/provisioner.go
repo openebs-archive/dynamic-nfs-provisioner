@@ -47,6 +47,9 @@ import (
 	analytics "github.com/openebs/maya/pkg/usage"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	kubeinformers "k8s.io/client-go/informers"
+	listersv1 "k8s.io/client-go/listers/core/v1"
+	v1helper "k8s.io/kubernetes/pkg/apis/core/v1/helper"
 
 	//metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
@@ -60,6 +63,8 @@ func NewProvisioner(stopCh chan struct{}, kubeClient *clientset.Clientset) (*Pro
 	if len(strings.TrimSpace(namespace)) == 0 {
 		return nil, fmt.Errorf("Cannot start Provisioner: failed to get namespace")
 	}
+	kubeInformerFactory := kubeinformers.NewSharedInformerFactory(kubeClient, 0)
+	k8sNodeInformer := kubeInformerFactory.Core().V1().Nodes().Informer()
 
 	nfsServerNs := getNfsServerNamespace()
 	p := &Provisioner{
@@ -74,9 +79,15 @@ func NewProvisioner(stopCh chan struct{}, kubeClient *clientset.Clientset) (*Pro
 				Value: getDefaultNFSServerType(),
 			},
 		},
-		useClusterIP: menv.Truthy(ProvisionerNFSServerUseClusterIP),
+		useClusterIP:  menv.Truthy(ProvisionerNFSServerUseClusterIP),
+		k8sNodeLister: listersv1.NewNodeLister(k8sNodeInformer.GetIndexer()),
+		nodeAffinity:  getNodeAffinityRules(),
 	}
 	p.getVolumeConfig = p.GetVolumeConfig
+
+	// Running node informer will fetch node information from API Server
+	// and maintain it in cache
+	go k8sNodeInformer.Run(stopCh)
 
 	return p, nil
 }
@@ -104,6 +115,14 @@ func (p *Provisioner) Provision(opts pvController.ProvisionOptions) (*v1.Persist
 	// default configuration with configuration provided
 	// via PVC and the associated StorageClass
 	pvCASConfig, err := p.getVolumeConfig(name, pvc)
+	if err != nil {
+		return nil, err
+	}
+
+	// Validate nodeAffinity rules for scheduling
+	// There might be changes to node after deploying
+	// NFS Provisioner
+	err = p.validateNodeAffinityRules()
 	if err != nil {
 		return nil, err
 	}
@@ -190,6 +209,32 @@ func (p *Provisioner) Delete(pv *v1.PersistentVolume) (err error) {
 		"msg", "Successfully deleted NFS PV",
 		"rname", pv.Name,
 	)
+	return nil
+}
+
+// validateNodeAffinityRules will returns error if there are no
+// node exist for given affinity rules
+func (p *Provisioner) validateNodeAffinityRules() error {
+	if len(p.nodeAffinity.MatchExpressions) == 0 {
+		return nil
+	}
+
+	nodeSelector, err := v1helper.NodeSelectorRequirementsAsSelector(p.nodeAffinity.MatchExpressions)
+	if err != nil {
+		return err
+	}
+
+	nodeList, err := p.k8sNodeLister.List(nodeSelector)
+	if err != nil {
+		return err
+	}
+
+	if len(nodeList) == 0 {
+		return errors.Errorf(
+			"No matching nodes found for given affinity rules (%s)",
+			nodeSelector.String(),
+		)
+	}
 	return nil
 }
 

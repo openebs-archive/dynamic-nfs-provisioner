@@ -217,6 +217,7 @@ func (p *Provisioner) createDeployment(nfsServerOpts *KernelNFSServerOptions) er
 				WithSecurityContext(&corev1.PodSecurityContext{
 					FSGroup: nfsServerOpts.fsGroup,
 				}).
+				WithNodeAffinityMatchExpressions(p.nodeAffinity.MatchExpressions).
 				WithContainerBuildersNew(
 					container.NewBuilder().
 						WithName("nfs-server").

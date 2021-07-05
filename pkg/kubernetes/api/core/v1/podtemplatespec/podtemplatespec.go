@@ -161,6 +161,17 @@ func (b *Builder) WithLabelsNew(labels map[string]string) *Builder {
 	return b
 }
 
+// WithSecurityContext sets the security context of pod
+func (b *Builder) WithSecurityContext(
+	podSecurityContext *corev1.PodSecurityContext) *Builder {
+
+	if podSecurityContext == nil {
+		return b
+	}
+	b.podtemplatespec.Object.Spec.SecurityContext = podSecurityContext
+	return b
+}
+
 // WithNodeSelector merges the nodeselectors if present
 // with the provided arguments
 func (b *Builder) WithNodeSelector(nodeselectors map[string]string) *Builder {

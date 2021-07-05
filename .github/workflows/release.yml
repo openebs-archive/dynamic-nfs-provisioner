@@ -18,11 +18,10 @@ on:
   release:
     types:
       - 'created'
-    tags:
-      - 'v*'
 
 jobs:
   provisioner-nfs:
+    if: contains(github.ref, 'tags/v')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -101,6 +100,7 @@ jobs:
             RELEASE_TAG=${{ env.RELEASE_TAG }}
 
   nfs-server:
+    if: contains(github.ref, 'tags/v')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

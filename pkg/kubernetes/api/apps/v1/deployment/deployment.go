@@ -15,7 +15,6 @@ package deployment
 
 import (
 	templatespec "github.com/openebs/dynamic-nfs-provisioner/pkg/kubernetes/api/core/v1/podtemplatespec"
-	stringer "github.com/openebs/maya/pkg/apis/stringer/v1alpha1"
 	errors "github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -63,16 +62,6 @@ const (
 	// PredicateUpdateInProgress refer to predicate IsUpdateInProgress.
 	PredicateUpdateInProgress PredicateName = "UpdateInProgress"
 )
-
-// String implements the stringer interface
-func (d *Deploy) String() string {
-	return stringer.Yaml("deployment", d.object)
-}
-
-// GoString implements the goStringer interface
-func (d *Deploy) GoString() string {
-	return d.String()
-}
 
 // NewBuilder returns a new instance of builder meant for deployment
 func NewBuilder() *Builder {

@@ -33,6 +33,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	types "k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -299,6 +300,14 @@ func (k *KubeClient) deleteDeployment(namespace, deployment string) error {
 	return k.AppsV1().Deployments(namespace).Delete(deployment, &metav1.DeleteOptions{})
 }
 
+func (k *KubeClient) getDeployment(namespace, deployment string) (*appsv1.Deployment, error) {
+	return k.AppsV1().Deployments(namespace).Get(deployment, metav1.GetOptions{})
+}
+
+func (k *KubeClient) updateDeployment(deployment *appsv1.Deployment) (*appsv1.Deployment, error) {
+	return k.AppsV1().Deployments(deployment.Namespace).Update(deployment)
+}
+
 func dumpK8sObject(obj runtime.Object) {
 	if encoder == nil {
 		fmt.Printf("encoder not initilized\n")
@@ -338,4 +347,54 @@ func getPatchData(oldObj, newObj interface{}) ([]byte, []byte, error) {
 		return nil, nil, fmt.Errorf("CreateTwoWayMergePatch failed: %v", err)
 	}
 	return patchBytes, oldData, nil
+}
+
+func (k *KubeClient) waitForDeploymentRollout(ns, deployment string) error {
+	return wait.PollInfinite(2*time.Second, func() (bool, error) {
+		deploy, err := k.AppsV1().Deployments(ns).Get(deployment, metav1.GetOptions{})
+		if err != nil {
+			return true, err
+		}
+
+		var cond *appsv1.DeploymentCondition
+		// list all conditions and and select that condition which type is Progressing.
+		for i := range deploy.Status.Conditions {
+			c := deploy.Status.Conditions[i]
+			if c.Type == appsv1.DeploymentProgressing {
+				cond = &c
+			}
+		}
+		// if deploy.Generation <= deploy.Status.ObservedGeneration then deployment spec is not updated yet.
+		// it marked IsRolledout as false and update message accordingly
+		if deploy.Generation <= deploy.Status.ObservedGeneration {
+			// If Progressing condition's reason is ProgressDeadlineExceeded then it is not rolled out.
+			if cond != nil && cond.Reason == "ProgressDeadlineExceeded" {
+				return false, errors.New(fmt.Sprintf("deployment exceeded its progress deadline"))
+			}
+			// if deploy.Status.UpdatedReplicas < *deploy.Spec.Replicas then some of the replicas are updated
+			// and some of them are not. It marked IsRolledout as false and update message accordingly
+			if deploy.Spec.Replicas != nil && deploy.Status.UpdatedReplicas < *deploy.Spec.Replicas {
+				fmt.Printf("Waiting for deployment rollout to finish: %d out of %d new replicas have been updated\n",
+					deploy.Status.UpdatedReplicas, *deploy.Spec.Replicas)
+				return false, nil
+			}
+			// if deploy.Status.Replicas > deploy.Status.UpdatedReplicas then some of the older replicas are in running state
+			// because newer replicas are not in running state. It waits for newer replica to come into reunning state then terminate.
+			// It marked IsRolledout as false and update message accordingly
+			if deploy.Status.Replicas > deploy.Status.UpdatedReplicas {
+				fmt.Printf("Waiting for deployment rollout to finish: %d old replicas are pending termination\n",
+					deploy.Status.Replicas-deploy.Status.UpdatedReplicas)
+				return false, nil
+			}
+			// if deploy.Status.AvailableReplicas < deploy.Status.UpdatedReplicas then all the replicas are updated but they are
+			// not in running state. It marked IsRolledout as false and update message accordingly.
+			if deploy.Status.AvailableReplicas < deploy.Status.UpdatedReplicas {
+				fmt.Printf("Waiting for deployment rollout to finish: %d of %d updated replicas are available\n",
+					deploy.Status.AvailableReplicas, deploy.Status.UpdatedReplicas)
+			}
+			return true, nil
+		}
+		fmt.Printf("Waiting for deployment spec update to be observed\n")
+		return false, nil
+	})
 }

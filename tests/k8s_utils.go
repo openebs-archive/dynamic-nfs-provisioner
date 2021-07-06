@@ -242,17 +242,18 @@ func (k *KubeClient) createDeployment(deployment *appsv1.Deployment) error {
 
 func (k *KubeClient) applyDeployment(deployment *appsv1.Deployment) error {
 	// TODO: Use server side apply
-	_, err := k.AppsV1().Deployments(deployment.Namespace).Create(deployment)
-	if err != nil && !k8serrors.IsAlreadyExists(err) {
-		return errors.Errorf("Failed to create deployment %s/%s, err=%s", deployment.Namespace, deployment.Name, err)
-	}
-	if err == nil {
-		return nil
-	}
-
 	currentDeployment, err := k.AppsV1().
 		Deployments(deployment.Namespace).
 		Get(deployment.Name, metav1.GetOptions{})
+	if err != nil {
+		if k8serrors.IsNotFound(err) {
+			_, err := k.AppsV1().Deployments(deployment.Namespace).Create(deployment)
+			if err != nil {
+				return errors.Errorf("Failed to create deployment %s/%s, err=%s", deployment.Namespace, deployment.Name, err)
+			}
+		}
+		return err
+	}
 
 	data, _, err := getPatchData(currentDeployment, deployment)
 	if err != nil {
@@ -285,6 +286,10 @@ func (k *KubeClient) updateDeployment(deployment *appsv1.Deployment) (*appsv1.De
 	return k.AppsV1().Deployments(deployment.Namespace).Update(deployment)
 }
 
+func (k *KubeClient) listDeployments(namespace, labelSelector string) (*appsv1.DeploymentList, error) {
+	return k.AppsV1().Deployments(namespace).List(metav1.ListOptions{LabelSelector: labelSelector})
+}
+
 func dumpK8sObject(obj runtime.Object) {
 	if encoder == nil {
 		fmt.Printf("encoder not initilized\n")
@@ -308,6 +313,11 @@ func (k *KubeClient) createStorageClass(sc *storagev1.StorageClass) error {
 
 func (k *KubeClient) deleteStorageClass(scName string) error {
 	return k.StorageV1().StorageClasses().Delete(scName, &metav1.DeleteOptions{})
+}
+
+// Add Node related operations
+func (k *KubeClient) listNodes(labelSelector string) (*corev1.NodeList, error) {
+	return k.CoreV1().Nodes().List(metav1.ListOptions{LabelSelector: labelSelector})
 }
 
 func getPatchData(oldObj, newObj interface{}) ([]byte, []byte, error) {

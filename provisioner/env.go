@@ -17,6 +17,9 @@ limitations under the License.
 package provisioner
 
 import (
+	"os"
+	"strings"
+
 	menv "github.com/openebs/maya/pkg/env/v1alpha1"
 )
 
@@ -51,6 +54,9 @@ const (
 	// NFSServerNamespace defines the namespace for nfs server objects
 	// Default value is menv.OpenEBSNamespace(operator namespace)
 	NFSServerNamespace menv.ENVKey = "OPENEBS_IO_NFS_SERVER_NS"
+
+	// NODEAFFINITYKEY holds the env name representing Node affinity rules
+	NODEAFFINITYKEY = "NODEAFFINITY"
 )
 
 var (
@@ -86,4 +92,9 @@ func getOpenEBSServiceAccountName() string {
 
 func getNFSServerImage() string {
 	return menv.GetOrDefault(NFSServerImageKey, string(NFSServerDefaultImage))
+}
+
+// getEnv fetches the provided environment variable's value
+func getEnv(envKey string) (value string) {
+	return strings.TrimSpace(os.Getenv(envKey))
 }

@@ -304,6 +304,7 @@ func (b *Builder) WithNodeAffinityMatchExpressions(
 			NodeAffinity.
 			RequiredDuringSchedulingIgnoredDuringExecution = &corev1.NodeSelector{}
 	}
+
 	b.podtemplatespec.
 		Object.
 		Spec.

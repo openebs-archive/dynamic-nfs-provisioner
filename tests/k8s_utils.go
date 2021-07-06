@@ -37,7 +37,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	deploymentutil "k8s.io/kubectl/pkg/util/deployment"
 )
 
 // KubeClient interface for k8s API
@@ -271,29 +270,7 @@ func (k *KubeClient) applyDeployment(deployment *appsv1.Deployment) error {
 		return err
 	}
 
-	for {
-		deployObj, err := k.AppsV1().Deployments(deployment.Namespace).
-			Get(deployment.Name, metav1.GetOptions{})
-		if err != nil {
-			return err
-		}
-		revision, err := deploymentutil.Revision(deployObj)
-		if err != nil {
-			return err
-		}
-		statusViewer := DeploymentStatusViewer{}
-		msg, rolledOut, err := statusViewer.Status(deployObj, revision)
-		if err != nil {
-			return err
-		}
-		fmt.Printf("rollout status: %s\n", msg)
-		if rolledOut {
-			break
-		}
-		time.Sleep(5 * time.Second)
-	}
-
-	return nil
+	return k.waitForDeploymentRollout(deployment.Namespace, deployment.Name)
 }
 
 func (k *KubeClient) deleteDeployment(namespace, deployment string) error {

@@ -124,7 +124,7 @@ spec:
           value: "openebs-operator-nfs"
         # OPENEBS_IO_NFS_SERVER_NS defines the namespace for nfs-server deployment
         #- name: OPENEBS_IO_NFS_SERVER_NS
-        #  value: "default"
+        #  value: "openebs"
         # OPENEBS_IO_NFS_SERVER_IMG defines the nfs-server-alpine image name to be used
         # while creating nfs volume
         - name: OPENEBS_IO_NFS_SERVER_IMG

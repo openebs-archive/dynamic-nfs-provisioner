@@ -62,11 +62,6 @@ func NewProvisioner(stopCh chan struct{}, kubeClient *clientset.Clientset) (*Pro
 	}
 
 	nfsServerNs := getNfsServerNamespace()
-	if nfsServerNs == "" {
-		// set to provisioner namespace
-		nfsServerNs = namespace
-	}
-
 	p := &Provisioner{
 		stopCh: stopCh,
 

@@ -67,7 +67,7 @@ func getOpenEBSNamespace() string {
 }
 
 func getNfsServerNamespace() string {
-	return menv.Get(NFSServerNamespace)
+	return menv.GetOrDefault(NFSServerNamespace, menv.Get(menv.OpenEBSNamespace))
 }
 
 func getDefaultExportsSC() string {

@@ -49,6 +49,7 @@ const (
 	NFSServerImageKey menv.ENVKey = "OPENEBS_IO_NFS_SERVER_IMG"
 
 	// NFSServerNamespace defines the namespace for nfs server objects
+	// Default value is menv.OpenEBSNamespace(operator namespace)
 	NFSServerNamespace menv.ENVKey = "OPENEBS_IO_NFS_SERVER_NS"
 )
 
@@ -66,6 +67,7 @@ func getOpenEBSNamespace() string {
 	return menv.Get(menv.OpenEBSNamespace)
 }
 
+// getNfsServerNamespace return namespace for nfs-server
 func getNfsServerNamespace() string {
 	return menv.GetOrDefault(NFSServerNamespace, menv.Get(menv.OpenEBSNamespace))
 }

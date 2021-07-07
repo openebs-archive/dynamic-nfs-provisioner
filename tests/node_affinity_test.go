@@ -31,7 +31,7 @@ var _ = Describe("TEST NODE AFFINITY FEATURE", func() {
 		capacity                    = "2Gi"
 		nfsProvisionerLabel         = "openebs.io/component-name=openebs-nfs-provisioner"
 		nfsProvisionerContainerName = "openebs-provisioner-nfs"
-		pvcName                     = "pvc-nfs"
+		pvcName                     = "node-affinity-pvc-nfs"
 		nodeAffinityKeyValues       map[string][]string
 	)
 

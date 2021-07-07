@@ -48,7 +48,7 @@ var _ = Describe("TEST NFS SERVER CONFIGURATION", func() {
 		// pvc values
 		accessModes = []corev1.PersistentVolumeAccessMode{corev1.ReadWriteMany}
 		capacity    = "2Gi"
-		pvcName     = "pvc-nfs"
+		pvcName     = "pvc-nfs-param"
 
 		// nfs provisioner values
 		openebsNamespace = "openebs"
@@ -57,8 +57,10 @@ var _ = Describe("TEST NFS SERVER CONFIGURATION", func() {
 		scNfsServerType  = "kernel"
 		scGraceTime      = "30"
 		scLeaseTime      = "30"
+		scExportConfig   = "/nfsshare *(rw,fsid=0,async,no_auth_nlm)"
 		procNfsGraceFile = "/proc/fs/nfsd/nfsv4gracetime"
 		procNfsLeaseFile = "/proc/fs/nfsd/nfsv4leasetime"
+		exportFile       = "/etc/exports"
 	)
 
 	When("create storageclass with nfs configuration", func() {
@@ -77,6 +79,10 @@ var _ = Describe("TEST NFS SERVER CONFIGURATION", func() {
 				{
 					Name:  provisioner.GraceTime,
 					Value: scGraceTime,
+				},
+				{
+					Name:  provisioner.CustomServerConfig,
+					Value: scExportConfig,
 				},
 			}
 
@@ -198,23 +204,33 @@ var _ = Describe("TEST NFS SERVER CONFIGURATION", func() {
 			podList, err := Client.listPods(openebsNamespace, fmt.Sprintf("%s=%s", nfsServerLabel, nfsDeployment))
 			Expect(err).To(BeNil(), "while fetching nfs-server pod")
 
+			// check if grace period is set or not
 			stdOut, stdErr, err := Client.Exec(fmt.Sprintf("cat %s", procNfsGraceFile),
 				podList.Items[0].Name,
 				"nfs-server",
 				openebsNamespace,
 			)
-			Expect(err).To(BeNil(), "while updating permissions of NFS volume stderror {%s}", stdErr)
+			Expect(err).To(BeNil(), "while reading file=%s err={%s}", procNfsGraceFile, stdErr)
 			// remove new line from output
 			Expect(stdOut[:len(stdOut)-1]).To(Equal(scGraceTime), "while verifying grace time")
 
+			// check if lease period is set or not
 			stdOut, stdErr, err = Client.Exec(fmt.Sprintf("cat %s", procNfsLeaseFile),
 				podList.Items[0].Name,
 				"nfs-server",
 				openebsNamespace,
 			)
-			Expect(err).To(BeNil(), "while updating permissions of NFS volume stderror {%s}", stdErr)
-			// remove new line from output
-			Expect(stdOut[:len(stdOut)-1]).To(Equal(scLeaseTime), "while verifying leaes time")
+			Expect(err).To(BeNil(), "while reading file=%s err={%s}", procNfsLeaseFile, stdErr)
+			Expect(stdOut[:len(stdOut)-1]).To(Equal(scLeaseTime), "while verifying lease time")
+
+			// check if export config is set or not
+			stdOut, stdErr, err = Client.Exec(fmt.Sprintf("cat %s", exportFile),
+				podList.Items[0].Name,
+				"nfs-server",
+				openebsNamespace,
+			)
+			Expect(err).To(BeNil(), "while reading file=%s err={%s}", exportFile, stdErr)
+			Expect(stdOut[:len(stdOut)-1]).To(Equal(scExportConfig), "while verifying export config")
 		})
 	})
 

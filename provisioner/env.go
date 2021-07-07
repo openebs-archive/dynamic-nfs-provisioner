@@ -56,7 +56,7 @@ const (
 	NFSServerNamespace menv.ENVKey = "OPENEBS_IO_NFS_SERVER_NS"
 
 	// NODEAFFINITYKEY holds the env name representing Node affinity rules
-	NODEAFFINITYKEY = "NODEAFFINITY"
+	NODEAFFINITYKEY = "OPENEBS_IO_NFS_SERVER_NODEAFFINITY"
 )
 
 var (

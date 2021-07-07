@@ -20,6 +20,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	pvc "github.com/openebs/dynamic-nfs-provisioner/pkg/kubernetes/api/core/v1/persistentvolumeclaim"
+	provisioner "github.com/openebs/dynamic-nfs-provisioner/provisioner"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -79,7 +80,7 @@ var _ = Describe("TEST NODE AFFINITY FEATURE", func() {
 							Spec.
 							Containers[index].Env,
 						corev1.EnvVar{
-							Name:  "NODEAFFINITY",
+							Name:  provisioner.NODEAFFINITYKEY,
 							Value: nodeAffinityAsValue,
 						},
 					)
@@ -170,19 +171,14 @@ var _ = Describe("TEST NODE AFFINITY FEATURE", func() {
 			nfsProvisionerDeployment := deploymentList.Items[0]
 			for cIndex, containerDetails := range nfsProvisionerDeployment.Spec.Template.Spec.Containers {
 				if containerDetails.Name == nfsProvisionerContainerName {
-					envVars := make([]corev1.EnvVar, len(containerDetails.Env)-1)
 					envIndex := 0
 					for _, envVar := range containerDetails.Env {
-						if envVar.Name == "NODEAFFINITY" {
-							continue
+						if envVar.Name == provisioner.NODEAFFINITYKEY {
+							break
 						}
-						envVars[envIndex] = envVar
 						envIndex++
 					}
-					nfsProvisionerDeployment.Spec.
-						Template.
-						Spec.
-						Containers[cIndex].Env = envVars
+					nfsProvisionerDeployment.Spec.Template.Spec.Containers[cIndex].Env = append(nfsProvisionerDeployment.Spec.Template.Spec.Containers[cIndex].Env[:envIndex], nfsProvisionerDeployment.Spec.Template.Spec.Containers[cIndex].Env[envIndex+1:]...)
 					break
 				}
 			}

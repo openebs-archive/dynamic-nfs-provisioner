@@ -413,7 +413,7 @@ func (p *Provisioner) deleteService(nfsServerOpts *KernelNFSServerOptions) error
 		Get(svcName, metav1.GetOptions{})
 	if err == nil {
 		nfsServerOpts.serviceName = svcName
-		klog.Infof("Volume %v has been initialized with Service:%v. Initiating delete...", nfsServerOpts.pvName, svcName)
+		klog.Infof("Volume %s has been initialized with Service:%s/%s. Initiating delete...", nfsServerOpts.pvName, p.serverNamespace, svcName)
 	} else {
 		return nil
 	}
@@ -428,7 +428,7 @@ func (p *Provisioner) deleteService(nfsServerOpts *KernelNFSServerOptions) error
 
 	if err != nil {
 		//TODO : Need to relook at this error
-		return errors.Errorf("unable to delete Service %v associated with PV:%v", nfsServerOpts.pvName, svcName)
+		return errors.Errorf("unable to delete Service %s/%s associated with PV:%s", p.serverNamespace, svcName, nfsServerOpts.pvName)
 	}
 
 	return nil

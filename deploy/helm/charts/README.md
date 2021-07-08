@@ -127,6 +127,7 @@ helm install openebs-nfs openebs-nfs/nfs-provisioner --namespace openebs --creat
 | `nfsProvisioner.resources`            | Resource request and limit for the container  | `true`                          |
 | `nfsProvisioner.securityContext`      | Security context for container                | `""`                            |
 | `nfsProvisioner.tolerations`          | NFS Provisioner pod toleration values         | `""`                            |
+| `nfsProvisioner.nfsServerNamespace`          | NFS server namespace         | `"openebs"`                            |
 | `nfsStorageClass.backendStorageClass` | StorageClass to be used to provision the backend volume. If not specified, the default StorageClass is used. | `""`                         |
 | `nfsStorageClass.isDefaultClass`      | Make 'openebs-kernel-nfs' the default StorageClass | `"false"`                         |
 | `nfsStorageClass.reclaimPolicy`       | ReclaimPolicy for NFS PVs                      | `"Delete"`                     |

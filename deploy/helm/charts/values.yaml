@@ -66,6 +66,9 @@ nfsProvisioner:
   healthCheck:
     initialDelaySeconds: 30
     periodSeconds: 60
+ # namespace in which nfs server objects should be created
+ # By default, nfs provisioner will create these resources in nfs provisioner's namespace
+ # nfsServerNamespace: openebs
 
 nfsStorageClass:
   name: openebs-kernel-nfs

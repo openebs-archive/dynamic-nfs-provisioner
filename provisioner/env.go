@@ -47,6 +47,10 @@ const (
 	// Note: If image name is not mentioned then provisioner.ProvisionerNFSServerImage
 	//
 	NFSServerImageKey menv.ENVKey = "OPENEBS_IO_NFS_SERVER_IMG"
+
+	// NFSServerNamespace defines the namespace for nfs server objects
+	// Default value is menv.OpenEBSNamespace(operator namespace)
+	NFSServerNamespace menv.ENVKey = "OPENEBS_IO_NFS_SERVER_NS"
 )
 
 var (
@@ -62,6 +66,12 @@ var (
 func getOpenEBSNamespace() string {
 	return menv.Get(menv.OpenEBSNamespace)
 }
+
+// getNfsServerNamespace return namespace for nfs-server
+func getNfsServerNamespace() string {
+	return menv.GetOrDefault(NFSServerNamespace, menv.Get(menv.OpenEBSNamespace))
+}
+
 func getDefaultExportsSC() string {
 	return menv.GetOrDefault(ProvisionerExportsSC, string(defaultExportsSC))
 }

@@ -87,7 +87,7 @@ spec:
             - name: OPENEBS_IO_NFS_SERVER_NS
               value: {{ .Values.nfsProvisioner.nfsServerNamespace }}
             {{- end }}
-            # OPENEBS_IO_NFS_SERVER_NODEAFFINITY defines the node affinity rules to place NFS Server
+            # OPENEBS_IO_NFS_SERVER_NODE_AFFINITY defines the node affinity rules to place NFS Server
             # instance. It accepts affinity rules in multiple ways:
             # - If NFS Server needs to be placed on storage nodes as well as only in
             #   zone-1 & zone-2 then value can be:
@@ -96,7 +96,7 @@ spec:
             #   value can be:
             #   value:  "kubernetes.io/storage-node,kubernetes.io/nfs-node"
             {{- if .Values.nfsProvisioner.nfsServerNodeAffinity }}
-            - name: OPENEBS_IO_NFS_SERVER_NODEAFFINITY
+            - name: OPENEBS_IO_NFS_SERVER_NODE_AFFINITY
               value: "{{ .Values.nfsProvisioner.nfsServerNodeAffinity }}"
             {{- end }}
           # Process name used for matching is limited to the 15 characters

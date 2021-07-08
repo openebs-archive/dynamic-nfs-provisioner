@@ -80,7 +80,7 @@ var _ = Describe("TEST NODE AFFINITY FEATURE", func() {
 							Spec.
 							Containers[index].Env,
 						corev1.EnvVar{
-							Name:  provisioner.NODEAFFINITYKEY,
+							Name:  string(provisioner.NodeAffinityKey),
 							Value: nodeAffinityAsValue,
 						},
 					)
@@ -89,7 +89,7 @@ var _ = Describe("TEST NODE AFFINITY FEATURE", func() {
 			}
 
 			err = Client.applyDeployment(&nfsProvisionerDeployment)
-			Expect(err).To(BeNil(), "failed to add NODEAFFINITY env to NFS Provisioner")
+			Expect(err).To(BeNil(), "failed to add %s env to NFS Provisioner", provisioner.NodeAffinityKey)
 		})
 	})
 
@@ -136,6 +136,25 @@ var _ = Describe("TEST NODE AFFINITY FEATURE", func() {
 			nfsServerDeployment, err := Client.getDeployment(openebsNamespace, "nfs-"+boundedPVCObj.Spec.VolumeName)
 			Expect(err).To(BeNil(), "failed to list NFS Provisioner deployments")
 
+			Expect(nfsServerDeployment.Spec.Template.Spec.Affinity).NotTo(
+				BeNil(),
+				"affinity should exist on %s/%s NFS Server deployment",
+				nfsServerDeployment.Namespace,
+				nfsServerDeployment.Name,
+			)
+			Expect(nfsServerDeployment.Spec.Template.Spec.Affinity.NodeAffinity).NotTo(
+				BeNil(),
+				"node affinity should exist on %s/%s NFS Server deployment",
+				nfsServerDeployment.Namespace,
+				nfsServerDeployment.Name,
+			)
+			Expect(nfsServerDeployment.Spec.Template.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution).NotTo(
+				BeNil(),
+				"requiredDuringSchedulingIgnoreDuringExecution should exist on %s/%s NFS Server deployment",
+				nfsServerDeployment.Namespace,
+				nfsServerDeployment.Name,
+			)
+
 			// Verify propogation of affinity rules
 			for _, rules := range nfsServerDeployment.Spec.Template.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms {
 				for _, affinityRule := range rules.MatchExpressions {
@@ -173,7 +192,7 @@ var _ = Describe("TEST NODE AFFINITY FEATURE", func() {
 				if containerDetails.Name == nfsProvisionerContainerName {
 					envIndex := 0
 					for _, envVar := range containerDetails.Env {
-						if envVar.Name == provisioner.NODEAFFINITYKEY {
+						if envVar.Name == string(provisioner.NodeAffinityKey) {
 							break
 						}
 						envIndex++
@@ -184,7 +203,7 @@ var _ = Describe("TEST NODE AFFINITY FEATURE", func() {
 			}
 
 			err = Client.applyDeployment(&nfsProvisionerDeployment)
-			Expect(err).To(BeNil(), "failed to add NODEAFFINITY env to NFS Provisioner")
+			Expect(err).To(BeNil(), "failed to add %s env to NFS Provisioner", provisioner.NodeAffinityKey)
 		})
 	})
 

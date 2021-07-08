@@ -28,7 +28,7 @@ import (
 func getNodeAffinityRules() NodeAffinity {
 	var nodeAffinity NodeAffinity
 
-	affinityValue := getEnv(NODEAFFINITYKEY)
+	affinityValue := getNfsServerNodeAffinity()
 	if affinityValue == "" {
 		return nodeAffinity
 	}

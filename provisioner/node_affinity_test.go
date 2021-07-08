@@ -160,7 +160,7 @@ func TestGetNodeAffinityRules(t *testing.T) {
 	}
 
 	for name, test := range tests {
-		os.Setenv(NODEAFFINITYKEY, test.envValue)
+		os.Setenv(string(NodeAffinityKey), test.envValue)
 		gotNodeAffinityRules := getNodeAffinityRules()
 		if !reflect.DeepEqual(gotNodeAffinityRules.MatchExpressions, test.expectedAffinity.MatchExpressions) {
 			t.Errorf(
@@ -171,7 +171,7 @@ func TestGetNodeAffinityRules(t *testing.T) {
 			)
 		}
 
-		os.Unsetenv(NODEAFFINITYKEY)
+		os.Unsetenv(string(NodeAffinityKey))
 	}
 }
 

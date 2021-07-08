@@ -102,7 +102,7 @@ spec:
         #   This is supported for openebs provisioner version 0.5.2 onwards
         # - name: OPENEBS_IO_KUBE_CONFIG
         #   value: "/home/ubuntu/.kube/config"
-        #   OPENEBS_IO_NFS_SERVER_NODEAFFINITY defines the node affinity rules to place NFS Server
+        #   OPENEBS_IO_NFS_SERVER_NODE_AFFINITY defines the node affinity rules to place NFS Server
         #   instance. It accepts affinity rules in multiple ways:
         #   - If NFS Server needs to be placed on storage nodes as well as only in
         #     zone-1 & zone-2 then value can be:
@@ -110,7 +110,7 @@ spec:
         #   - If NFS Server needs to be placed only on storage nodes & nfs nodes then
         #     value can be:
         #     value:  "kubernetes.io/storage-node,kubernetes.io/nfs-node"
-        # - name: OPENEBS_IO_NFS_SERVER_NODEAFFINITY
+        # - name: OPENEBS_IO_NFS_SERVER_NODE_AFFINITY
         #   value: "kubernetes.io/storage-node,kubernetes.io/nfs-node"
         - name: NODE_NAME
           valueFrom:

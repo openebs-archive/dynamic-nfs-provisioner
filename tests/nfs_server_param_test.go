@@ -205,7 +205,7 @@ var _ = Describe("TEST NFS SERVER CONFIGURATION", func() {
 			Expect(err).To(BeNil(), "while fetching nfs-server pod")
 
 			// check if grace period is set or not
-			stdOut, stdErr, err := Client.Exec(fmt.Sprintf("cat %s", procNfsGraceFile),
+			stdOut, stdErr, err := Client.Exec("cat "+procNfsGraceFile,
 				podList.Items[0].Name,
 				"nfs-server",
 				openebsNamespace,
@@ -215,7 +215,7 @@ var _ = Describe("TEST NFS SERVER CONFIGURATION", func() {
 			Expect(stdOut[:len(stdOut)-1]).To(Equal(scGraceTime), "while verifying grace time")
 
 			// check if lease period is set or not
-			stdOut, stdErr, err = Client.Exec(fmt.Sprintf("cat %s", procNfsLeaseFile),
+			stdOut, stdErr, err = Client.Exec("cat "+procNfsLeaseFile,
 				podList.Items[0].Name,
 				"nfs-server",
 				openebsNamespace,
@@ -224,7 +224,7 @@ var _ = Describe("TEST NFS SERVER CONFIGURATION", func() {
 			Expect(stdOut[:len(stdOut)-1]).To(Equal(scLeaseTime), "while verifying lease time")
 
 			// check if export config is set or not
-			stdOut, stdErr, err = Client.Exec(fmt.Sprintf("cat %s", exportFile),
+			stdOut, stdErr, err = Client.Exec("cat "+exportFile,
 				podList.Items[0].Name,
 				"nfs-server",
 				openebsNamespace,

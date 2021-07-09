@@ -83,6 +83,11 @@ spec:
             # leader election is enabled.
             - name: LEADER_ELECTION_ENABLED
               value: "{{ .Values.nfsProvisioner.enableLeaderElection }}"
+            {{- if .Values.nfsProvisioner.nfsServerNamespace }}
+            - name: OPENEBS_IO_NFS_SERVER_NS
+              value: {{ .Values.nfsProvisioner.nfsServerNamespace }}
+            {{- end }}
+
           # Process name used for matching is limited to the 15 characters
           # present in the pgrep output.
           # So fullname can't be used here with pgrep (>15 chars).A regular expression

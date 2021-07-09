@@ -51,6 +51,9 @@ const (
 	// NFSServerNamespace defines the namespace for nfs server objects
 	// Default value is menv.OpenEBSNamespace(operator namespace)
 	NFSServerNamespace menv.ENVKey = "OPENEBS_IO_NFS_SERVER_NS"
+
+	// NodeAffinityKey holds the env name representing Node affinity rules
+	NodeAffinityKey menv.ENVKey = "OPENEBS_IO_NFS_SERVER_NODE_AFFINITY"
 )
 
 var (
@@ -86,4 +89,8 @@ func getOpenEBSServiceAccountName() string {
 
 func getNFSServerImage() string {
 	return menv.GetOrDefault(NFSServerImageKey, string(NFSServerDefaultImage))
+}
+
+func getNfsServerNodeAffinity() string {
+	return menv.Get(NodeAffinityKey)
 }

@@ -860,6 +860,7 @@ k8s.io/kube-proxy v0.17.3/go.mod h1:ds8R8bUYPWtQlspC47Sff7o5aQhWDsv6jpQJATDuqaQ=
 k8s.io/kube-scheduler v0.17.3/go.mod h1:36HgrrPqzK+rOLTRtDG//b89KjrAZqFI4PXOpdH351M=
 k8s.io/kubectl v0.17.3/go.mod h1:NUn4IBY7f7yCMwSop2HCXlw/MVYP4HJBiUmOR3n9w28=
 k8s.io/kubelet v0.17.3/go.mod h1:Nh8owUHZcUXtnDAtmGnip36Nw+X6c4rbmDQlVyIhwMQ=
+k8s.io/kubernetes v1.17.3 h1:zWCppkLfHM+hoLqfbsrQ0cJnYw+4vAvedI92oQnjo/Q=
 k8s.io/kubernetes v1.17.3/go.mod h1:gt28rfzaskIzJ8d82TSJmGrJ0XZD0BBy8TcQvTuCI3w=
 k8s.io/legacy-cloud-providers v0.17.3/go.mod h1:ujZML5v8efVQxiXXTG+nck7SjP8KhMRjUYNIsoSkYI0=
 k8s.io/metrics v0.17.3/go.mod h1:HEJGy1fhHOjHggW9rMDBJBD3YuGroH3Y1pnIRw9FFaI=

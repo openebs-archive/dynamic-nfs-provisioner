@@ -129,8 +129,6 @@ func (p *Provisioner) createBackendPVC(nfsServerOpts *KernelNFSServerOptions) er
 		PersistentVolumeClaims(p.serverNamespace).
 		Create(pvcObj)
 	if err != nil {
-		//TODO : Need to relook at this error
-		//If the error is about PVC being already present, then return nil
 		return errors.Wrapf(err, "failed to create PVC {%s/%s}", p.serverNamespace, pvcName)
 	}
 
@@ -172,7 +170,7 @@ func (p *Provisioner) deleteBackendPVC(nfsServerOpts *KernelNFSServerOptions) er
 	err = p.kubeClient.CoreV1().
 		PersistentVolumeClaims(p.serverNamespace).
 		Delete(pvcName, &metav1.DeleteOptions{})
-	if err != nil {
+	if err != nil && !k8serrors.IsNotFound(err) {
 		//TODO : Need to relook at this error
 		return errors.Wrapf(err,
 			"unable to delete PVC {%s/%s} associated with PV %v",
@@ -294,13 +292,7 @@ func (p *Provisioner) createDeployment(nfsServerOpts *KernelNFSServerOptions) er
 		Deployments(p.serverNamespace).
 		Create(deployObj)
 	if err != nil {
-		//TODO : Need to relook at this error
-		return errors.Wrapf(
-			err,
-			"failed to create Deployment {%s/%s}",
-			p.serverNamespace,
-			deployName,
-		)
+		return errors.Wrapf(err, "failed to create Deployment {%s/%s}", p.serverNamespace, deployName)
 	}
 
 	nfsServerOpts.deploymentName = deployName
@@ -337,14 +329,11 @@ func (p *Provisioner) deleteDeployment(nfsServerOpts *KernelNFSServerOptions) er
 	err = p.kubeClient.AppsV1().
 		Deployments(p.serverNamespace).
 		Delete(deployName, &metav1.DeleteOptions{})
-	if err != nil {
-		//TODO : Need to relook at this error
-		return errors.Wrapf(
-			err,
-			"unable to delete deployment %s/%s associated with PV %s",
+	if err != nil && !k8serrors.IsNotFound(err) {
+		return errors.Wrapf(err, "failed to delete deployment %s/%s associated with PV %s",
 			p.serverNamespace,
-			nfsServerOpts.pvName,
 			deployName,
+			nfsServerOpts.pvName,
 		)
 	}
 
@@ -367,9 +356,11 @@ func (p *Provisioner) createService(nfsServerOpts *KernelNFSServerOptions) error
 	_, err := p.kubeClient.CoreV1().
 		Services(p.serverNamespace).
 		Get(svcName, metav1.GetOptions{})
-	if err == nil {
+	if err != nil && !k8serrors.IsNotFound(err) {
+		return errors.Wrapf(err, "failed to check existence of service {%s/%s}", p.serverNamespace, svcName)
+	} else if err == nil {
 		nfsServerOpts.serviceName = svcName
-		klog.Infof("Volume %v has been initialized with Service:%v", nfsServerOpts.pvName, svcName)
+		klog.Infof("Volume %v has been initialized with service {%s/%s}", nfsServerOpts.pvName, p.serverNamespace, svcName)
 		return nil
 	}
 
@@ -435,7 +426,7 @@ func (p *Provisioner) deleteService(nfsServerOpts *KernelNFSServerOptions) error
 	if err == nil {
 		nfsServerOpts.serviceName = svcName
 		klog.Infof("Volume %s has been initialized with Service:%s/%s. Initiating delete...", nfsServerOpts.pvName, p.serverNamespace, svcName)
-	} else {
+	} else if err != nil && k8serrors.IsNotFound(err) {
 		return nil
 	}
 
@@ -446,7 +437,7 @@ func (p *Provisioner) deleteService(nfsServerOpts *KernelNFSServerOptions) error
 	err = p.kubeClient.CoreV1().
 		Services(p.serverNamespace).
 		Delete(svcName, &metav1.DeleteOptions{})
-	if err != nil {
+	if err != nil && !k8serrors.IsNotFound(err) {
 		return errors.Wrapf(
 			err,
 			"failed to delete Service %s/%s associated with PV:%s",

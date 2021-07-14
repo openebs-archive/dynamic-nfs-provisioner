@@ -113,7 +113,7 @@ func (b *Builder) validate() error {
 	if len(b.errors) == 0 {
 		return nil
 	}
-	return errorvalidationFailed
+	return errors.Errorf("container validation failed errors: %v", b.errors)
 }
 
 // Build returns the final kubernetes container

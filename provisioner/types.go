@@ -29,7 +29,7 @@ import (
 type Provisioner struct {
 	stopCh chan struct{}
 
-	kubeClient *clientset.Clientset
+	kubeClient clientset.Interface
 
 	// namespace in which provisioner is running
 	namespace string

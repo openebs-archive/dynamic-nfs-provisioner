@@ -29,6 +29,7 @@ import (
 	service "github.com/openebs/dynamic-nfs-provisioner/pkg/kubernetes/api/core/v1/service"
 	volume "github.com/openebs/dynamic-nfs-provisioner/pkg/kubernetes/api/core/v1/volume"
 	corev1 "k8s.io/api/core/v1"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -97,17 +98,17 @@ func (p *Provisioner) createBackendPVC(nfsServerOpts *KernelNFSServerOptions) er
 	//Check if the PVC is already created. This can happen
 	//if the previous reconciliation of PVC-PV, resulted in
 	//creating a PVC, but was not yet available for 60+ seconds
-	_, err := persistentvolumeclaim.NewKubeClient().
-		WithNamespace(p.serverNamespace).
+	_, err := p.kubeClient.CoreV1().
+		PersistentVolumeClaims(p.serverNamespace).
 		Get(pvcName, metav1.GetOptions{})
-
-	if err == nil {
+	if err != nil && !k8serrors.IsNotFound(err) {
+		return errors.Wrapf(err, "failed to check existence of PVC {%s/%s}", p.serverNamespace, pvcName)
+	} else if err == nil {
 		nfsServerOpts.pvcName = pvcName
-		klog.Infof("Volume %v has been initialized with PVC:%s/%s", nfsServerOpts.pvName, p.serverNamespace, pvcName)
+		klog.Infof("Volume %v has been initialized with PVC {%s/%s}", nfsServerOpts.pvName, p.serverNamespace, pvcName)
 		return nil
 	}
 
-	//TODO
 	// Create PVC using the provided capacity and SC details
 	pvcObjBuilder := persistentvolumeclaim.NewBuilder().
 		WithNamespace(p.serverNamespace).
@@ -121,17 +122,16 @@ func (p *Provisioner) createBackendPVC(nfsServerOpts *KernelNFSServerOptions) er
 
 	if err != nil {
 		//TODO : Need to relook at this error
-		return errors.Wrapf(err, "unable to build PVC")
+		return errors.Wrapf(err, "unable to build PVC {%s/%s}", pvcObj.Namespace, pvcObj.Name)
 	}
 
-	_, err = persistentvolumeclaim.NewKubeClient().
-		WithNamespace(p.serverNamespace).
+	_, err = p.kubeClient.CoreV1().
+		PersistentVolumeClaims(p.serverNamespace).
 		Create(pvcObj)
-
 	if err != nil {
 		//TODO : Need to relook at this error
 		//If the error is about PVC being already present, then return nil
-		return errors.Wrapf(err, "failed to create PVC{%s/%s}", p.serverNamespace, pvcName)
+		return errors.Wrapf(err, "failed to create PVC {%s/%s}", p.serverNamespace, pvcName)
 	}
 
 	nfsServerOpts.pvcName = pvcName
@@ -146,17 +146,22 @@ func (p *Provisioner) deleteBackendPVC(nfsServerOpts *KernelNFSServerOptions) er
 	}
 
 	pvcName := "nfs-" + nfsServerOpts.pvName
-	klog.V(4).Infof("Verifying if PVC(%v) for NFS storage exists.", pvcName)
+	klog.V(4).Infof("Verifying if PVC {%s/%s} for NFS storage exists.", p.serverNamespace, pvcName)
 
 	//Check if the PVC still exists. It could have been removed
 	// or never created due to a provisioning create failure.
-	_, err := persistentvolumeclaim.NewKubeClient().
-		WithNamespace(p.serverNamespace).
+	_, err := p.kubeClient.CoreV1().
+		PersistentVolumeClaims(p.serverNamespace).
 		Get(pvcName, metav1.GetOptions{})
 	if err == nil {
 		nfsServerOpts.pvcName = pvcName
-		klog.Infof("Volume %v has been initialized with PVC:%v. Initiating delete...", nfsServerOpts.pvName, pvcName)
-	} else {
+		klog.Infof(
+			"Volume %v has been initialized with PVC {%s/%s} Initiating delete...",
+			nfsServerOpts.pvName,
+			p.serverNamespace,
+			pvcName,
+		)
+	} else if err != nil && k8serrors.IsNotFound(err) {
 		return nil
 	}
 
@@ -164,12 +169,17 @@ func (p *Provisioner) deleteBackendPVC(nfsServerOpts *KernelNFSServerOptions) er
 	// remove finalizer
 
 	// Delete PVC
-	err = persistentvolumeclaim.NewKubeClient().
-		WithNamespace(p.serverNamespace).
+	err = p.kubeClient.CoreV1().
+		PersistentVolumeClaims(p.serverNamespace).
 		Delete(pvcName, &metav1.DeleteOptions{})
 	if err != nil {
 		//TODO : Need to relook at this error
-		return errors.Errorf("unable to delete PVC %v associated with PV:%v", nfsServerOpts.pvName, pvcName)
+		return errors.Wrapf(err,
+			"unable to delete PVC {%s/%s} associated with PV %v",
+			p.serverNamespace,
+			pvcName,
+			nfsServerOpts.pvName,
+		)
 	}
 	return nil
 }
@@ -187,13 +197,15 @@ func (p *Provisioner) createDeployment(nfsServerOpts *KernelNFSServerOptions) er
 	//Check if the Deployment is already created. This can happen
 	//if the previous reconciliation of PVC-PV, resulted in
 	//creating a Deployment, but was not yet available for 60+ seconds
-	_, err := deployment.NewKubeClient().
-		WithNamespace(p.serverNamespace).
-		Get(deployName)
-
+	_, err := p.kubeClient.AppsV1().
+		Deployments(p.serverNamespace).
+		Get(deployName, metav1.GetOptions{})
+	if err != nil && !k8serrors.IsNotFound(err) {
+		return errors.Wrapf(err, "failed to check existence of deployment {%s/%s}", p.serverNamespace, deployName)
+	}
 	if err == nil {
 		nfsServerOpts.deploymentName = deployName
-		klog.Infof("Volume %v has been initialized with Deployment:%s/%s", nfsServerOpts.pvName, p.serverNamespace, deployName)
+		klog.Infof("Volume %v has been initialized with Deployment {%s/%s}", nfsServerOpts.pvName, p.serverNamespace, deployName)
 		return nil
 	}
 
@@ -278,13 +290,17 @@ func (p *Provisioner) createDeployment(nfsServerOpts *KernelNFSServerOptions) er
 		return errors.Wrapf(err, "unable to build Deployment")
 	}
 
-	_, err = deployment.NewKubeClient().
-		WithNamespace(p.serverNamespace).
+	_, err = p.kubeClient.AppsV1().
+		Deployments(p.serverNamespace).
 		Create(deployObj)
-
 	if err != nil {
 		//TODO : Need to relook at this error
-		return errors.Wrapf(err, "failed to create Deployment{%v}", deployName)
+		return errors.Wrapf(
+			err,
+			"failed to create Deployment {%s/%s}",
+			p.serverNamespace,
+			deployName,
+		)
 	}
 
 	nfsServerOpts.deploymentName = deployName
@@ -304,26 +320,32 @@ func (p *Provisioner) deleteDeployment(nfsServerOpts *KernelNFSServerOptions) er
 
 	//Check if the Deploy still exists. It could have been removed
 	// or never created due to a provisioning create failure.
-	_, err := deployment.NewKubeClient().
-		WithNamespace(p.serverNamespace).
-		Get(deployName)
+	_, err := p.kubeClient.AppsV1().
+		Deployments(p.serverNamespace).
+		Get(deployName, metav1.GetOptions{})
 	if err == nil {
 		nfsServerOpts.deploymentName = deployName
 		klog.Infof("Volume %v has been initialized with Deployment:%v. Initiating delete...", nfsServerOpts.pvName, deployName)
-	} else {
+	} else if err != nil && k8serrors.IsNotFound(err) {
 		return nil
 	}
 
 	//TODO
 	// remove finalizer
 
-	// Delete PVC
-	err = deployment.NewKubeClient().
-		WithNamespace(p.serverNamespace).
+	// Delete NFS Server Deployment
+	err = p.kubeClient.AppsV1().
+		Deployments(p.serverNamespace).
 		Delete(deployName, &metav1.DeleteOptions{})
 	if err != nil {
 		//TODO : Need to relook at this error
-		return errors.Errorf("unable to delete deployment %v associated with PV:%v", nfsServerOpts.pvName, deployName)
+		return errors.Wrapf(
+			err,
+			"unable to delete deployment %s/%s associated with PV %s",
+			p.serverNamespace,
+			nfsServerOpts.pvName,
+			deployName,
+		)
 	}
 
 	return nil
@@ -342,10 +364,9 @@ func (p *Provisioner) createService(nfsServerOpts *KernelNFSServerOptions) error
 	//Check if the Service is already created. This can happen
 	//if the previous reconciliation of PVC-PV, resulted in
 	//creating a Service, but was not yet available for 60+ seconds
-	_, err := service.NewKubeClient().
-		WithNamespace(p.serverNamespace).
+	_, err := p.kubeClient.CoreV1().
+		Services(p.serverNamespace).
 		Get(svcName, metav1.GetOptions{})
-
 	if err == nil {
 		nfsServerOpts.serviceName = svcName
 		klog.Infof("Volume %v has been initialized with Service:%v", nfsServerOpts.pvName, svcName)
@@ -382,14 +403,13 @@ func (p *Provisioner) createService(nfsServerOpts *KernelNFSServerOptions) error
 		return errors.Wrapf(err, "unable to build Service")
 	}
 
-	_, err = service.NewKubeClient().
-		WithNamespace(p.serverNamespace).
+	_, err = p.kubeClient.CoreV1().
+		Services(p.serverNamespace).
 		Create(svcObj)
-
 	if err != nil {
 		//TODO : Need to relook at this error
 		//If the error is about PVC being already present, then return nil
-		return errors.Wrapf(err, "failed to create Service{%v}", svcName)
+		return errors.Wrapf(err, "failed to create Service {%s/%s}", p.serverNamespace, svcName)
 	}
 
 	nfsServerOpts.serviceName = svcName
@@ -409,8 +429,8 @@ func (p *Provisioner) deleteService(nfsServerOpts *KernelNFSServerOptions) error
 
 	//Check if the Serivce still exists. It could have been removed
 	// or never created due to a provisioning create failure.
-	_, err := service.NewKubeClient().
-		WithNamespace(p.serverNamespace).
+	_, err := p.kubeClient.CoreV1().
+		Services(p.serverNamespace).
 		Get(svcName, metav1.GetOptions{})
 	if err == nil {
 		nfsServerOpts.serviceName = svcName
@@ -423,13 +443,17 @@ func (p *Provisioner) deleteService(nfsServerOpts *KernelNFSServerOptions) error
 	// remove finalizer
 
 	// Delete Service
-	err = service.NewKubeClient().
-		WithNamespace(p.serverNamespace).
+	err = p.kubeClient.CoreV1().
+		Services(p.serverNamespace).
 		Delete(svcName, &metav1.DeleteOptions{})
-
 	if err != nil {
-		//TODO : Need to relook at this error
-		return errors.Errorf("unable to delete Service %s/%s associated with PV:%s", p.serverNamespace, svcName, nfsServerOpts.pvName)
+		return errors.Wrapf(
+			err,
+			"failed to delete Service %s/%s associated with PV:%s",
+			p.serverNamespace,
+			svcName,
+			nfsServerOpts.pvName,
+		)
 	}
 
 	return nil
@@ -450,8 +474,8 @@ func (p *Provisioner) getNFSServerAddress(nfsServerOpts *KernelNFSServerOptions)
 	//Get the NFS Service to extract Cluster IP
 	if p.useClusterIP {
 		//nfsService := nil
-		nfsService, err := service.NewKubeClient().
-			WithNamespace(p.serverNamespace).
+		nfsService, err := p.kubeClient.CoreV1().
+			Services(p.serverNamespace).
 			Get(nfsServerOpts.serviceName, metav1.GetOptions{})
 		if err != nil || nfsService == nil {
 			return "", errors.Wrapf(err, "failed to get NFS Service for PVC{%v}", nfsServerOpts.pvcName)

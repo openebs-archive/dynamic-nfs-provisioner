@@ -51,7 +51,7 @@ func (p *Provisioner) ProvisionKernalNFSServer(opts pvController.ProvisionOption
 	}
 	fsGID, err := volumeConfig.GetFSGroupID()
 	if err != nil {
-		klog.Errorf("Error parsing group id error: %s", err.Error())
+		klog.Errorf("Error parsing fsgid error: %s", err.Error())
 		return nil, err
 	}
 
@@ -145,7 +145,7 @@ func (p *Provisioner) DeleteKernalNFSServer(pv *v1.PersistentVolume) (err error)
 		err = errors.Wrapf(err, "failed to delete volume %v", pv.Name)
 	}()
 
-	//Extract the details to create a NFS Server
+	//Extract the details to delete NFS Server
 	nfsServerOpts := &KernelNFSServerOptions{
 		pvName: pv.Name,
 	}

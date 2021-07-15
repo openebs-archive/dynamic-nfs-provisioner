@@ -1,5 +1,5 @@
 
-This document describes how to troubleshoot the known issues. If this doesn't help, you can file an issue on github (https://github.com/openebs/dynamic-nfs-provisioner/issues), or talk to us on the openebs slack community.
+This document describes how to troubleshoot the known issues. If this doesn't help, you can file an issue on github (https://github.com/openebs/dynamic-nfs-provisioner/issues), or talk to us on the [openebs slack](https://kubernetes.slack.com/messages/openebs/) community.
 
 - [Troubleshooting](#troubleshooting)
     - [Application pod remains in ContainerCreating state](#application-pod-remains-in-containercreating-state)

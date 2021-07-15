@@ -21,8 +21,11 @@ import (
 )
 
 const (
-	// NfsProvisionerSubsystem is prometheus subsystem name.
-	NfsVolumeProvisionerSubsystem = "nfs_volume_provisioner"
+	// NfsProvisionerNamespace is namespace name for provisioner metrics.
+	NfsVolumeProvisionerNamespace = "nfs_volume_provisioner"
+
+	// PersistentVolumeSubsytem is subsystem name for persistentvolume metrics.
+	PersistentVolumeSubsytem = "persistentvolume"
 
 	// Metrics
 	// ProvisionerRequestCreate represents metrics related to create resource request.
@@ -38,8 +41,9 @@ var (
 	// PersistentVolumeDeleteTotal is used to collect accumulated count of persistent volumes deleted.
 	PersistentVolumeDeleteTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Subsystem: NfsVolumeProvisionerSubsystem,
-			Name:      "persistentvolume_delete_total",
+			Namespace: NfsVolumeProvisionerNamespace,
+			Subsystem: PersistentVolumeSubsytem,
+			Name:      "delete_total",
 			Help:      "Total number of persistent volumes deleted",
 		},
 		[]string{Process},
@@ -47,8 +51,9 @@ var (
 	// PersistentVolumeDeleteFailedTotal is used to collect accumulated count of persistent volume delete failed attempts.
 	PersistentVolumeDeleteFailedTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Subsystem: NfsVolumeProvisionerSubsystem,
-			Name:      "persistentvolume_delete_failed_total",
+			Namespace: NfsVolumeProvisionerNamespace,
+			Subsystem: PersistentVolumeSubsytem,
+			Name:      "delete_failed_total",
 			Help:      "Total number of persistent volume delete failed attempts",
 		},
 		[]string{Process},
@@ -56,8 +61,9 @@ var (
 	// PersistentVolumeCreateTotal is used to collect accumulated count of persistent volume created.
 	PersistentVolumeCreateTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Subsystem: NfsVolumeProvisionerSubsystem,
-			Name:      "persistentvolume_create_total",
+			Namespace: NfsVolumeProvisionerNamespace,
+			Subsystem: PersistentVolumeSubsytem,
+			Name:      "create_total",
 			Help:      "Total number of persistent volumes created",
 		},
 		[]string{Process},
@@ -65,8 +71,9 @@ var (
 	// PersistentVolumeCreateFailedTotal is used to collect accumulated count of persistent volume create requests failed.
 	PersistentVolumeCreateFailedTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Subsystem: NfsVolumeProvisionerSubsystem,
-			Name:      "persistentvolume_create_failed_total",
+			Namespace: NfsVolumeProvisionerNamespace,
+			Subsystem: PersistentVolumeSubsytem,
+			Name:      "create_failed_total",
 			Help:      "Total number of persistent volume creation failed attempts",
 		},
 		[]string{Process},

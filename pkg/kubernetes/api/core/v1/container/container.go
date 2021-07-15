@@ -48,10 +48,6 @@ func predicateFailedError(message string) error {
 	return errors.Errorf("predicatefailed: %s", message)
 }
 
-var (
-	errorvalidationFailed = errors.New("container validation failed")
-)
-
 // asContainer transforms this container instance into corresponding kubernetes
 // container type
 func (c *container) asContainer() corev1.Container {
@@ -113,7 +109,7 @@ func (b *Builder) validate() error {
 	if len(b.errors) == 0 {
 		return nil
 	}
-	return errors.Errorf("container validation failed errors: %v", b.errors)
+	return errors.Errorf("validation errors: %v", b.errors)
 }
 
 // Build returns the final kubernetes container

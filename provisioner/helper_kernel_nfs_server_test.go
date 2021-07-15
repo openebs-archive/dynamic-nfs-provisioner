@@ -74,18 +74,10 @@ func getFakeServiceObject(namespace, name string) *corev1.Service {
 func verifyDeploymentExistence(namespace, name string) func(*appsv1.Deployment) error {
 	return func(deployment *appsv1.Deployment) error {
 		if deployment.Namespace != namespace {
-			return errors.Errorf(
-				"expected deployment namespace %s but got %s",
-				namespace,
-				deployment.Namespace,
-			)
+			return errors.Errorf("expected deployment namespace %s but got %s", namespace, deployment.Namespace)
 		}
 		if deployment.Name != name {
-			return errors.Errorf(
-				"expected deployment name %s but got %s",
-				name,
-				deployment.Name,
-			)
+			return errors.Errorf("expected deployment name %s but got %s", name, deployment.Name)
 		}
 		return nil
 	}
@@ -95,30 +87,15 @@ func verifyDeploymentFSGIDValue(expectedFSGID *int64) func(*appsv1.Deployment) e
 	return func(deployment *appsv1.Deployment) error {
 		fsGroup := deployment.Spec.Template.Spec.SecurityContext.FSGroup
 		if fsGroup == nil && expectedFSGID != nil {
-			return errors.Errorf(
-				"expected fsgroup to exist on deployment %s/%s but got nil",
-				deployment.Namespace,
-				deployment.Name,
-			)
+			return errors.Errorf("expected fsgroup to exist on deployment %s/%s but got nil", deployment.Namespace, deployment.Name)
 		}
 
 		if fsGroup != nil && expectedFSGID == nil {
-			return errors.Errorf(
-				"expected fsgroup not to exist on deployment %s/%s but exist %d",
-				deployment.Namespace,
-				deployment.Name,
-				*fsGroup,
-			)
+			return errors.Errorf("expected fsgroup not to exist on deployment %s/%s but exist %d", deployment.Namespace, deployment.Name, *fsGroup)
 		}
 
 		if fsGroup != nil && expectedFSGID != nil && *fsGroup != *expectedFSGID {
-			return errors.Errorf(
-				"expected deployment %s/%s to have fsGroup value %d but got %d",
-				deployment.Namespace,
-				deployment.Name,
-				*expectedFSGID,
-				*fsGroup,
-			)
+			return errors.Errorf("expected deployment %s/%s to have fsGroup value %d but got %d", deployment.Namespace, deployment.Name, *expectedFSGID, *fsGroup)
 		}
 		return nil
 	}
@@ -133,12 +110,7 @@ func verifyDeploymentEnvValues(envKey, envValue string) func(*appsv1.Deployment)
 					if envKey == env.Name {
 						isENVMatched = env.Value == envValue
 						if !isENVMatched {
-							return errors.Errorf(
-								"expected env %s to have %s but got %s",
-								envKey,
-								envValue,
-								env.Value,
-							)
+							return errors.Errorf("expected env %s to have %s but got %s", envKey, envValue, env.Value)
 						}
 						break
 					}
@@ -148,11 +120,7 @@ func verifyDeploymentEnvValues(envKey, envValue string) func(*appsv1.Deployment)
 				}
 			}
 		}
-		return errors.Errorf(
-			"expected to have env key & value as %s:%s but env doesn't exist",
-			envKey,
-			envValue,
-		)
+		return errors.Errorf("expected to have env key & value as %s:%s but env doesn't exist", envKey, envValue)
 	}
 }
 
@@ -215,12 +183,7 @@ func TestCreateBackendPVC(t *testing.T) {
 				PersistentVolumeClaims(test.preProvisionedPVC.Namespace).
 				Create(test.preProvisionedPVC)
 			if err != nil {
-				t.Errorf(
-					"failed to pre-create PVC %s/%s error: %v",
-					test.preProvisionedPVC.Namespace,
-					test.preProvisionedPVC.Name,
-					err,
-				)
+				t.Errorf("failed to pre-create PVC %s/%s error: %v", test.preProvisionedPVC.Namespace, test.preProvisionedPVC.Name, err)
 			}
 		}
 
@@ -293,12 +256,7 @@ func TestDeleteBackendPVC(t *testing.T) {
 					PersistentVolumeClaims(test.existingPVC.Namespace).
 					Create(test.existingPVC)
 				if err != nil {
-					t.Errorf(
-						"failed to create existing PVC %s/%s error: %v",
-						test.existingPVC.Namespace,
-						test.existingPVC.Name,
-						err,
-					)
+					t.Errorf("failed to create existing PVC %s/%s error: %v", test.existingPVC.Namespace, test.existingPVC.Name, err)
 				}
 			}
 			err := test.provisioner.deleteBackendPVC(test.options)
@@ -315,13 +273,7 @@ func TestDeleteBackendPVC(t *testing.T) {
 					PersistentVolumeClaims(test.provisioner.serverNamespace).
 					Get("nfs-"+test.options.pvName, metav1.GetOptions{})
 				if !k8serrors.IsNotFound(err) {
-					t.Errorf(
-						"%q test failed expected PVC %s/%s not to exist after deleting but got err: %v",
-						name,
-						test.provisioner.serverNamespace,
-						test.options.pvName,
-						err,
-					)
+					t.Errorf("%q test failed expected PVC %s/%s not to exist after deleting but got err: %v", name, test.provisioner.serverNamespace, test.options.pvName, err)
 				}
 			}
 		})
@@ -425,12 +377,7 @@ func TestCreateDeployment(t *testing.T) {
 					Deployments(test.preProvisionedDeployment.Namespace).
 					Create(test.preProvisionedDeployment)
 				if err != nil {
-					t.Errorf(
-						"failed to pre-create deployment %s/%s error: %v",
-						test.preProvisionedDeployment.Namespace,
-						test.preProvisionedDeployment.Name,
-						err,
-					)
+					t.Errorf("failed to pre-create deployment %s/%s error: %v", test.preProvisionedDeployment.Namespace, test.preProvisionedDeployment.Name, err)
 				}
 			}
 
@@ -449,9 +396,7 @@ func TestCreateDeployment(t *testing.T) {
 					Deployments(test.provisioner.serverNamespace).
 					Get(deployName, metav1.GetOptions{})
 				if err != nil {
-					t.Errorf(
-						"failed to get deployment %s/%s error: %v",
-						test.provisioner.serverNamespace, deployName, err)
+					t.Errorf("failed to get deployment %s/%s error: %v", test.provisioner.serverNamespace, deployName, err)
 				} else {
 					for _, fn := range test.expectedDeploymentFields {
 						err = fn(nfsDeployObj)
@@ -509,12 +454,7 @@ func TestDeleteDeployment(t *testing.T) {
 					Deployments(test.existingDeployment.Namespace).
 					Create(test.existingDeployment)
 				if err != nil {
-					t.Errorf(
-						"failed to create existing deployment %s/%s error: %v",
-						test.existingDeployment.Namespace,
-						test.existingDeployment.Name,
-						err,
-					)
+					t.Errorf("failed to create existing deployment %s/%s error: %v", test.existingDeployment.Namespace, test.existingDeployment.Name, err)
 				}
 			}
 
@@ -594,12 +534,7 @@ func TestCreateService(t *testing.T) {
 					Services(test.preProvisionedService.Namespace).
 					Create(test.preProvisionedService)
 				if err != nil {
-					t.Errorf(
-						"failed to pre-create service %s/%s error: %v",
-						test.preProvisionedService.Namespace,
-						test.preProvisionedService.Name,
-						err,
-					)
+					t.Errorf("failed to pre-create service %s/%s error: %v", test.preProvisionedService.Namespace, test.preProvisionedService.Name, err)
 				}
 			}
 
@@ -671,12 +606,7 @@ func TestDeleteService(t *testing.T) {
 					Services(test.existingService.Namespace).
 					Create(test.existingService)
 				if err != nil {
-					t.Errorf(
-						"failed to create existing deployment %s/%s error: %v",
-						test.existingService.Namespace,
-						test.existingService.Name,
-						err,
-					)
+					t.Errorf("failed to create existing deployment %s/%s error: %v", test.existingService.Namespace, test.existingService.Name, err)
 				}
 			}
 

@@ -203,6 +203,7 @@ func (k *KubeClient) waitForPVCBound(pvc, ns string) (corev1.PersistentVolumeCla
 	}
 }
 
+// createPVC creates the given PVC and ensure that PVC bound
 func (k *KubeClient) createPVC(pvc *corev1.PersistentVolumeClaim) error {
 	_, err := k.CoreV1().PersistentVolumeClaims(pvc.Namespace).Create(pvc)
 	if err != nil {

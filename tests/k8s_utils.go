@@ -315,6 +315,11 @@ func (k *KubeClient) deleteStorageClass(scName string) error {
 	return k.StorageV1().StorageClasses().Delete(scName, &metav1.DeleteOptions{})
 }
 
+// Add Kubernetes service related operations
+func (k *KubeClient) getService(namespace, name string) (*corev1.Service, error) {
+	return k.CoreV1().Services(namespace).Get(name, metav1.GetOptions{})
+}
+
 // Add Node related operations
 func (k *KubeClient) listNodes(labelSelector string) (*corev1.NodeList, error) {
 	return k.CoreV1().Nodes().List(metav1.ListOptions{LabelSelector: labelSelector})

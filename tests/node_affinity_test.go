@@ -155,7 +155,7 @@ var _ = Describe("TEST NODE AFFINITY FEATURE", func() {
 				nfsServerDeployment.Namespace,
 			)
 
-			// Verify propogation of affinity rules
+			// Verify propagation of affinity rules
 			for _, rules := range nfsServerDeployment.Spec.Template.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms {
 				for _, affinityRule := range rules.MatchExpressions {
 					values, isExist := nodeAffinityKeyValues[affinityRule.Key]

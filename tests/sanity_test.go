@@ -66,7 +66,7 @@ var _ = Describe("TEST NFS PV", func() {
 			)
 
 			By("creating above pvc")
-			err = Client.createPVC(pvcObj)
+			err = Client.createPVC(pvcObj, true)
 			Expect(err).To(
 				BeNil(),
 				"while creating pvc {%s} in namespace {%s}",

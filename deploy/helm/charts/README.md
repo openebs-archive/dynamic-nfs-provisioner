@@ -11,10 +11,10 @@ A Helm chart for openebs dynamic nfs provisioner. This chart bootstraps OpenEBS 
 
 | Name | Email | Url |
 | ---- | ------ | --- |
-| kiranmova | kiran.mova@mayadata.io |  |
-| mayank-patel | mayank.patel@mayadata.io |  |
+| kmova | kiran.mova@mayadata.io |  |
+| mynktl | mayank.patel@mayadata.io |  |
 | rahulkrishnanra | rahulkrishnanfs@gmail.com |  |
-| sai-chaithanya | sai.chaithanya@mayadata.io |  |
+| mittachaitu | sai.chaithanya@mayadata.io |  |
 
 
 ## Get Repo Info

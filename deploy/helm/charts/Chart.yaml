@@ -19,11 +19,11 @@ sources:
   - https://github.com/openebs/dynamic-nfs-provisioner
 
 maintainers:
-  - name: kiranmova
+  - name: kmova
     email: kiran.mova@mayadata.io
-  - name: mayank-patel
+  - name: mynktl
     email: mayank.patel@mayadata.io
   - name: rahulkrishnanra
     email: rahulkrishnanfs@gmail.com
-  - name: sai-chaithanya
+  - name: mittachaitu
     email: sai.chaithanya@mayadata.io

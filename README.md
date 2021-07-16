@@ -1,5 +1,11 @@
 # Dynamic NFS Volume Provisioner
 
+[![Build Status](https://github.com/openebs/dynamic-nfs-provisioner/actions/workflows/build.yml/badge.svg)](https://github.com/openebs/dynamic-nfs-provisioner/actions/workflows/build.yml)
+[![Go Report](https://goreportcard.com/badge/github.com/openebs/dynamic-nfs-provisioner)](https://goreportcard.com/report/github.com/openebs/dynamic-nfs-provisioner)
+[![codecov](https://codecov.io/gh/openebs/dynamic-nfs-provisioner/branch/develop/graph/badge.svg)](https://app.codecov.io/gh/openebs/dynamic-nfs-provisioner)
+[![Slack](https://img.shields.io/badge/chat!!!-slack-ff1493.svg?style=flat-square)](https://kubernetes.slack.com/messages/openebs)
+[![BCH compliance](https://bettercodehub.com/edge/badge/openebs/dynamic-nfs-provisioner?branch=develop)](https://bettercodehub.com/results/openebs/dynamic-nfs-provisioner)
+
 <img width="300" align="right" alt="OpenEBS Logo" src="https://raw.githubusercontent.com/cncf/artwork/master/projects/openebs/stacked/color/openebs-stacked-color.png" xmlns="http://www.w3.org/1999/html">
 
 <p align="justify">
@@ -73,7 +79,17 @@ Refer https://github.com/openebs/dynamic-nfs-provisioner/tree/develop/deploy/hel
 
 ## Contributing
 
-Head over to the [CONTRIBUTING.md](./CONTRIBUTING.md).
+OpenEBS welcomes your feedback and contributions in any form possible.
+
+- [Join OpenEBS community on Kubernetes Slack](https://kubernetes.slack.com)
+  - Already signed up? Head to our discussions at [#openebs](https://kubernetes.slack.com/messages/openebs/)
+- Want to raise an issue or help with fixes and features?
+  - See [open issues](https://github.com/openebs/openebs/issues)
+  - See [contributing guide](./CONTRIBUTING.md)
+  - See [Project Roadmap](https://github.com/orgs/openebs/projects/12)
+- Join our OpenEBS CNCF Mailing lists
+  - For OpenEBS project updates, subscribe to [OpenEBS Announcements](https://lists.cncf.io/g/cncf-openebs-announcements)
+  - For interacting with other OpenEBS users, subscribe to [OpenEBS Users](https://lists.cncf.io/g/cncf-openebs-users)
 
 ## Community, discussion, and support
 

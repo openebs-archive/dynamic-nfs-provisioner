@@ -203,15 +203,21 @@ func (k *KubeClient) waitForPVCBound(pvc, ns string) (corev1.PersistentVolumeCla
 	}
 }
 
-func (k *KubeClient) createPVC(pvc *corev1.PersistentVolumeClaim) error {
+// createPVC will create PVC and wait till PVC gets into bound state if shouldWaitForProvision
+// is set to true else createPVC will return immediately after creating PVC
+func (k *KubeClient) createPVC(pvc *corev1.PersistentVolumeClaim, shouldWaitForProvision bool) error {
 	_, err := k.CoreV1().PersistentVolumeClaims(pvc.Namespace).Create(pvc)
 	if err != nil {
 		if !k8serrors.IsAlreadyExists(err) {
 			return err
 		}
 	}
-	_, err = k.waitForPVCBound(pvc.Name, pvc.Namespace)
-	return err
+
+	if shouldWaitForProvision {
+		_, err = k.waitForPVCBound(pvc.Name, pvc.Namespace)
+		return err
+	}
+	return nil
 }
 
 func (k *KubeClient) getPVC(pvcNamespace, pvcName string) (*corev1.PersistentVolumeClaim, error) {

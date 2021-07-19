@@ -17,6 +17,10 @@ limitations under the License.
 package tests
 
 import (
+	"fmt"
+	"strings"
+	"time"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	pvc "github.com/openebs/dynamic-nfs-provisioner/pkg/kubernetes/api/core/v1/persistentvolumeclaim"
@@ -84,6 +88,28 @@ var _ = Describe("TEST INVALID NAMESPACE FOR NFS SERVER", func() {
 			pvcObj, err := Client.getPVC(applicationNamespace, pvcName)
 			Expect(err).To(BeNil(), "while fetching pvc {%s} in namespace {%s}", pvcName, applicationNamespace)
 			Expect(pvcObj.Status.Phase).To(Equal(corev1.ClaimPending), "while verifying PVC claim phase")
+		})
+
+		It("should have an event with reason ProvisioningFailed", func() {
+			maxRetry := 10
+			retryPeriod := 5 * time.Second
+			var foundProvisioningFailedEvent bool
+			for maxRetry != 0 && !foundProvisioningFailedEvent {
+				events, err := Client.listEvents(applicationNamespace)
+				Expect(err).To(BeNil(), "while fetching events for namespace {%s}", applicationNamespace)
+
+				var foundNsMissingCond bool
+				_ = foundNsMissingCond
+				for _, cn := range events.Items {
+					if strings.Contains(cn.Message, fmt.Sprintf("namespaces \"%s\" not found", nfsServerNs)) {
+						foundProvisioningFailedEvent = true
+						break
+					}
+				}
+				time.Sleep(retryPeriod)
+				maxRetry--
+			}
+			Expect(foundProvisioningFailedEvent).Should(BeTrue(), "while checking for event ProvisioningFailedEvent")
 		})
 	})
 

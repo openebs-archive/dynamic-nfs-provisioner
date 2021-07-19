@@ -230,6 +230,16 @@ func (k *KubeClient) deletePVC(namespace, pvc string) error {
 	return err
 }
 
+// Add PV related operations
+
+func (k *KubeClient) getPV(pvName string) (*corev1.PersistentVolume, error) {
+	return k.CoreV1().PersistentVolumes().Get(pvName, metav1.GetOptions{})
+}
+
+func (k *KubeClient) deletePV(pvName string) error {
+	return k.CoreV1().PersistentVolumes().Delete(pvName, &metav1.DeleteOptions{})
+}
+
 func (k *KubeClient) createDeployment(deployment *appsv1.Deployment) error {
 	_, err := k.AppsV1().Deployments(deployment.Namespace).Create(deployment)
 	if err != nil {
@@ -319,6 +329,10 @@ func (k *KubeClient) deleteStorageClass(scName string) error {
 // Add Kubernetes service related operations
 func (k *KubeClient) getService(namespace, name string) (*corev1.Service, error) {
 	return k.CoreV1().Services(namespace).Get(name, metav1.GetOptions{})
+}
+
+func (k *KubeClient) deleteService(namespace, name string) error {
+	return k.CoreV1().Services(namespace).Delete(name, &metav1.DeleteOptions{})
 }
 
 // Add Node related operations

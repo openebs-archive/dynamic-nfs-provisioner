@@ -53,7 +53,13 @@ var (
 	Client *KubeClient
 
 	// encoder to print object in yaml format
-	encoder          runtime.Encoder
+	encoder runtime.Encoder
+
+	// defaultChunkSize is a maximum number of responses to
+	// return for a list call. If still resources exist then
+	// server will set continue field in listOptions so it is
+	// responsibility of client to fetch further responses if
+	// continue field is set
 	defaultChunkSize = int64(500)
 	metadataAccessor = meta.NewAccessor()
 )

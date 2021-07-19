@@ -234,11 +234,7 @@ func (p *Provisioner) validateNodeAffinityRules() error {
 	}
 
 	if len(nodeList) == 0 {
-		return errors.Errorf(
-			"%s (%s)",
-			NodeAffinityRulesMismatchEvent,
-			nodeSelector.String(),
-		)
+		return errors.Errorf("%s (%s)", NodeAffinityRulesMismatchEvent, nodeSelector.String())
 	}
 	return nil
 }

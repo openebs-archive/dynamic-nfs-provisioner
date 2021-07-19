@@ -259,7 +259,6 @@ var _ = Describe("TEST NODE AFFINITY FEATURE", func() {
 
 			var isExpectedEventExist bool
 			for retries := 0; retries < maxRetryCount; retries++ {
-
 				// Verify for provision failure events on PVC
 				eventList, err := Client.getEvents(pvcObj)
 				Expect(err).To(BeNil(), "while getting PVC %s events in namespace %s", pvcObj.Name, pvcObj.Namespace)

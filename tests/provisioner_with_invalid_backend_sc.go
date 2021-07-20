@@ -92,7 +92,7 @@ var _ = Describe("TEST NFS PROVISIONER WITH INVALID BACKEND SC", func() {
 			Expect(err).To(BeNil(), "while building pvc {%s} in namespace {%s}", pvcName, applicationNamespace)
 
 			By("creating above pvc")
-			err = Client.createPVC(pvcObj)
+			err = Client.createPVC(pvcObj, true)
 			Expect(err).To(BeNil(), "while creating pvc {%s} in namespace {%s}", pvcName, applicationNamespace)
 		})
 	})

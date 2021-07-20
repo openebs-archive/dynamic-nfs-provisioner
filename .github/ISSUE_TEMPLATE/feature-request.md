@@ -1,7 +1,9 @@
 ---
 name: Feature request
 about: Suggest an idea to improve openebs dynamic nfs pv provisioners
-labels: Enhancement
+title: ''
+labels: ''
+assignees: ''
 
 ---
 

@@ -230,6 +230,18 @@ func (k *KubeClient) deletePVC(namespace, pvc string) error {
 	return err
 }
 
+func (k *KubeClient) getPV(name string) (*corev1.PersistentVolume, error) {
+	return k.CoreV1().PersistentVolumes().Get(name, metav1.GetOptions{})
+}
+
+func (k *KubeClient) updatePV(pvObj *corev1.PersistentVolume) (*corev1.PersistentVolume, error) {
+	return k.CoreV1().PersistentVolumes().Update(pvObj)
+}
+
+func (k *KubeClient) deletePV(pvName string) error {
+	return k.CoreV1().PersistentVolumes().Delete(pvName, &metav1.DeleteOptions{})
+}
+
 func (k *KubeClient) createDeployment(deployment *appsv1.Deployment) error {
 	_, err := k.AppsV1().Deployments(deployment.Namespace).Create(deployment)
 	if err != nil {
@@ -293,7 +305,7 @@ func (k *KubeClient) listDeployments(namespace, labelSelector string) (*appsv1.D
 
 func dumpK8sObject(obj runtime.Object) {
 	if encoder == nil {
-		fmt.Printf("encoder not initilized\n")
+		fmt.Printf("encoder not initialized\n")
 		return
 	}
 
@@ -319,6 +331,10 @@ func (k *KubeClient) deleteStorageClass(scName string) error {
 // Add Kubernetes service related operations
 func (k *KubeClient) getService(namespace, name string) (*corev1.Service, error) {
 	return k.CoreV1().Services(namespace).Get(name, metav1.GetOptions{})
+}
+
+func (k *KubeClient) deleteService(namespace, name string) error {
+	return k.CoreV1().Services(namespace).Delete(name, &metav1.DeleteOptions{})
 }
 
 // Add Node related operations
@@ -372,7 +388,7 @@ func (k *KubeClient) waitForDeploymentRollout(ns, deployment string) error {
 				return false, nil
 			}
 			// if deploy.Status.Replicas > deploy.Status.UpdatedReplicas then some of the older replicas are in running state
-			// because newer replicas are not in running state. It waits for newer replica to come into reunning state then terminate.
+			// because newer replicas are not in running state. It waits for newer replica to come into running state then terminate.
 			// It marked IsRolledout as false and update message accordingly
 			if deploy.Status.Replicas > deploy.Status.UpdatedReplicas {
 				fmt.Printf("Waiting for deployment rollout to finish: %d old replicas are pending termination\n",

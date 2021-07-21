@@ -1,8 +1,8 @@
 Metrics are useful for debugging and monitoring the application in real-time. dynamic-nfs-provisioner uses [Prometheus](https://github.com/prometheus/prometheus) to report the metrics. dynamic-nfs-provisioner doesn't persist its metrics. If the dynamic-nfs-provisioner pod restarts, metrics will be reset.
 
-By default, Dynamic-nfs-provisioner exposes the available metrics at path `<POD_IP>:8085/metrics`. You can change the metrics path by setting `metrics-path` and `listen-address` arguments in the pod template.
+By default, Dynamic-nfs-provisioner exposes the available metrics at path `<POD_IP>:9500/metrics`. You can change the metrics path by setting `metrics-path` and `listen-address` arguments in the pod template.
 
-You can collect the metrics using cURL request to endpoint `<POD_IP>:8085/metrics`.
+You can collect the metrics using cURL request to endpoint `<POD_IP>:9500/metrics`.
 
 Follow the [Prometheus getting started doc](https://prometheus.io/docs/prometheus/latest/getting_started/) to spin up a Prometheus server to collect the dynamic-nfs-provisioner metrics.
 

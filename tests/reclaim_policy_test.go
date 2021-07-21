@@ -234,6 +234,12 @@ var _ = Describe("TEST NFS VOLUME WITH RECLAIM POLICY", func() {
 			backendPVCObj, err := Client.getPVC(openebsNamespace, backendNFSName)
 			Expect(err).To(BeNil(), "while fetching backend pvc {%s} in namespace {%s}", backendNFSName, openebsNamespace)
 			Expect(backendPVCObj.DeletionTimestamp).To(BeNil(), "deletion timestamp shouldn't be set on backend pvc {%s}", backendNFSName)
+			Expect(backendPVCObj.Status.Phase).To(Equal(corev1.ClaimBound), "while verifying backed PVC claim phase")
+
+			backendPVObj, err := Client.getPV(backendPVCObj.Spec.VolumeName)
+			Expect(err).To(BeNil(), "while fetching pv {%s}", backendPVCObj.Spec.VolumeName)
+			Expect(backendPVObj.DeletionTimestamp).To(BeNil(), "deletion timestamp shouldn't be set on backend pv {%s}", backendPVObj.Name)
+			Expect(backendPVObj.Status.Phase).To(Equal(corev1.VolumeBound), "while verifying backed PV bound phase")
 
 		})
 	})

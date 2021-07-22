@@ -42,9 +42,9 @@ var _ = Describe("TEST RECLAIM OF RELEASED NFS PV", func() {
 		// application parameters
 		applicationNamespace = "default"
 		appName              = "busybox-nfs"
-		appLabel             = "demo=nfs-deployment"
+		appLabel             = "demo=busybox-deployment"
 		appLabelSelector     = map[string]string{
-			"demo": "nfs-deployment",
+			"demo": "busybox-deployment",
 		}
 		// appFileName created in application volume
 		appFileName = ""
@@ -56,7 +56,7 @@ var _ = Describe("TEST RECLAIM OF RELEASED NFS PV", func() {
 
 		// nfs provisioner values
 		openebsNamespace = "openebs"
-		scName           = "backend-pv-sc-retain"
+		scName           = "nfs-pv-sc-retain"
 		scReclaimPolicy  = corev1.PersistentVolumeReclaimRetain
 		scNfsServerType  = "kernel"
 		// nfsPv stores pv name created by application pvc

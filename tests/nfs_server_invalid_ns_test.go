@@ -98,8 +98,6 @@ var _ = Describe("TEST INVALID NAMESPACE FOR NFS SERVER", func() {
 				events, err := Client.listEvents(applicationNamespace)
 				Expect(err).To(BeNil(), "while fetching events for namespace {%s}", applicationNamespace)
 
-				var foundNsMissingCond bool
-				_ = foundNsMissingCond
 				for _, cn := range events.Items {
 					if strings.Contains(cn.Message, fmt.Sprintf("namespaces \"%s\" not found", nfsServerNs)) {
 						foundProvisioningFailedEvent = true

@@ -28,7 +28,7 @@ To resolve this issue, install the nfs-client package on the host machine. Refer
 
 
 ### Invalid BackendStorageClass
-If you have already installed the nfs-client package and you are still observing this issue then check if nfs-server pod is in Pending state or not. If nfs storageclass is configured with `BackendStorageClass` and `BackendStorageClass` is not available then nfs-provisioner won’t be able to create the backend PV for nfs volume. Due to this, nfs-server pod will remain in `Pending` state. To solve this issue, you can create the `BackendStorageClass` or use the default storageclass by removing `BackendStorageClass` from nfs storageclass.
+If you have already installed the nfs-client package and you are still observing this issue then check if nfs-server pod is in Pending state or not. If nfs StorageClass is configured with `BackendStorageClass` and `BackendStorageClass` is not available then nfs-provisioner won’t be able to create the backend PV for nfs volume. Due to this, nfs-server pod will remain in `Pending` state. To solve this issue, you can create the `BackendStorageClass` or use the default StorageClass by removing `BackendStorageClass` from nfs StorageClass.
 
 
 ### DNS lookup error
@@ -38,22 +38,7 @@ To resolve this issue, check if dns pod is running or not. Refer https://github.
 
 
 ## Application not able to write to the volume
-This could happen if the application is running with a non-root user.
+This could happen if the application is running with a non-root user. By default, nfs-share volume is accessible only by root users.
 
-By default, nfs-share volume is accessible only by root users. Refer to the issue for more details.
-
-To make it accessible for specific non-root users, follow the below-mentioned steps. There is already a PR to fix this issue. Until this PR gets merged, this is a workaround as of now.
-
-execute the following patch command(backend storageclasss should be specified with fsType to support this change) on nfs-pvc deployment.
-
-```
-kubectl patch deploy nfs-pvc-ab34af92-c914-4afb-a25a-517ba2aa12bf -p '{"spec":{"template":{"spec":{"securityContext": {"fsGroup": 100, "fsGroupChangePolicy": "OnRootMismatch"}}}}}' -n openebs
-```
-
-Now nfs-share volume permission is updated to 100.
-Add the value of NFS volume group  100 under supplementalGroups of your application deployment/sts.
-
-```
-kubectl patch deploy <DEPLOYMENT_NAME> -p '{"spec":{"template":{"spec":{"securityContext": {"supplementalGroups": [100]}}}}}'
-```
+To resolve this issue, you need to set `FSGID` parameter in NFS Storageclass. Refer [Setting permission for NFS volume](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/docs/troubleshooting/non-root-application-accesing-nfs-volume.md#how-to-use) for detailed list of steps.
 

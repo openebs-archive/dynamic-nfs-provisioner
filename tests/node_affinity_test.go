@@ -122,8 +122,12 @@ var _ = Describe("TEST NODE AFFINITY FEATURE", func() {
 			)
 
 			By("creating above pvc")
-			err = Client.createPVC(pvcObj, true)
+			err = Client.createPVC(pvcObj)
 			Expect(err).To(BeNil(), "while creating pvc {%s} in namespace {%s}", pvcName, applicationNamespace)
+
+			pvcPhase, err := Client.waitForPVCBound(applicationNamespace, pvcName)
+			Expect(err).To(BeNil(), "while waiting for pvc %s/%s bound phase", applicationNamespace, pvcName)
+			Expect(pvcPhase).To(Equal(corev1.ClaimBound), "pvc %s/%s should be in bound phase", applicationNamespace, pvcName)
 
 			boundedPVCObj, err := Client.getPVC(pvcObj.Namespace, pvcObj.Name)
 			Expect(err).To(BeNil(), "While fetching bounded PVC")
@@ -251,7 +255,7 @@ var _ = Describe("TEST NODE AFFINITY FEATURE", func() {
 			Expect(err).ShouldNot(HaveOccurred(), "while building pvc {%s} in namespace {%s}", pvcName, applicationNamespace)
 
 			By("creating above pvc")
-			err = Client.createPVC(pvcObj, false)
+			err = Client.createPVC(pvcObj)
 			Expect(err).To(BeNil(), "while creating pvc {%s} in namespace {%s}", pvcName, applicationNamespace)
 
 			pvcObj, err = Client.getPVC(pvcObj.Namespace, pvcObj.Name)
@@ -290,7 +294,7 @@ var _ = Describe("TEST NODE AFFINITY FEATURE", func() {
 			_, err = Client.updateNode(&nodeObj)
 			Expect(err).To(BeNil(), "while updating node with %s label", futureNodeAffinityValue)
 
-			_, err = Client.waitForPVCBound(pvcName, applicationNamespace)
+			_, err = Client.waitForPVCBound(applicationNamespace, pvcName)
 			Expect(err).To(BeNil(), "while waiting for PVC to get bound")
 		})
 	})

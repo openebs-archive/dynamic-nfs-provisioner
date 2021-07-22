@@ -138,13 +138,12 @@ var _ = Describe("TEST NON ROOT USER ACCESSING NFS VOLUME", func() {
 			)
 
 			By("creating PVC")
-			err = Client.createPVC(pvcObj, true)
-			Expect(err).To(
-				BeNil(),
-				"while creating pvc {%s} in namespace {%s}",
-				pvcName,
-				applicationNamespace,
-			)
+			err = Client.createPVC(pvcObj)
+			Expect(err).To(BeNil(), "while creating pvc {%s} in namespace {%s}", pvcName, applicationNamespace)
+
+			pvcPhase, err := Client.waitForPVCBound(applicationNamespace, pvcName)
+			Expect(err).To(BeNil(), "while waiting for pvc %s/%s bound phase", applicationNamespace, pvcName)
+			Expect(pvcPhase).To(Equal(corev1.ClaimBound), "pvc %s/%s should be in bound phase", applicationNamespace, pvcName)
 		})
 	})
 

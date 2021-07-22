@@ -200,29 +200,28 @@ func (k *KubeClient) destroyNamespace(namespace string) error {
 	return nil
 }
 
-func (k *KubeClient) waitForPVCBound(pvc, ns string) (corev1.PersistentVolumeClaimPhase, error) {
+func (k *KubeClient) waitForPVCBound(ns, pvcName string) (corev1.PersistentVolumeClaimPhase, error) {
 	for {
 		o, err := k.CoreV1().
 			PersistentVolumeClaims(ns).
-			Get(pvc, metav1.GetOptions{})
+			Get(pvcName, metav1.GetOptions{})
 		if err != nil {
 			return "", err
 		}
 
 		if o.Status.Phase == corev1.ClaimLost {
-			return o.Status.Phase, errors.Errorf("PVC %s/%s in lost state", ns, pvc)
+			return o.Status.Phase, errors.Errorf("PVC %s/%s in lost state", ns, pvcName)
 		}
 		if o.Status.Phase == corev1.ClaimBound {
 			return o.Status.Phase, nil
 		}
-		fmt.Printf("waiting for PVC {%s} in namespace {%s} to get into bound state\n", pvc, ns)
+		fmt.Printf("waiting for PVC {%s} in namespace {%s} to get into bound state\n", pvcName, ns)
 		time.Sleep(5 * time.Second)
 	}
 }
 
-// createPVC will create PVC and wait till PVC gets into bound state if shouldWaitForProvision
-// is set to true else createPVC will return immediately after creating PVC
-func (k *KubeClient) createPVC(pvc *corev1.PersistentVolumeClaim, shouldWaitForProvision bool) error {
+// createPVC will create PVC and it will not wait for PVC to get bound
+func (k *KubeClient) createPVC(pvc *corev1.PersistentVolumeClaim) error {
 	_, err := k.CoreV1().PersistentVolumeClaims(pvc.Namespace).Create(pvc)
 	if err != nil {
 		if !k8serrors.IsAlreadyExists(err) {
@@ -230,10 +229,6 @@ func (k *KubeClient) createPVC(pvc *corev1.PersistentVolumeClaim, shouldWaitForP
 		}
 	}
 
-	if shouldWaitForProvision {
-		_, err = k.waitForPVCBound(pvc.Name, pvc.Namespace)
-		return err
-	}
 	return nil
 }
 

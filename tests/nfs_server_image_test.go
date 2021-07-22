@@ -94,8 +94,12 @@ var _ = Describe("TEST NFS SERVER IMAGE CONFIGURATION", func() {
 			Expect(err).ShouldNot(HaveOccurred(), "while building pvc {%s} in namespace {%s}", pvcName, applicationNamespace)
 
 			By("creating above pvc")
-			err = Client.createPVC(pvcObj, true)
+			err = Client.createPVC(pvcObj)
 			Expect(err).To(BeNil(), "while creating pvc {%s} in namespace {%s}", pvcName, applicationNamespace)
+
+			pvcPhase, err := Client.waitForPVCBound(applicationNamespace, pvcName)
+			Expect(err).To(BeNil(), "while waiting for pvc %s/%s bound phase", applicationNamespace, pvcName)
+			Expect(pvcPhase).To(Equal(corev1.ClaimBound), "pvc %s/%s should be in bound phase", applicationNamespace, pvcName)
 
 			pvcObj, err = Client.getPVC(applicationNamespace, pvcName)
 			Expect(err).To(BeNil(), "while fetching pvc {%s} in namespace {%s}", pvcName, applicationNamespace)

@@ -244,7 +244,7 @@ var _ = Describe("TEST NFS VOLUME WITH RECLAIM POLICY", func() {
 		})
 	})
 
-	When("deleting NFS service related resources", func() {
+	When("deleting NFS server resources", func() {
 		It("should get deleted", func() {
 			Expect(claimedPVCObj).NotTo(BeNil(), "claimed pvc shouldn't be nil")
 			backendNFSName := "nfs-" + claimedPVCObj.Spec.VolumeName

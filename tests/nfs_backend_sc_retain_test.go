@@ -134,9 +134,6 @@ var _ = Describe("TEST BACKEND PV EXISTENCE WITH BACKEND SC HAVING RETAIN POLICY
 			err = Client.createPVC(pvcObj)
 			Expect(err).To(BeNil(), "while creating pvc %s/%s", applicationNamespace, pvcName)
 
-			_, err = Client.waitForPVCBound(pvcName, applicationNamespace)
-			Expect(err).To(BeNil(), "while waiting %s/%s pvc to bound", applicationNamespace, pvcName)
-
 			pvcObj, err = Client.getPVC(applicationNamespace, pvcName)
 			Expect(err).To(BeNil(), "while fetching pvc %s/%s", applicationNamespace, pvcName)
 
@@ -184,7 +181,7 @@ var _ = Describe("TEST BACKEND PV EXISTENCE WITH BACKEND SC HAVING RETAIN POLICY
 
 	When("verify backend PV state after application PVC deletion", func() {
 		It("should have backend PV in released state", func() {
-			Expect(backendPvName).NotTo(BeNil(), "backend PV name should not be empty")
+			Expect(backendPvName).NotTo(BeEmpty(), "backend PV name should not be empty")
 
 			backendPvObj, err := Client.getPV(backendPvName)
 			Expect(err).To(BeNil(), "while fetching pv {%s}", backendPvName)
@@ -194,7 +191,7 @@ var _ = Describe("TEST BACKEND PV EXISTENCE WITH BACKEND SC HAVING RETAIN POLICY
 
 	When("cleaning up backend PV", func() {
 		It("should delete backend PV", func() {
-			Expect(backendPvName).NotTo(BeNil(), "backend PV name should not be empty")
+			Expect(backendPvName).NotTo(BeEmpty(), "backend PV name should not be empty")
 
 			err = Client.deletePV(backendPvName)
 			Expect(err).To(BeNil(), "while deleting pv {%s}", backendPvName)

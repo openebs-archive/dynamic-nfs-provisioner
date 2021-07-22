@@ -17,6 +17,8 @@ limitations under the License.
 package tests
 
 import (
+	"time"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	deploy "github.com/openebs/dynamic-nfs-provisioner/pkg/kubernetes/api/apps/v1/deployment"
@@ -25,6 +27,7 @@ import (
 	pts "github.com/openebs/dynamic-nfs-provisioner/pkg/kubernetes/api/core/v1/podtemplatespec"
 	volume "github.com/openebs/dynamic-nfs-provisioner/pkg/kubernetes/api/core/v1/volume"
 	corev1 "k8s.io/api/core/v1"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
 var _ = Describe("TEST NFS PV", func() {
@@ -37,6 +40,9 @@ var _ = Describe("TEST NFS PV", func() {
 		labelselector = map[string]string{
 			"demo": "nfs-deployment",
 		}
+
+		openebsNamespace = "openebs"
+		maxRetryCount    = 10
 	)
 
 	When("pvc with storageclass openebs-rwx is created", func() {
@@ -151,17 +157,58 @@ var _ = Describe("TEST NFS PV", func() {
 	})
 
 	When("pvc with storageclass openebs-rwx is deleted ", func() {
-		It("should delete the pvc", func() {
+		It("should delete all the NFS services and backend PVC", func() {
+			var retries int
+
+			By("fetch PVC information")
+			pvcObj, err := Client.getPVC(applicationNamespace, pvcName)
+			Expect(err).To(BeNil(), "while fetching pvc {%s} information in namespace {%s}", pvcName, applicationNamespace)
 
 			By("deleting above pvc")
 			err = Client.deletePVC(applicationNamespace, pvcName)
-			Expect(err).To(
-				BeNil(),
-				"while deleting pvc {%s} in namespace {%s}",
-				pvcName,
-				applicationNamespace,
-			)
+			Expect(err).To(BeNil(), "while deleting pvc {%s} in namespace {%s}", pvcName, applicationNamespace)
 
+			By("verify deletion of NFS-Service service")
+			isNFSServiceExist := true
+			for retries = 0; retries < maxRetryCount; retries++ {
+				_, err = Client.getService(openebsNamespace, "nfs-"+pvcObj.Spec.VolumeName)
+				if err != nil && k8serrors.IsNotFound(err) {
+					isNFSServiceExist = false
+					break
+				}
+				Expect(err).To(BeNil(), "while fetching NFS-Server service")
+				time.Sleep(time.Second * 5)
+			}
+			Expect(isNFSServiceExist).To(BeFalse(), "NFS service should not exist after deleting nfs pvc")
+
+			By("verify deletion of NFS-Server instance")
+			nfsServerLabels := "openebs.io/nfs-server=nfs-" + pvcObj.Spec.VolumeName
+			err = Client.waitForPods(openebsNamespace, nfsServerLabels, corev1.PodRunning, 0)
+
+			isNFSDeploymentExist := true
+			for retries = 0; retries < maxRetryCount; retries++ {
+				_, err = Client.getDeployment(openebsNamespace, "nfs-"+pvcObj.Spec.VolumeName)
+				if err != nil && k8serrors.IsNotFound(err) {
+					isNFSDeploymentExist = false
+					break
+				}
+				Expect(err).To(BeNil(), "while listing deployments of NFS-Server instance")
+				time.Sleep(time.Second * 5)
+			}
+			Expect(isNFSDeploymentExist).To(BeFalse(), "NFS-Server deployment should not exist after deleting nfs pvc")
+
+			By("verify deletion of backend pvc")
+			isBackendPVCExist := true
+			for retries = 0; retries < maxRetryCount; retries++ {
+				_, err = Client.getPVC(openebsNamespace, "nfs-"+pvcObj.Spec.VolumeName)
+				if err != nil && k8serrors.IsNotFound(err) {
+					isBackendPVCExist = false
+					break
+				}
+				Expect(err).To(BeNil(), "while fetching backend pvc")
+				time.Sleep(time.Second * 5)
+			}
+			Expect(isBackendPVCExist).To(BeFalse(), "backend pvc should not exist after deleting nfs pvc")
 		})
 	})
 

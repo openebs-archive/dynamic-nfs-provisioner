@@ -203,6 +203,7 @@ func (k *KubeClient) waitForPVCBound(pvc, ns string) (corev1.PersistentVolumeCla
 	}
 }
 
+// createPVC creates the given PVC and ensure that PVC bound
 func (k *KubeClient) createPVC(pvc *corev1.PersistentVolumeClaim) error {
 	_, err := k.CoreV1().PersistentVolumeClaims(pvc.Namespace).Create(pvc)
 	if err != nil {
@@ -313,6 +314,11 @@ func (k *KubeClient) createStorageClass(sc *storagev1.StorageClass) error {
 
 func (k *KubeClient) deleteStorageClass(scName string) error {
 	return k.StorageV1().StorageClasses().Delete(scName, &metav1.DeleteOptions{})
+}
+
+// Add Kubernetes service related operations
+func (k *KubeClient) getService(namespace, name string) (*corev1.Service, error) {
+	return k.CoreV1().Services(namespace).Get(name, metav1.GetOptions{})
 }
 
 // Add Node related operations

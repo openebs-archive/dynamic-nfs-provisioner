@@ -47,6 +47,10 @@ var _ = Describe("TEST CUSTOM NAMESPACE FOR NFS SERVER", func() {
 
 	When("provisioner deployment updated with NFSServerNamespace", func() {
 		It("should update the provisioner deployment", func() {
+			By("waiting for deployment rollout")
+			err = Client.waitForDeploymentRollout(OpenEBSNamespace, NFSProvisionerName)
+			Expect(err).To(BeNil(), "while verifying deployment rollout")
+
 			By("updating a deployment")
 			deploy, err := Client.getDeployment(OpenEBSNamespace, NFSProvisionerName)
 			Expect(err).To(

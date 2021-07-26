@@ -184,6 +184,13 @@ func (b *Builder) WithVolumeMode(vM corev1.PersistentVolumeMode) *Builder {
 	return b
 }
 
+// WithVolumeName sets the volumeName field in PVC with provided arguments
+func (b *Builder) WithVolumeName(volumeName string) *Builder {
+
+	b.pvc.object.Spec.VolumeName = volumeName
+	return b
+}
+
 // Build returns the PVC API instance
 func (b *Builder) Build() (*corev1.PersistentVolumeClaim, error) {
 	if len(b.errs) > 0 {

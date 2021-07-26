@@ -247,8 +247,12 @@ func (k *KubeClient) deletePVC(namespace, pvc string) error {
 	return err
 }
 
-func (k *KubeClient) getPV(pvName string) (*corev1.PersistentVolume, error) {
-	return k.CoreV1().PersistentVolumes().Get(pvName, metav1.GetOptions{})
+func (k *KubeClient) getPV(name string) (*corev1.PersistentVolume, error) {
+	return k.CoreV1().PersistentVolumes().Get(name, metav1.GetOptions{})
+}
+
+func (k *KubeClient) updatePV(pvObj *corev1.PersistentVolume) (*corev1.PersistentVolume, error) {
+	return k.CoreV1().PersistentVolumes().Update(pvObj)
 }
 
 func (k *KubeClient) deletePV(pvName string) error {

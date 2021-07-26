@@ -38,7 +38,7 @@ var (
 	// defaultMetricsPath defines the path where prometheus metrics are exposed
 	defaultMetricsPath = "/metrics"
 	// defaultListenAddress defines the address where prometheus metrics are exposed
-	defaultListenAddress = ":8085"
+	defaultListenAddress = ":9500"
 )
 
 // StartProvisioner will start a new dynamic NFS provisioner

@@ -1,7 +1,9 @@
 ---
 name: Bug Report
 about: Report a bug encountered while using NFS PVs
-labels: kind/bug
+title: ''
+labels: ''
+assignees: ''
 
 ---
 

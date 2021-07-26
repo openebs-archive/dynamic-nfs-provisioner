@@ -55,6 +55,10 @@ import (
 	clientset "k8s.io/client-go/kubernetes"
 )
 
+var (
+	NodeAffinityRulesMismatchEvent = "No matching nodes found for given affinity rules"
+)
+
 // NewProvisioner will create a new Provisioner object and initialize
 //  it with global information used across PV create and delete operations.
 func NewProvisioner(stopCh chan struct{}, kubeClient *clientset.Clientset) (*Provisioner, error) {
@@ -230,10 +234,7 @@ func (p *Provisioner) validateNodeAffinityRules() error {
 	}
 
 	if len(nodeList) == 0 {
-		return errors.Errorf(
-			"No matching nodes found for given affinity rules (%s)",
-			nodeSelector.String(),
-		)
+		return errors.Errorf("%s (%s)", NodeAffinityRulesMismatchEvent, nodeSelector.String())
 	}
 	return nil
 }

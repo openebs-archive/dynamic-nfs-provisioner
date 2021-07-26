@@ -78,7 +78,7 @@ var _ = Describe("TEST INVALID NAMESPACE FOR NFS SERVER", func() {
 			Expect(err).ShouldNot(HaveOccurred(), "while building pvc %s/%s", applicationNamespace, pvcName)
 
 			By("creating above pvc")
-			err = Client.createPVC(pvcObj, false)
+			err = Client.createPVC(pvcObj)
 			Expect(err).To(BeNil(), "while creating pvc %s/%s", applicationNamespace, pvcName)
 		})
 	})

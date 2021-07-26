@@ -134,11 +134,15 @@ var _ = Describe("TEST BACKEND PV EXISTENCE WITH BACKEND SC HAVING RETAIN POLICY
 			err = Client.createPVC(pvcObj)
 			Expect(err).To(BeNil(), "while creating pvc %s/%s", applicationNamespace, pvcName)
 
+			pvcPhase, err := Client.waitForPVCBound(applicationNamespace, pvcName)
+			Expect(err).To(BeNil(), "while waiting for pvc %s/%s bound phase", applicationNamespace, pvcName)
+			Expect(pvcPhase).To(Equal(corev1.ClaimBound), "pvc %s/%s should be in bound phase", applicationNamespace, pvcName)
+
 			pvcObj, err = Client.getPVC(applicationNamespace, pvcName)
 			Expect(err).To(BeNil(), "while fetching pvc %s/%s", applicationNamespace, pvcName)
 
 			backendPvcName = "nfs-" + pvcObj.Spec.VolumeName
-			_, err = Client.waitForPVCBound(backendPvcName, openebsNamespace)
+			_, err = Client.waitForPVCBound(openebsNamespace, backendPvcName)
 			Expect(err).To(BeNil(), "while waiting %s/%s pvc to bound", openebsNamespace, backendPvcName)
 
 			pvcObj, err = Client.getPVC(openebsNamespace, backendPvcName)

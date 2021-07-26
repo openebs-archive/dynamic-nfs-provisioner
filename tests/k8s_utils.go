@@ -478,3 +478,7 @@ func (k *KubeClient) waitForDeploymentRollout(ns, deployment string) error {
 		return false, nil
 	})
 }
+
+func (k *KubeClient) listEvents(namespace string) (*corev1.EventList, error) {
+	return k.CoreV1().Events(namespace).List(metav1.ListOptions{})
+}

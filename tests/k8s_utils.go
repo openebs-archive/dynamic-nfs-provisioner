@@ -290,7 +290,7 @@ func (k *KubeClient) applyDeployment(deployment *appsv1.Deployment) error {
 		return err
 	}
 
-	// Patch the depployment
+	// Patch the deployment
 	_, err = k.AppsV1().
 		Deployments(deployment.Namespace).
 		Patch(deployment.Name,

@@ -67,7 +67,7 @@ type KernelNFSServerOptions struct {
 	deploymentName        string
 	nfsServerCustomConfig string
 
-	// leaseTime defines the renewl period(in seconds) for client state
+	// leaseTime defines the renewal period(in seconds) for client state
 	// this should be in range from 10 to 3600 seconds
 	leaseTime int
 

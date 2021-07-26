@@ -46,7 +46,7 @@ const (
 	// if it is set. Otherwise, use the default NFS server configuration.
 	CustomServerConfig = "CustomServerConfig"
 
-	// LeaseTime defines the renewl period(in seconds) for client state
+	// LeaseTime defines the renewal period(in seconds) for client state
 	// if not set then default value(90s) will be used
 	LeaseTime        = "LeaseTime"
 	DefaultLeaseTime = 90

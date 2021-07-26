@@ -106,6 +106,9 @@ var _ = Describe("TEST RECLAIM OF RELEASED NFS PV", func() {
 			err = Client.createPVC(pvcObj)
 			Expect(err).To(BeNil(), "while creating pvc %s/%s", applicationNamespace, pvcName)
 
+			_, err = Client.waitForPVCBound(applicationNamespace, pvcName)
+			Expect(err).To(BeNil(), "while waiting %s/%s pvc to bound", applicationNamespace, pvcName)
+
 			By("checking backend PVC bound state")
 			pvcObj, err = Client.getPVC(applicationNamespace, pvcName)
 			Expect(err).To(BeNil(), "while fetching pvc %s/%s", applicationNamespace, pvcName)
@@ -113,7 +116,7 @@ var _ = Describe("TEST RECLAIM OF RELEASED NFS PV", func() {
 			nfsPv = pvcObj.Spec.VolumeName
 			backendPVCName := "nfs-" + nfsPv
 
-			_, err = Client.waitForPVCBound(backendPVCName, openebsNamespace)
+			_, err = Client.waitForPVCBound(openebsNamespace, backendPVCName)
 			Expect(err).To(BeNil(), "while waiting %s/%s pvc to bound", openebsNamespace, backendPVCName)
 		})
 	})
@@ -241,6 +244,9 @@ var _ = Describe("TEST RECLAIM OF RELEASED NFS PV", func() {
 			By("creating above pvc")
 			err = Client.createPVC(pvcObj)
 			Expect(err).To(BeNil(), "while creating pvc %s/%s", applicationNamespace, pvcName)
+
+			_, err = Client.waitForPVCBound(applicationNamespace, pvcName)
+			Expect(err).To(BeNil(), "while waiting %s/%s pvc to bound", applicationNamespace, pvcName)
 		})
 	})
 

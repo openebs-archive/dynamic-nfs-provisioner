@@ -28,6 +28,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
@@ -35,8 +36,10 @@ import (
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/tools/reference"
 )
 
 // KubeClient interface for k8s API
@@ -45,11 +48,21 @@ type KubeClient struct {
 	config *rest.Config
 }
 
-// Client for KubeClient
-var Client *KubeClient
+var (
+	// Client for KubeClient
+	Client *KubeClient
 
-// encoder to print object in yaml format
-var encoder runtime.Encoder
+	// encoder to print object in yaml format
+	encoder runtime.Encoder
+
+	// defaultChunkSize is a maximum number of responses to
+	// return for a list call. If still resources exist then
+	// server will set continue field in listOptions so it is
+	// responsibility of client to fetch further responses if
+	// continue field is set
+	defaultChunkSize = int64(500)
+	metadataAccessor = meta.NewAccessor()
+)
 
 // getHomeDir gets the home directory for the system.
 // It is required to locate the .kube/config file
@@ -75,6 +88,9 @@ func initK8sClient(kubeConfigPath string) error {
 	var err error
 	if kubeConfigPath == "" {
 		kubeConfigPath, err = getConfigPath()
+		if err != nil {
+			return err
+		}
 	}
 
 	config, err := clientcmd.BuildConfigFromFlags("", kubeConfigPath)
@@ -184,26 +200,27 @@ func (k *KubeClient) destroyNamespace(namespace string) error {
 	return nil
 }
 
-func (k *KubeClient) waitForPVCBound(pvc, ns string) (corev1.PersistentVolumeClaimPhase, error) {
+func (k *KubeClient) waitForPVCBound(ns, pvcName string) (corev1.PersistentVolumeClaimPhase, error) {
 	for {
 		o, err := k.CoreV1().
 			PersistentVolumeClaims(ns).
-			Get(pvc, metav1.GetOptions{})
+			Get(pvcName, metav1.GetOptions{})
 		if err != nil {
 			return "", err
 		}
 
 		if o.Status.Phase == corev1.ClaimLost {
-			return o.Status.Phase, errors.Errorf("PVC %s/%s in lost state", ns, pvc)
+			return o.Status.Phase, errors.Errorf("PVC %s/%s in lost state", ns, pvcName)
 		}
 		if o.Status.Phase == corev1.ClaimBound {
 			return o.Status.Phase, nil
 		}
+		fmt.Printf("waiting for PVC {%s} in namespace {%s} to get into bound state\n", pvcName, ns)
 		time.Sleep(5 * time.Second)
 	}
 }
 
-// createPVC creates the given PVC and ensure that PVC bound
+// createPVC will create PVC and it will not wait for PVC to get bound
 func (k *KubeClient) createPVC(pvc *corev1.PersistentVolumeClaim) error {
 	_, err := k.CoreV1().PersistentVolumeClaims(pvc.Namespace).Create(pvc)
 	if err != nil {
@@ -211,8 +228,8 @@ func (k *KubeClient) createPVC(pvc *corev1.PersistentVolumeClaim) error {
 			return err
 		}
 	}
-	_, err = k.waitForPVCBound(pvc.Name, pvc.Namespace)
-	return err
+
+	return nil
 }
 
 func (k *KubeClient) getPVC(pvcNamespace, pvcName string) (*corev1.PersistentVolumeClaim, error) {
@@ -338,6 +355,62 @@ func (k *KubeClient) deleteService(namespace, name string) error {
 // Add Node related operations
 func (k *KubeClient) listNodes(labelSelector string) (*corev1.NodeList, error) {
 	return k.CoreV1().Nodes().List(metav1.ListOptions{LabelSelector: labelSelector})
+}
+
+func (k *KubeClient) updateNode(node *corev1.Node) (*corev1.Node, error) {
+	return k.CoreV1().Nodes().Update(node)
+}
+
+func (k *KubeClient) getEvents(objOrRef runtime.Object) (*corev1.EventList, error) {
+	ref, err := reference.GetReference(scheme.Scheme, objOrRef)
+	if err != nil {
+		return nil, err
+	}
+	stringRefKind := string(ref.Kind)
+	var refKind *string
+	if len(stringRefKind) > 0 {
+		refKind = &stringRefKind
+	}
+	stringRefUID := string(ref.UID)
+	var refUID *string
+	if len(stringRefUID) > 0 {
+		refUID = &stringRefUID
+	}
+
+	e := k.CoreV1().Events(ref.Namespace)
+	fieldSelector := e.GetFieldSelector(&ref.Name, &ref.Namespace, refKind, refUID)
+	initialOpts := metav1.ListOptions{FieldSelector: fieldSelector.String(), Limit: defaultChunkSize}
+	eventList := &corev1.EventList{}
+	err = followContinue(&initialOpts,
+		func(options metav1.ListOptions) (runtime.Object, error) {
+			newEvents, err := e.List(options)
+			if err != nil {
+				return nil, err
+			}
+			eventList.Items = append(eventList.Items, newEvents.Items...)
+			return newEvents, nil
+		})
+	return eventList, err
+}
+
+// followContinue handles the continue parameter returned
+// by the API server when using list chunking. To take
+// advantage of this, the initial ListOptions provided by
+// the consumer should include a non-zero Limit parameter.
+func followContinue(initialOpts *metav1.ListOptions,
+	listFunc func(metav1.ListOptions) (runtime.Object, error)) error {
+	opts := initialOpts
+	for {
+		list, err := listFunc(*opts)
+		if err != nil {
+			return err
+		}
+		nextContinueToken, _ := metadataAccessor.Continue(list)
+		if len(nextContinueToken) == 0 {
+			return nil
+		}
+		opts.Continue = nextContinueToken
+	}
 }
 
 func getPatchData(oldObj, newObj interface{}) ([]byte, []byte, error) {

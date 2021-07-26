@@ -105,12 +105,11 @@ var _ = Describe("TEST CUSTOM NAMESPACE FOR NFS SERVER", func() {
 
 			By("creating above pvc")
 			err = Client.createPVC(pvcObj)
-			Expect(err).To(
-				BeNil(),
-				"while creating pvc {%s} in namespace {%s}",
-				pvcName,
-				applicationNamespace,
-			)
+			Expect(err).To(BeNil(), "while creating pvc {%s} in namespace {%s}", pvcName, applicationNamespace)
+
+			pvcPhase, err := Client.waitForPVCBound(applicationNamespace, pvcName)
+			Expect(err).To(BeNil(), "while waiting for pvc %s/%s bound phase", applicationNamespace, pvcName)
+			Expect(pvcPhase).To(Equal(corev1.ClaimBound), "pvc %s/%s should be in bound phase", applicationNamespace, pvcName)
 		})
 	})
 

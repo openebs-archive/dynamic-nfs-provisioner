@@ -22,5 +22,5 @@ TEST_NAME=$1
 
 
 if [[ `git diff --shortstat | wc -l` != 0 ]]; then 
-  echo "Some files got changed after $1";printf "\n";git diff --stat;printf "\n"; exit 1; 
+  echo "Some files got changed after $1";printf "\n";git --no-pager diff;printf "\n"; exit 1;
 fi

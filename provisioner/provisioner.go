@@ -71,6 +71,9 @@ func NewProvisioner(stopCh chan struct{}, kubeClient *clientset.Clientset) (*Pro
 	k8sNodeInformer := kubeInformerFactory.Core().V1().Nodes().Informer()
 
 	nfsServerNs := getNfsServerNamespace()
+
+	pvTracker := NewProvisioningTracker()
+
 	p := &Provisioner{
 		stopCh: stopCh,
 
@@ -86,12 +89,16 @@ func NewProvisioner(stopCh chan struct{}, kubeClient *clientset.Clientset) (*Pro
 		useClusterIP:  menv.Truthy(ProvisionerNFSServerUseClusterIP),
 		k8sNodeLister: listersv1.NewNodeLister(k8sNodeInformer.GetIndexer()),
 		nodeAffinity:  getNodeAffinityRules(),
+		pvTracker:     pvTracker,
 	}
 	p.getVolumeConfig = p.GetVolumeConfig
 
 	// Running node informer will fetch node information from API Server
 	// and maintain it in cache
 	go k8sNodeInformer.Run(stopCh)
+
+	// Running garbage collector to perform cleanup for stale NFS resources
+	go RunGarbageCollector(kubeClient, pvTracker, nfsServerNs, stopCh)
 
 	return p, nil
 }
@@ -106,6 +113,9 @@ func (p *Provisioner) SupportsBlock() bool {
 //  to be provisioned and a valid PV spec returned.
 func (p *Provisioner) Provision(opts pvController.ProvisionOptions) (*v1.PersistentVolume, error) {
 	pvc := opts.PVC
+
+	p.pvTracker.Add(opts.PVName)
+	defer p.pvTracker.Delete(opts.PVName)
 
 	for _, accessMode := range pvc.Spec.AccessModes {
 		if accessMode != v1.ReadWriteMany {
@@ -166,6 +176,9 @@ func (p *Provisioner) Provision(opts pvController.ProvisionOptions) (*v1.Persist
 //  set to not-retain, then this function will create a helper pod
 //  to delete the host path from the node.
 func (p *Provisioner) Delete(pv *v1.PersistentVolume) (err error) {
+	p.pvTracker.Add(pv.Name)
+	defer p.pvTracker.Delete(pv.Name)
+
 	defer func() {
 		err = errors.Wrapf(err, "failed to delete volume %v", pv.Name)
 	}()

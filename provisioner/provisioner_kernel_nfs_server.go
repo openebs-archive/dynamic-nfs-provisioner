@@ -65,10 +65,12 @@ func (p *Provisioner) ProvisionKernalNFSServer(opts pvController.ProvisionOption
 		leaseTime:             leaseTime,
 		graceTime:             graceTime,
 		fsGroup:               fsGID,
+		pvcName:               pvc.Name,
+		pvcNamespace:          pvc.Namespace,
+		pvcUID:                string(pvc.UID),
 	}
 
 	nfsService, err := p.getNFSServerAddress(nfsServerOpts)
-
 	if err != nil {
 		klog.Infof("Initialize volume %v failed: %v", name, err)
 		alertlog.Logger.Errorw("",

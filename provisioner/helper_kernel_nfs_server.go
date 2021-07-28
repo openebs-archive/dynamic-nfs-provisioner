@@ -18,6 +18,7 @@ package provisioner
 
 import (
 	"strconv"
+	"time"
 
 	errors "github.com/pkg/errors"
 	"k8s.io/klog"
@@ -37,6 +38,11 @@ const (
 	pvcStorageClassAnnotation = "nfs.openebs.io/persistentvolumeclaim"
 	pvStorageClassAnnotation  = "nfs.openebs.io/persistentvolume"
 
+	// PVC Label key to store information about NFS PVC
+	nfsPvcNameLabelKey = "nfs.openebs.io/nfs-pvc-name"
+	nfsPvcUIDLabelKey  = "nfs.openebs.io/nfs-pvc-uid"
+	nfsPvcNsLabelKey   = "nfs.openebs.io/nfs-pvc-namespace"
+
 	// NFSPVFinalizer represents finalizer string used by NFSPV
 	NFSPVFinalizer = "nfs.openebs.io/finalizer"
 
@@ -45,6 +51,10 @@ const (
 
 	//RPCBindPort set the RPC Bind Port
 	RPCBindPort = 111
+
+	// BackendPvcBoundTimeout defines the timeout for PVC Bound check
+	// set to 60 seconds
+	BackendPvcBoundTimeout = 60 * time.Second
 )
 
 var (
@@ -61,8 +71,11 @@ type KernelNFSServerOptions struct {
 	provisionerNS         string
 	pvName                string
 	capacity              string
-	backendStorageClass   string
 	pvcName               string
+	pvcUID                string
+	pvcNamespace          string
+	backendStorageClass   string
+	backendPvcName        string
 	serviceName           string
 	deploymentName        string
 	nfsServerCustomConfig string
@@ -92,28 +105,33 @@ func (p *Provisioner) createBackendPVC(nfsServerOpts *KernelNFSServerOptions) er
 		return err
 	}
 
-	pvcName := "nfs-" + nfsServerOpts.pvName
-	klog.V(4).Infof("Verifying if PVC(%v) for NFS storage was already created.", pvcName)
+	backendPvcName := "nfs-" + nfsServerOpts.pvName
+	klog.V(4).Infof("Verifying if PVC(%v) for NFS storage was already created.", backendPvcName)
 
 	//Check if the PVC is already created. This can happen
 	//if the previous reconciliation of PVC-PV, resulted in
 	//creating a PVC, but was not yet available for 60+ seconds
 	_, err := p.kubeClient.CoreV1().
 		PersistentVolumeClaims(p.serverNamespace).
-		Get(pvcName, metav1.GetOptions{})
+		Get(backendPvcName, metav1.GetOptions{})
 	if err != nil && !k8serrors.IsNotFound(err) {
-		return errors.Wrapf(err, "failed to check existence of backend PVC {%s/%s}", p.serverNamespace, pvcName)
+		return errors.Wrapf(err, "failed to check existence of backend PVC {%s/%s}", p.serverNamespace, backendPvcName)
 	} else if err == nil {
-		nfsServerOpts.pvcName = pvcName
-		klog.Infof("Volume %v has been initialized with PVC {%s/%s}", nfsServerOpts.pvName, p.serverNamespace, pvcName)
+		nfsServerOpts.backendPvcName = backendPvcName
+		klog.Infof("Volume %v has been initialized with PVC {%s/%s}", nfsServerOpts.pvName, p.serverNamespace, backendPvcName)
 		return nil
 	}
+
+	pvcLabel := nfsServerOpts.getLabels()
+	pvcLabel[nfsPvcNameLabelKey] = nfsServerOpts.pvcName
+	pvcLabel[nfsPvcUIDLabelKey] = nfsServerOpts.pvcUID
+	pvcLabel[nfsPvcNsLabelKey] = nfsServerOpts.pvcNamespace
 
 	// Create PVC using the provided capacity and SC details
 	pvcObjBuilder := persistentvolumeclaim.NewBuilder().
 		WithNamespace(p.serverNamespace).
-		WithName(pvcName).
-		WithLabels(nfsServerOpts.getLabels()).
+		WithName(backendPvcName).
+		WithLabels(pvcLabel).
 		WithCapacity(nfsServerOpts.capacity).
 		WithAccessModeRWO().
 		WithStorageClass(nfsServerOpts.backendStorageClass)
@@ -129,12 +147,42 @@ func (p *Provisioner) createBackendPVC(nfsServerOpts *KernelNFSServerOptions) er
 		PersistentVolumeClaims(p.serverNamespace).
 		Create(pvcObj)
 	if err != nil {
-		return errors.Wrapf(err, "failed to create PVC {%s/%s}", p.serverNamespace, pvcName)
+		return errors.Wrapf(err, "failed to create PVC {%s/%s}", p.serverNamespace, backendPvcName)
 	}
 
-	nfsServerOpts.pvcName = pvcName
+	nfsServerOpts.backendPvcName = backendPvcName
 
 	return nil
+}
+
+// waitForPvcBound wait for PVC to bound for timeout period
+func (p *Provisioner) waitForPvcBound(namespace, name string, timeout time.Duration) error {
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+
+	timeoutCh := timer.C
+
+	for {
+		tick := time.NewTicker(time.Second)
+		defer tick.Stop()
+
+		select {
+		case <-timeoutCh:
+			return errors.Errorf("timed out waiting for PVC{%s/%s} to bound", namespace, name)
+
+		case <-tick.C:
+			obj, err := p.kubeClient.CoreV1().
+				PersistentVolumeClaims(namespace).
+				Get(name, metav1.GetOptions{})
+			if err != nil {
+				return errors.Wrapf(err, "failed to get pvc{%s/%s}", namespace, name)
+			}
+
+			if obj.Status.Phase == corev1.ClaimBound {
+				return nil
+			}
+		}
+	}
 }
 
 // deleteBackendPVC deletes the NFS Server Backend PVC for a given NFS PVC
@@ -143,17 +191,17 @@ func (p *Provisioner) deleteBackendPVC(nfsServerOpts *KernelNFSServerOptions) er
 		return err
 	}
 
-	pvcName := "nfs-" + nfsServerOpts.pvName
-	klog.V(4).Infof("Verifying if PVC {%s/%s} for NFS storage exists.", p.serverNamespace, pvcName)
+	backendPvcName := "nfs-" + nfsServerOpts.pvName
+	klog.V(4).Infof("Verifying if PVC {%s/%s} for NFS storage exists.", p.serverNamespace, backendPvcName)
 
 	//Check if the PVC still exists. It could have been removed
 	// or never created due to a provisioning create failure.
 	_, err := p.kubeClient.CoreV1().
 		PersistentVolumeClaims(p.serverNamespace).
-		Get(pvcName, metav1.GetOptions{})
+		Get(backendPvcName, metav1.GetOptions{})
 	if err == nil {
-		nfsServerOpts.pvcName = pvcName
-		klog.Infof("Volume %v has been initialized with PVC {%s/%s} Initiating delete...", nfsServerOpts.pvName, p.serverNamespace, pvcName)
+		nfsServerOpts.backendPvcName = backendPvcName
+		klog.Infof("Volume %v has been initialized with PVC {%s/%s} Initiating delete...", nfsServerOpts.pvName, p.serverNamespace, backendPvcName)
 	} else if err != nil && k8serrors.IsNotFound(err) {
 		return nil
 	}
@@ -164,9 +212,9 @@ func (p *Provisioner) deleteBackendPVC(nfsServerOpts *KernelNFSServerOptions) er
 	// Delete PVC
 	err = p.kubeClient.CoreV1().
 		PersistentVolumeClaims(p.serverNamespace).
-		Delete(pvcName, &metav1.DeleteOptions{})
+		Delete(backendPvcName, &metav1.DeleteOptions{})
 	if err != nil && !k8serrors.IsNotFound(err) {
-		return errors.Wrapf(err, "failed to delete backend PVC {%s/%s} associated with PV %v", p.serverNamespace, pvcName, nfsServerOpts.pvName)
+		return errors.Wrapf(err, "failed to delete backend PVC {%s/%s} associated with PV %v", p.serverNamespace, backendPvcName, nfsServerOpts.pvName)
 	}
 	return nil
 }
@@ -221,6 +269,7 @@ func (p *Provisioner) createDeployment(nfsServerOpts *KernelNFSServerOptions) er
 					container.NewBuilder().
 						WithName("nfs-server").
 						WithImage(getNFSServerImage()).
+						WithImagePullPolicy(corev1.PullIfNotPresent).
 						WithEnvsNew(
 							[]corev1.EnvVar{
 								{
@@ -266,7 +315,7 @@ func (p *Provisioner) createDeployment(nfsServerOpts *KernelNFSServerOptions) er
 				WithVolumeBuilders(
 					volume.NewBuilder().
 						WithName("exports-dir").
-						WithPVCSource(nfsServerOpts.pvcName),
+						WithPVCSource(nfsServerOpts.backendPvcName),
 				),
 		)
 
@@ -438,7 +487,7 @@ func (p *Provisioner) getNFSServerAddress(nfsServerOpts *KernelNFSServerOptions)
 	// If not create NFS Service
 	err := p.createNFSServer(nfsServerOpts)
 	if err != nil {
-		return "", errors.Wrapf(err, "failed to create NFS Server for PVC{%v}", nfsServerOpts.pvName)
+		return "", errors.Wrapf(err, "failed to deploy NFS Server")
 	}
 
 	//Get the NFS Service to extract Cluster IP
@@ -448,7 +497,7 @@ func (p *Provisioner) getNFSServerAddress(nfsServerOpts *KernelNFSServerOptions)
 			Services(p.serverNamespace).
 			Get(nfsServerOpts.serviceName, metav1.GetOptions{})
 		if err != nil || nfsService == nil {
-			return "", errors.Wrapf(err, "failed to get NFS Service for PVC{%v}", nfsServerOpts.pvcName)
+			return "", errors.Wrapf(err, "failed to get NFS Service for PVC{%v}", nfsServerOpts.backendPvcName)
 		}
 		return nfsService.Spec.ClusterIP, nil
 	}
@@ -471,6 +520,11 @@ func (p *Provisioner) createNFSServer(nfsServerOpts *KernelNFSServerOptions) err
 	err = p.createDeployment(nfsServerOpts)
 	if err != nil {
 		return errors.Wrapf(err, "failed to initialize NFS Storage Deployment for RWX PVC{%v}", nfsServerOpts.pvName)
+	}
+
+	err = p.waitForPvcBound(p.serverNamespace, "nfs-"+nfsServerOpts.pvName, BackendPvcBoundTimeout)
+	if err != nil {
+		return err
 	}
 
 	err = p.createService(nfsServerOpts)

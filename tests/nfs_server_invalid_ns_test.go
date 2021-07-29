@@ -86,7 +86,7 @@ var _ = Describe("TEST INVALID NAMESPACE FOR NFS SERVER", func() {
 	When("verifying application PVC state", func() {
 		It("should have PVC in pending state", func() {
 			pvcObj, err := Client.getPVC(applicationNamespace, pvcName)
-			Expect(err).To(BeNil(), "while fetching pvc {%s} in namespace {%s}", pvcName, applicationNamespace)
+			Expect(err).To(BeNil(), "while fetching pvc %s/%s", applicationNamespace, pvcName)
 			Expect(pvcObj.Status.Phase).To(Equal(corev1.ClaimPending), "while verifying PVC claim phase")
 		})
 

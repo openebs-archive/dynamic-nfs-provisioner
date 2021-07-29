@@ -35,6 +35,13 @@ var (
 )
 
 func RunGarbageCollector(client kubernetes.Interface, pvTracker ProvisioningTracker, ns string, stopCh chan struct{}) {
+	// NewTicker sends tick only after mentioned interval.
+	// So to ensure that the garbage collector gets executed at the beginning,
+	// we are running it here.
+	klog.V(4).Infof("Running garbage collector for stale NFS resources")
+	err := cleanUpStalePvc(client, pvTracker, ns)
+	klog.V(4).Infof("Garbage collection completed for stale NFS resources with error=%v", err)
+
 	ticker := time.NewTicker(GarbageCollectorInterval)
 
 	for {
@@ -44,7 +51,7 @@ func RunGarbageCollector(client kubernetes.Interface, pvTracker ProvisioningTrac
 			return
 		case <-ticker.C:
 			klog.V(4).Infof("Running garbage collector for stale NFS resources")
-			err := cleanUpStalePvc(client, pvTracker, ns)
+			err = cleanUpStalePvc(client, pvTracker, ns)
 			klog.V(4).Infof("Garbage collection completed for stale NFS resources with error=%v", err)
 		}
 	}

@@ -18,6 +18,8 @@ package tests
 
 import (
 	"fmt"
+	"strings"
+	"time"
 
 	"github.com/ghodss/yaml"
 	. "github.com/onsi/ginkgo"
@@ -41,9 +43,10 @@ var _ = Describe("TEST NFS PROVISIONER WITH INVALID BACKEND SC", func() {
 		pvcName     = "pvc-invalid-backend-sc"
 
 		// nfs provisioner values
-		scName          = "nfs-server-invalid-sc"
-		backendScName   = "nfs-invalid-backend-sc"
-		scNfsServerType = "kernel"
+		scName           = "nfs-server-invalid-sc"
+		backendScName    = "nfs-invalid-backend-sc"
+		scNfsServerType  = "kernel"
+		openebsNamespace = "openebs"
 	)
 
 	When("create storageclass with nfs configuration", func() {
@@ -99,6 +102,30 @@ var _ = Describe("TEST NFS PROVISIONER WITH INVALID BACKEND SC", func() {
 			pvcObj, err := Client.getPVC(applicationNamespace, pvcName)
 			Expect(err).To(BeNil(), "while fetching pvc %s/%s", applicationNamespace, pvcName)
 			Expect(pvcObj.Status.Phase).To(Equal(corev1.ClaimPending), "while verifying NFS PVC claim phase")
+
+			var isExpectedEventExist bool
+			maxRetryCount := 15
+			backendPvcName := "nfs-pvc-" + pvcObj.UID
+			for retries := 0; retries < maxRetryCount; retries++ {
+				// Verify for provision failure events on PVC
+				eventList, err := Client.getEvents(pvcObj)
+				Expect(err).To(BeNil(), "while fetching PVC %s/%s", pvcObj.Namespace, pvcObj.Name)
+
+				for _, event := range eventList.Items {
+					if event.Reason == "ProvisioningFailed" &&
+						strings.Contains(event.Message,
+							fmt.Sprintf("timed out waiting for PVC{%s/%s} to bound", openebsNamespace, backendPvcName)) {
+						isExpectedEventExist = true
+						break
+					}
+				}
+				if isExpectedEventExist {
+					break
+				}
+				// event will be generated after 60 seconds
+				time.Sleep(time.Second * 10)
+			}
+			Expect(isExpectedEventExist).To(BeTrue(), "ProvisioningFailed event should exist with PVC bound timed out")
 		})
 	})
 

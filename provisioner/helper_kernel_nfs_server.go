@@ -32,6 +32,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 )
 
 const (
@@ -153,36 +154,6 @@ func (p *Provisioner) createBackendPVC(nfsServerOpts *KernelNFSServerOptions) er
 	nfsServerOpts.backendPvcName = backendPvcName
 
 	return nil
-}
-
-// waitForPvcBound wait for PVC to bound for timeout period
-func (p *Provisioner) waitForPvcBound(namespace, name string, timeout time.Duration) error {
-	timer := time.NewTimer(timeout)
-	defer timer.Stop()
-
-	timeoutCh := timer.C
-
-	for {
-		tick := time.NewTicker(time.Second)
-		defer tick.Stop()
-
-		select {
-		case <-timeoutCh:
-			return errors.Errorf("timed out waiting for PVC{%s/%s} to bound", namespace, name)
-
-		case <-tick.C:
-			obj, err := p.kubeClient.CoreV1().
-				PersistentVolumeClaims(namespace).
-				Get(name, metav1.GetOptions{})
-			if err != nil {
-				return errors.Wrapf(err, "failed to get pvc{%s/%s}", namespace, name)
-			}
-
-			if obj.Status.Phase == corev1.ClaimBound {
-				return nil
-			}
-		}
-	}
 }
 
 // deleteBackendPVC deletes the NFS Server Backend PVC for a given NFS PVC
@@ -522,7 +493,7 @@ func (p *Provisioner) createNFSServer(nfsServerOpts *KernelNFSServerOptions) err
 		return errors.Wrapf(err, "failed to initialize NFS Storage Deployment for RWX PVC{%v}", nfsServerOpts.pvName)
 	}
 
-	err = p.waitForPvcBound(p.serverNamespace, "nfs-"+nfsServerOpts.pvName, BackendPvcBoundTimeout)
+	err = waitForPvcBound(p.kubeClient, p.serverNamespace, "nfs-"+nfsServerOpts.pvName, BackendPvcBoundTimeout)
 	if err != nil {
 		return err
 	}
@@ -565,5 +536,35 @@ func (nfsServerOpts *KernelNFSServerOptions) getLabels() map[string]string {
 	return map[string]string{
 		"persistent-volume":   nfsServerOpts.pvName,
 		"openebs.io/cas-type": "nfs-kernel",
+	}
+}
+
+// waitForPvcBound wait for PVC to bound for timeout period
+func waitForPvcBound(client kubernetes.Interface, namespace, name string, timeout time.Duration) error {
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+
+	timeoutCh := timer.C
+
+	tick := time.NewTicker(time.Second)
+	defer tick.Stop()
+
+	for {
+		select {
+		case <-timeoutCh:
+			return errors.Errorf("timed out waiting for PVC{%s/%s} to bound", namespace, name)
+
+		case <-tick.C:
+			obj, err := client.CoreV1().
+				PersistentVolumeClaims(namespace).
+				Get(name, metav1.GetOptions{})
+			if err != nil {
+				return errors.Wrapf(err, "failed to get pvc{%s/%s}", namespace, name)
+			}
+
+			if obj.Status.Phase == corev1.ClaimBound {
+				return nil
+			}
+		}
 	}
 }

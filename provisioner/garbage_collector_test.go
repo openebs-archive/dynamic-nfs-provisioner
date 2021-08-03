@@ -17,7 +17,6 @@ limitations under the License.
 package provisioner
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -236,7 +235,6 @@ func TestCleanUpStalePvc(t *testing.T) {
 			assert.NoError(t, createPvc(test.clientset, test.nfsPvc), "on creating nfs PVC resource")
 			assert.NoError(t, createPv(test.clientset, test.nfsPv), "on creating nfs PV resource")
 			assert.NoError(t, createPvc(test.clientset, test.backendPvc), "on creating backend PVC resource")
-			fmt.Printf("%+v\n", test.backendPvc)
 			assert.NoError(t, createDeployment(test.clientset, test.nfsDeployment), "on creating nfs-server deployment resource")
 			assert.NoError(t, createService(test.clientset, test.nfsService), "on creating nfs-server service resourec")
 
@@ -310,7 +308,7 @@ func serviceExists(client *fake.Clientset, serviceNs, serviceName string) (bool,
 
 // createPvc creates PVC resource for the given PVC object.
 // On successful creation or if object is nil, it return nil error,
-// else return error, occured on create k8s resource
+// else return error, occurred on create k8s resource
 func createPvc(client *fake.Clientset, pvcObj *corev1.PersistentVolumeClaim) error {
 	if pvcObj == nil {
 		return nil
@@ -322,7 +320,7 @@ func createPvc(client *fake.Clientset, pvcObj *corev1.PersistentVolumeClaim) err
 
 // createDeployment creates Deployment resource for the given object
 // on successful creation or if object is nil, it return nil error,
-// else return error, occured on create k8s resource
+// else return error, occurred on create k8s resource
 func createDeployment(client *fake.Clientset, deployObj *appsv1.Deployment) error {
 	if deployObj == nil {
 		return nil
@@ -334,7 +332,7 @@ func createDeployment(client *fake.Clientset, deployObj *appsv1.Deployment) erro
 
 // createService creates Service resource for the given object
 // on successful creation or if object is nil, it return nil error,
-// else return error, occured on create k8s resource
+// else return error, occurred on create k8s resource
 func createService(client *fake.Clientset, serviceObj *corev1.Service) error {
 	if serviceObj == nil {
 		return nil
@@ -346,7 +344,7 @@ func createService(client *fake.Clientset, serviceObj *corev1.Service) error {
 
 // createPv creates PV resource for the given PV object.
 // On successful creation or if object is nil, it return nil error,
-// else return error, occured on create k8s resource
+// else return error, occurred on create k8s resource
 func createPv(client *fake.Clientset, pvObj *corev1.PersistentVolume) error {
 	if pvObj == nil {
 		return nil

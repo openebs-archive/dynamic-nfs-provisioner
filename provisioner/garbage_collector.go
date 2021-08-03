@@ -34,7 +34,7 @@ var (
 	GarbageCollectorInterval = 5 * time.Minute
 )
 
-func RunGarbageCollector(client kubernetes.Interface, pvTracker ProvisioningTracker, ns string, stopCh chan struct{}) {
+func RunGarbageCollector(client kubernetes.Interface, pvTracker ProvisioningTracker, ns string, stopCh <-chan struct{}) {
 	// NewTicker sends tick only after mentioned interval.
 	// So to ensure that the garbage collector gets executed at the beginning,
 	// we are running it here.

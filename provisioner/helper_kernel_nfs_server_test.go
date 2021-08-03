@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	errors "github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -714,7 +715,8 @@ func TestGetNFSServerAddress(t *testing.T) {
 			},
 		)
 		stopCh := make(chan struct{})
-		go pvcInformer.Run(stopCh)
+		informer.Start(stopCh)
+		assert.True(t, cache.WaitForCacheSync(stopCh, pvcInformer.HasSynced))
 
 		t.Run(name, func(t *testing.T) {
 			serviceIP, err := test.provisioner.getNFSServerAddress(test.options)
@@ -748,7 +750,7 @@ func boundPvc(client kubernetes.Interface, obj interface{}) {
 
 	_, err := client.CoreV1().PersistentVolumeClaims(pvc.Namespace).Update(pvc)
 	if err != nil {
-		fmt.Printf("failed to update PVC obect err=%+v\n", err)
+		fmt.Printf("failed to update PVC object err=%+v\n", err)
 	}
 	return
 }

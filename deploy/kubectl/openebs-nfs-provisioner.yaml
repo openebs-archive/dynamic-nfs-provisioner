@@ -143,6 +143,12 @@ spec:
         # leader election is enabled.
         #- name: LEADER_ELECTION_ENABLED
         #  value: "true"
+        # Enable volume-event marking for nfs PV, Default is "false"
+        #- name: OPENEBS_IO_NFS_SERVER_VOLUME_EVENTS
+        #  value: "true"
+        # Set Timeout for backend PVC to bound, Default value is 60 seconds
+        #- name: OPENEBS_IO_NFS_SERVER_BACKEND_PVC_TIMEOUT
+        #  value: "60"
         # Process name used for matching is limited to the 15 characters
         # present in the pgrep output.
         # So fullname can't be used here with pgrep (>15 chars).A regular expression

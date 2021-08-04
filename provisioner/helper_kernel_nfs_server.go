@@ -18,6 +18,7 @@ package provisioner
 
 import (
 	"strconv"
+	"time"
 
 	errors "github.com/pkg/errors"
 	"k8s.io/klog"
@@ -31,6 +32,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 )
 
 const (
@@ -45,6 +47,10 @@ const (
 
 	//RPCBindPort set the RPC Bind Port
 	RPCBindPort = 111
+
+	// DefaultBackendPvcBoundTimeout defines the timeout for PVC Bound check.
+	// set to 60 seconds
+	DefaultBackendPvcBoundTimeout = 60
 )
 
 var (
@@ -123,6 +129,10 @@ func (p *Provisioner) createBackendPVC(nfsServerOpts *KernelNFSServerOptions) er
 	if err != nil {
 		//TODO : Need to relook at this error
 		return errors.Wrapf(err, "unable to build PVC {%s/%s}", pvcObj.Namespace, pvcObj.Name)
+	}
+
+	if p.markResourceForVolumeEvents {
+		addFinalizerForVolumeEvents(&pvcObj.ObjectMeta)
 	}
 
 	_, err = p.kubeClient.CoreV1().
@@ -403,7 +413,7 @@ func (p *Provisioner) deleteService(nfsServerOpts *KernelNFSServerOptions) error
 	svcName := "nfs-" + nfsServerOpts.pvName
 	klog.V(4).Infof("Verifying if Service(%v) for NFS storage exists.", svcName)
 
-	//Check if the Serivce still exists. It could have been removed
+	//Check if the Service still exists. It could have been removed
 	// or never created due to a provisioning create failure.
 	_, err := p.kubeClient.CoreV1().
 		Services(p.serverNamespace).
@@ -473,6 +483,17 @@ func (p *Provisioner) createNFSServer(nfsServerOpts *KernelNFSServerOptions) err
 		return errors.Wrapf(err, "failed to initialize NFS Storage Deployment for RWX PVC{%v}", nfsServerOpts.pvName)
 	}
 
+	err = waitForPvcBound(p.kubeClient, p.serverNamespace, "nfs-"+nfsServerOpts.pvName, p.backendPvcTimeout)
+	if err != nil {
+		return err
+	}
+
+	if p.markResourceForVolumeEvents {
+		if err = markBackendPv(p.kubeClient, p.serverNamespace, "nfs-"+nfsServerOpts.pvName); err != nil {
+			return errors.Wrapf(err, "failed to mark backend PV for volume-events.")
+		}
+	}
+
 	err = p.createService(nfsServerOpts)
 	if err != nil {
 		return errors.Wrapf(err, "failed to initialize NFS Storage Service for RWX PVC{%v}", nfsServerOpts.pvName)
@@ -482,6 +503,21 @@ func (p *Provisioner) createNFSServer(nfsServerOpts *KernelNFSServerOptions) err
 	// Add finalizers once the objects have been setup
 	// Use the service to setup or return PV details
 	return nil
+}
+
+// addFinalizerForVolumeEvents add volume-event finalizer to the given meta object
+func addFinalizerForVolumeEvents(objMeta *metav1.ObjectMeta) {
+	objMeta.Finalizers = append(objMeta.Finalizers, OpenebsEventFinalizerPrefix+OpenebsEventFinalizer)
+}
+
+// addAnnotationForVolumeEvents add volume-event finalizer to the given meta object
+func addAnnotationForVolumeEvents(objMeta *metav1.ObjectMeta) {
+	if objMeta.Annotations == nil {
+		objMeta.Annotations = make(map[string]string)
+	}
+
+	objMeta.Annotations[OpenebsEventAnnotation] = "true"
+	return
 }
 
 // deleteNFSServer deletes the NFS Server deployment and related
@@ -512,4 +548,62 @@ func (nfsServerOpts *KernelNFSServerOptions) getLabels() map[string]string {
 		"persistent-volume":   nfsServerOpts.pvName,
 		"openebs.io/cas-type": "nfs-kernel",
 	}
+}
+
+// waitForPvcBound wait for PVC to bound for timeout period
+func waitForPvcBound(client kubernetes.Interface, namespace, name string, timeout time.Duration) error {
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+
+	timeoutCh := timer.C
+
+	tick := time.NewTicker(time.Second)
+	defer tick.Stop()
+
+	for {
+		select {
+		case <-timeoutCh:
+			return errors.Errorf("timed out waiting for PVC{%s/%s} to bound", namespace, name)
+
+		case <-tick.C:
+			obj, err := client.CoreV1().
+				PersistentVolumeClaims(namespace).
+				Get(name, metav1.GetOptions{})
+			if err != nil {
+				return errors.Wrapf(err, "failed to get pvc{%s/%s}", namespace, name)
+			}
+
+			if obj.Status.Phase == corev1.ClaimBound {
+				return nil
+			}
+		}
+	}
+}
+
+// markBackendPv add required annotation, finalizers on backendPv for the given PVC
+func markBackendPv(client kubernetes.Interface, namespace, name string) error {
+	pvcObj, err := client.CoreV1().
+		PersistentVolumeClaims(namespace).
+		Get(name, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	if pvcObj.Status.Phase != corev1.ClaimBound {
+		return errors.New("PVC is not bound")
+	}
+
+	pvObj, err := client.CoreV1().PersistentVolumes().Get(pvcObj.Spec.VolumeName, metav1.GetOptions{})
+	if err != nil {
+		return errors.Errorf("failed to fetch PV=%s err=%s", pvcObj.Spec.VolumeName, err)
+	}
+
+	addFinalizerForVolumeEvents(&pvObj.ObjectMeta)
+
+	_, err = client.CoreV1().PersistentVolumes().Update(pvObj)
+	if err != nil {
+		return errors.Errorf("failed to update PV=%s", pvObj.Name)
+	}
+
+	return nil
 }

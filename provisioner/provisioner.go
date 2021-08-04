@@ -33,7 +33,9 @@ package provisioner
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/openebs/maya/pkg/alertlog"
 
@@ -67,6 +69,14 @@ func NewProvisioner(stopCh chan struct{}, kubeClient *clientset.Clientset) (*Pro
 	if len(strings.TrimSpace(namespace)) == 0 {
 		return nil, fmt.Errorf("Cannot start Provisioner: failed to get namespace")
 	}
+
+	backendPvcTimeoutStr := getBackendPvcTimeout()
+	backendPvcTimeoutVal, err := strconv.Atoi(backendPvcTimeoutStr)
+	if err != nil || backendPvcTimeoutVal == 0 {
+		klog.Warningf("Invalid backendPvcTimeout value=%d, using default value %d", backendPvcTimeoutVal, DefaultBackendPvcBoundTimeout)
+		backendPvcTimeoutVal = DefaultBackendPvcBoundTimeout
+	}
+
 	kubeInformerFactory := kubeinformers.NewSharedInformerFactory(kubeClient, 0)
 	k8sNodeInformer := kubeInformerFactory.Core().V1().Nodes().Informer()
 
@@ -83,9 +93,11 @@ func NewProvisioner(stopCh chan struct{}, kubeClient *clientset.Clientset) (*Pro
 				Value: getDefaultNFSServerType(),
 			},
 		},
-		useClusterIP:  menv.Truthy(ProvisionerNFSServerUseClusterIP),
-		k8sNodeLister: listersv1.NewNodeLister(k8sNodeInformer.GetIndexer()),
-		nodeAffinity:  getNodeAffinityRules(),
+		useClusterIP:                menv.Truthy(ProvisionerNFSServerUseClusterIP),
+		k8sNodeLister:               listersv1.NewNodeLister(k8sNodeInformer.GetIndexer()),
+		nodeAffinity:                getNodeAffinityRules(),
+		markResourceForVolumeEvents: shouldMarkForVolumeEvents(),
+		backendPvcTimeout:           time.Duration(backendPvcTimeoutVal) * time.Second,
 	}
 	p.getVolumeConfig = p.GetVolumeConfig
 
@@ -147,6 +159,12 @@ func (p *Provisioner) Provision(opts pvController.ProvisionOptions) (*v1.Persist
 			metrics.PersistentVolumeCreateFailedTotal.WithLabelValues(metrics.ProvisionerRequestCreate).Inc()
 			return nil, err
 		}
+
+		if shouldMarkForVolumeEvents() {
+			addAnnotationForVolumeEvents(&pv.ObjectMeta)
+			addFinalizerForVolumeEvents(&pv.ObjectMeta)
+		}
+
 		metrics.PersistentVolumeCreateTotal.WithLabelValues(metrics.ProvisionerRequestCreate).Inc()
 		return pv, nil
 	}
@@ -257,4 +275,17 @@ func sendEventOrIgnore(pvcName, pvName, capacity, stgType, method string) {
 		SetReplicaCount("", method).
 		SetCategory(method).
 		SetVolumeCapacity(capacity).Send()
+}
+
+// shouldMarkForVolumeEvents returns if resources should be marked to send
+// volume events or not.
+func shouldMarkForVolumeEvents() bool {
+	boolStr := getNfsVolumeEvents()
+
+	var shouldMark bool
+	switch boolStr {
+	case "y", "yes", "true":
+		shouldMark = true
+	}
+	return shouldMark
 }

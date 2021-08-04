@@ -58,6 +58,18 @@ const (
 
 	// FSGroupID defines the permissions of nfs share volume
 	FSGroupID = "FSGID"
+
+	// Finalizer/Annotations to report volume provisioning events
+	// OpenebsEventAnnotation defines annotation to send event for k8s resources
+	OpenebsEventAnnotation = "events.openebs.io/required"
+
+	// OpenebsEventFinalizer defines finalizer for k8s resources to send
+	// event. This finalizer will be removed by the event reporter
+	OpenebsEventFinalizer = "events.openebs.io/finalizer"
+
+	// OpenebsEventFinalizerPrefix defines prefix to be added for NFS PV
+	// for OpenebsEventFinalizer
+	OpenebsEventFinalizerPrefix = "nfs."
 )
 
 const (

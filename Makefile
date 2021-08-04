@@ -195,7 +195,7 @@ license-check:
 .PHONY: sanity-test
 sanity-test: sanity-test
 	@echo "--> Running sanity test";
-	go test -v -timeout 30m ./tests/...
+	ginkgo -v ./tests/...
 
 .PHONY: push
 push:

@@ -73,6 +73,27 @@ var _ = Describe("TEST NFS PV", func() {
 			Expect(err).To(BeNil(), "while waiting for pvc %s/%s bound phase", applicationNamespace, pvcName)
 			Expect(pvcPhase).To(Equal(corev1.ClaimBound), "pvc %s/%s should be in bound phase", applicationNamespace, pvcName)
 		})
+
+		It("should not marked nfs resources for volume-events", func() {
+			nfsPvcObj, err := Client.getPVC(applicationNamespace, pvcName)
+			Expect(err).To(BeNil(), "while fetching pvc {%s} in namespace {%s}", pvcName, applicationNamespace)
+
+			backendPvcName := "nfs-pvc-" + string(nfsPvcObj.UID)
+			backendPvcObj, err := Client.getPVC(openebsNamespace, backendPvcName)
+			Expect(err).To(BeNil(), "while fetching pvc {%s} in namespace {%s}", backendPvcName, openebsNamespace)
+			Expect(eventFinalizerExists(&backendPvcObj.ObjectMeta)).To(BeFalse(), "volume-event finalizer should not be set")
+			Expect(eventAnnotationExists(&backendPvcObj.ObjectMeta)).To(BeFalse(), "volume-event annotation should not be set")
+
+			backendPvObj, err := Client.getPV(backendPvcObj.Spec.VolumeName)
+			Expect(err).To(BeNil(), "while fetching backend PV=%s", backendPvcObj.Spec.VolumeName)
+			Expect(eventFinalizerExists(&backendPvObj.ObjectMeta)).To(BeFalse(), "volume-event finalizer should not be set")
+			Expect(eventAnnotationExists(&backendPvObj.ObjectMeta)).To(BeFalse(), "volume-event annotation should not be set")
+
+			nfsPvObj, err := Client.getPV(nfsPvcObj.Spec.VolumeName)
+			Expect(err).To(BeNil(), "while fetching NFS PV=%s", nfsPvcObj.Spec.VolumeName)
+			Expect(eventFinalizerExists(&nfsPvObj.ObjectMeta)).To(BeFalse(), "volume-event finalizer should not be set")
+			Expect(eventAnnotationExists(&nfsPvObj.ObjectMeta)).To(BeFalse(), "volume-event annotation should not be set")
+		})
 	})
 
 	When("deployment with busybox image is created", func() {
@@ -140,7 +161,7 @@ var _ = Describe("TEST NFS PV", func() {
 		It("should not have any deployment or running pod", func() {
 
 			By("deleting above deployment")
-			err = Client.deleteDeployment(applicationNamespace, deployName)
+			err := Client.deleteDeployment(applicationNamespace, deployName)
 			Expect(err).To(
 				BeNil(),
 				"while deleting deployment {%s} in namespace {%s}",

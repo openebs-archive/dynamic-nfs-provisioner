@@ -236,6 +236,10 @@ func (k *KubeClient) getPVC(pvcNamespace, pvcName string) (*corev1.PersistentVol
 	return k.CoreV1().PersistentVolumeClaims(pvcNamespace).Get(pvcName, metav1.GetOptions{})
 }
 
+func (k *KubeClient) updatePVC(pvcObj *corev1.PersistentVolumeClaim) (*corev1.PersistentVolumeClaim, error) {
+	return k.CoreV1().PersistentVolumeClaims(pvcObj.Namespace).Update(pvcObj)
+}
+
 func (k *KubeClient) deletePVC(namespace, pvc string) error {
 	err := k.CoreV1().PersistentVolumeClaims(namespace).Delete(pvc, &metav1.DeleteOptions{})
 	if err != nil {

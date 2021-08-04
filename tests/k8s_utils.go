@@ -259,6 +259,18 @@ func (k *KubeClient) updatePV(pvObj *corev1.PersistentVolume) (*corev1.Persisten
 	return k.CoreV1().PersistentVolumes().Update(pvObj)
 }
 
+// patchPv will create the patch from the given object and update it
+func (k *KubeClient) patchPV(oldPvObj, newPvObj *corev1.PersistentVolume) error {
+	data, _, err := getPatchData(oldPvObj, newPvObj)
+	if err != nil {
+		return err
+	}
+
+	// Patch the PV
+	_, err = k.CoreV1().PersistentVolumes().Patch(oldPvObj.Name, types.StrategicMergePatchType, data)
+	return err
+}
+
 func (k *KubeClient) deletePV(pvName string) error {
 	return k.CoreV1().PersistentVolumes().Delete(pvName, &metav1.DeleteOptions{})
 }

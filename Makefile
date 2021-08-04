@@ -111,15 +111,6 @@ include Makefile.buildx.mk
 .PHONY: all
 all: test provisioner-nfs-image
 
-# Bootstrap downloads tools required
-# during build
-.PHONY: bootstrap
-bootstrap:
-	@for tool in  $(EXTERNAL_TOOLS) ; do \
-		echo "+ Installing $$tool" ; \
-		cd && GO111MODULE=on go get $$tool; \
-	done
-
 .PHONY: deps
 deps:
 	@echo "--> Tidying up submodules"
@@ -207,9 +198,9 @@ license-check:
 	@echo
 
 .PHONY: sanity-test
-sanity-test: bootstrap
+sanity-test:
 	@echo "--> Running sanity test";
-	ginkgo -v ./tests/...
+	go test -v -timeout 40m ./tests/...
 
 .PHONY: push
 push:

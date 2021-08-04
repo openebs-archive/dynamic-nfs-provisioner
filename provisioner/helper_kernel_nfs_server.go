@@ -602,7 +602,7 @@ func markBackendPv(client kubernetes.Interface, namespace, name string) error {
 
 	_, err = client.CoreV1().PersistentVolumes().Update(pvObj)
 	if err != nil {
-		return errors.Errorf("failed to update PV=%s", pvObj.Name)
+		return errors.Wrapf(err, "failed to update PV=%s", pvObj.Name)
 	}
 
 	return nil

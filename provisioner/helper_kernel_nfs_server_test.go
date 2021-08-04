@@ -757,6 +757,7 @@ func TestGetNFSServerAddress(t *testing.T) {
 				}
 			}
 		})
+		close(stopCh)
 	}
 	os.Unsetenv(string(NFSServerImageKey))
 }

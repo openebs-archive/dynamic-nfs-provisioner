@@ -133,7 +133,7 @@ var _ = Describe("TEST VOLUME EVENT MARKING", func() {
 	})
 
 	When("pvc with storageclass openebs-rwx is deleted ", func() {
-		It("should not delete the pvc", func() {
+		It("should not delete the NFS PV and backend PVC, PV", func() {
 			By("deleting the pvc")
 			err := Client.deletePVC(applicationNamespace, pvcName)
 			Expect(err).To(BeNil(), "while deleting pvc %s/%s", applicationNamespace, pvcName)
@@ -180,25 +180,8 @@ var _ = Describe("TEST VOLUME EVENT MARKING", func() {
 			_, err = Client.updatePVC(backendPvcObj)
 			Expect(err).To(BeNil(), "while updating pvc %s/%s", openebsNamespace, backendPvcName)
 
-			backendPvObj, err := Client.getPV(backendPvName)
-			Expect(err).To(BeNil(), "while fetching backend PV=%s", backendPvName)
-			removeEventFinalizer(&backendPvObj.ObjectMeta)
-			_, err = Client.updatePV(backendPvObj)
-			Expect(err).To(BeNil(), "while updating backend PV=%s", backendPvName)
-
-			nfsPvObj, err := Client.getPV(nfsPvName)
-			Expect(err).To(BeNil(), "while fetching NFS PV=%s", nfsPvName)
-			removeEventFinalizer(&nfsPvObj.ObjectMeta)
-			_, err = Client.updatePV(nfsPvObj)
-			Expect(err).To(BeNil(), "while updating NFS PV=%s", nfsPvName)
-
 			maxRetryCount := 10
-			var (
-				backendPvcDeleted bool
-				backendPvDeleted  bool
-				nfsPvDeleted      bool
-			)
-
+			var backendPvcDeleted bool
 			for retries := 0; retries < maxRetryCount; retries++ {
 				_, err := Client.getPVC(openebsNamespace, backendPvcName)
 				if err != nil && k8serrors.IsNotFound(err) {
@@ -207,6 +190,27 @@ var _ = Describe("TEST VOLUME EVENT MARKING", func() {
 				}
 				time.Sleep(time.Second * 5)
 			}
+			Expect(backendPvcDeleted).To(BeTrue(), "Backend pvc should be deleted")
+
+			backendPvObjOrig, err := Client.getPV(backendPvName)
+			Expect(err).To(BeNil(), "while fetching backend PV=%s", backendPvName)
+
+			backendPvObj := backendPvObjOrig.DeepCopy()
+			removeEventFinalizer(&backendPvObj.ObjectMeta)
+
+			err = Client.patchPV(backendPvObjOrig, backendPvObj)
+			Expect(err).To(BeNil(), "while patching the backend PV=%s", backendPvName)
+
+			nfsPvObj, err := Client.getPV(nfsPvName)
+			Expect(err).To(BeNil(), "while fetching NFS PV=%s", nfsPvName)
+			removeEventFinalizer(&nfsPvObj.ObjectMeta)
+			_, err = Client.updatePV(nfsPvObj)
+			Expect(err).To(BeNil(), "while updating NFS PV=%s", nfsPvName)
+
+			var (
+				backendPvDeleted bool
+				nfsPvDeleted     bool
+			)
 
 			for retries := 0; retries < maxRetryCount; retries++ {
 				_, err := Client.getPV(backendPvName)
@@ -225,7 +229,6 @@ var _ = Describe("TEST VOLUME EVENT MARKING", func() {
 				}
 				time.Sleep(time.Second * 5)
 			}
-			Expect(backendPvcDeleted).To(BeTrue(), "backend pvc should be deleted")
 			Expect(backendPvDeleted).To(BeTrue(), "backend PV should be deleted")
 			Expect(nfsPvDeleted).To(BeTrue(), "NFS PV should be deleted")
 		})

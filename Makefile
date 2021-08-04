@@ -98,6 +98,11 @@ ifeq (${DBUILD_SITE_URL}, )
   export DBUILD_SITE_URL
 endif
 
+# Tools required for different make
+# targets or for development purposes
+EXTERNAL_TOOLS=\
+        github.com/onsi/ginkgo/ginkgo
+
 export DBUILD_ARGS=--build-arg DBUILD_DATE=${DBUILD_DATE} --build-arg DBUILD_REPO_URL=${DBUILD_REPO_URL} --build-arg DBUILD_SITE_URL=${DBUILD_SITE_URL} --build-arg RELEASE_TAG=${TAG}
 
 # include the buildx recipes
@@ -105,6 +110,15 @@ include Makefile.buildx.mk
 
 .PHONY: all
 all: test provisioner-nfs-image
+
+# Bootstrap downloads tools required
+# during build
+.PHONY: bootstrap
+bootstrap:
+	@for tool in  $(EXTERNAL_TOOLS) ; do \
+		echo "+ Installing $$tool" ; \
+		cd && GO111MODULE=on go get $$tool; \
+	done
 
 .PHONY: deps
 deps:
@@ -193,7 +207,7 @@ license-check:
 	@echo
 
 .PHONY: sanity-test
-sanity-test: sanity-test
+sanity-test: bootstrap
 	@echo "--> Running sanity test";
 	ginkgo -v ./tests/...
 

@@ -17,16 +17,22 @@ limitations under the License.
 package provisioner
 
 import (
+	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	errors "github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/informers"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/fake"
+	"k8s.io/client-go/tools/cache"
 )
 
 func getInt64Ptr(val int64) *int64 {
@@ -174,6 +180,21 @@ func TestCreateBackendPVC(t *testing.T) {
 			expectedPVCName:   "nfs-test3-pv",
 			preProvisionedPVC: getFakePVCObject("openebs", "nfs-test3-pv", "test3-sc"),
 		},
+		"when provisioner is configured to mark resource for volume-events": {
+			options: &KernelNFSServerOptions{
+				provisionerNS:       "openebs",
+				pvName:              "test4-pv",
+				capacity:            "5G",
+				backendStorageClass: "test4-sc",
+			},
+			provisioner: &Provisioner{
+				kubeClient:                  fake.NewSimpleClientset(),
+				serverNamespace:             "nfs-server-ns4",
+				markResourceForVolumeEvents: true,
+			},
+			expectedPVCName:   "nfs-test4-pv",
+			preProvisionedPVC: getFakePVCObject("openebs", "nfs-test3-pv", "test3-sc"),
+		},
 	}
 
 	for name, test := range tests {
@@ -205,6 +226,14 @@ func TestCreateBackendPVC(t *testing.T) {
 			} else {
 				if test.expectedPVCName != nfsPVCObj.Name {
 					t.Errorf("%q test failed expected PVC name %s but got %s", name, test.expectedPVCName, nfsPVCObj.Name)
+				}
+
+				if test.provisioner.markResourceForVolumeEvents {
+					assert.True(t, eventFinalizerExists(&nfsPVCObj.ObjectMeta), "Finalizer for volume-event should be set")
+					assert.False(t, eventAnnotationExists(&nfsPVCObj.ObjectMeta), "Annotation for volume-event should be set")
+				} else {
+					assert.False(t, eventFinalizerExists(&nfsPVCObj.ObjectMeta), "Finalizer for volume-event should be set")
+					assert.False(t, eventAnnotationExists(&nfsPVCObj.ObjectMeta), "Annotation for volume-event should be set")
 				}
 			}
 		}
@@ -633,10 +662,11 @@ func TestDeleteService(t *testing.T) {
 
 func TestGetNFSServerAddress(t *testing.T) {
 	tests := map[string]struct {
-		options           *KernelNFSServerOptions
-		provisioner       *Provisioner
-		isErrExpected     bool
-		expectedServiceIP string
+		options               *KernelNFSServerOptions
+		provisioner           *Provisioner
+		isErrExpected         bool
+		expectedServiceIP     string
+		shouldBoundBackendPvc bool
 	}{
 		"when there are no errors service address should be returned": {
 			// NOTE: Populated only fields required for test
@@ -647,10 +677,12 @@ func TestGetNFSServerAddress(t *testing.T) {
 				backendStorageClass: "test1-sc",
 			},
 			provisioner: &Provisioner{
-				kubeClient:      fake.NewSimpleClientset(),
-				serverNamespace: "nfs-server-ns1",
+				kubeClient:        fake.NewSimpleClientset(),
+				serverNamespace:   "nfs-server-ns1",
+				backendPvcTimeout: 60 * time.Second,
 			},
-			expectedServiceIP: "nfs-test1-pv.nfs-server-ns1.svc.cluster.local",
+			expectedServiceIP:     "nfs-test1-pv.nfs-server-ns1.svc.cluster.local",
+			shouldBoundBackendPvc: true,
 		},
 		"when opted for clusterIP it should service address": {
 			// NOTE: Populated only fields required for test
@@ -661,19 +693,55 @@ func TestGetNFSServerAddress(t *testing.T) {
 				backendStorageClass: "test2-sc",
 			},
 			provisioner: &Provisioner{
-				kubeClient:      fake.NewSimpleClientset(),
-				serverNamespace: "nfs-server-ns2",
-				useClusterIP:    true,
+				kubeClient:        fake.NewSimpleClientset(),
+				serverNamespace:   "nfs-server-ns2",
+				useClusterIP:      true,
+				backendPvcTimeout: 60 * time.Second,
 			},
 			// Since we are using fake clients there won't be ClusterIP on service
 			// so expecting for empty value
-			expectedServiceIP: "",
+			expectedServiceIP:     "",
+			shouldBoundBackendPvc: true,
+		},
+		"when backend PVC failed to bound": {
+			// NOTE: Populated only fields required for test
+			options: &KernelNFSServerOptions{
+				provisionerNS:       "openebs",
+				pvName:              "test3-pv",
+				capacity:            "5G",
+				backendStorageClass: "test3-sc",
+			},
+			provisioner: &Provisioner{
+				kubeClient:      fake.NewSimpleClientset(),
+				serverNamespace: "nfs-server-ns3",
+				useClusterIP:    false,
+			},
+			// Since we are using fake clients there won't be ClusterIP on service
+			// so expecting for empty value
+			expectedServiceIP:     "",
+			isErrExpected:         true,
+			shouldBoundBackendPvc: false,
 		},
 	}
 	os.Setenv(string(NFSServerImageKey), "openebs/nfs-server:ci")
 	for name, test := range tests {
 		name := name
 		test := test
+		informer := informers.NewSharedInformerFactory(test.provisioner.kubeClient, 0)
+		pvcInformer := informer.Core().V1().PersistentVolumeClaims().Informer()
+		pvcInformer.AddEventHandler(
+			cache.ResourceEventHandlerFuncs{
+				AddFunc: func(obj interface{}) {
+					if test.shouldBoundBackendPvc {
+						boundPvc(test.provisioner.kubeClient, obj)
+					}
+				},
+			},
+		)
+		stopCh := make(chan struct{})
+		informer.Start(stopCh)
+		assert.True(t, cache.WaitForCacheSync(stopCh, pvcInformer.HasSynced))
+
 		t.Run(name, func(t *testing.T) {
 			serviceIP, err := test.provisioner.getNFSServerAddress(test.options)
 			if test.isErrExpected && err == nil {
@@ -691,4 +759,39 @@ func TestGetNFSServerAddress(t *testing.T) {
 		})
 	}
 	os.Unsetenv(string(NFSServerImageKey))
+}
+
+func boundPvc(client kubernetes.Interface, obj interface{}) {
+	pvc, ok := obj.(*corev1.PersistentVolumeClaim)
+	if !ok {
+		return
+	}
+
+	pvc.Status.Phase = corev1.ClaimBound
+
+	_, err := client.CoreV1().PersistentVolumeClaims(pvc.Namespace).Update(pvc)
+	if err != nil {
+		fmt.Printf("failed to update PVC object err=%+v\n", err)
+	}
+	return
+}
+
+func eventFinalizerExists(objMeta *metav1.ObjectMeta) bool {
+	eventFinalizer := OpenebsEventFinalizerPrefix + OpenebsEventFinalizer
+
+	for _, f := range objMeta.Finalizers {
+		if f == eventFinalizer {
+			return true
+		}
+	}
+	return false
+}
+
+func eventAnnotationExists(objMeta *metav1.ObjectMeta) bool {
+	for k, v := range objMeta.Annotations {
+		if k == OpenebsEventAnnotation && v == "true" {
+			return true
+		}
+	}
+	return false
 }

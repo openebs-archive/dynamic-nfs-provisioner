@@ -124,6 +124,9 @@ type HookConfig struct {
 
 	// Action represent the type of hook action, i.e HookActionAdd or HookActionRemove
 	Action HookActionType `json:"hookAction"`
+
+  // Version represent HookConfig format version; includes major, minor and patch version
+  Version string `json:"version"`
 }
 
 //Provisioner struct has the configuration and utilities required
@@ -195,6 +198,7 @@ data:
           NFSPV:
           - example.io/tracking-protection
           - test.io/track=true
+      version: 1.0.0
     - hookAction: Remove
       name: hook2
       provisioningEvent: Delete
@@ -216,6 +220,7 @@ data:
           - test.io/track=true
           NFSPV:
           - test.io/track=true
+      version: 1.0.0
 kind: ConfigMap
 metadata:
   name: hook-config
@@ -229,3 +234,4 @@ NFS Provisioner executes two events, volume provisioning, and volume deletion. O
 ## Upgrade
 No specific action is required to upgrade the older version to use hooks.
 
+HookConfig supports version tracking which includes major,minor and patch version. If any changes are added in future, this version number should be updated accordingly.

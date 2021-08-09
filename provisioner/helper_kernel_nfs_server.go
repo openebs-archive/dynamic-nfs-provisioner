@@ -53,9 +53,9 @@ const (
 	//RPCBindPort set the RPC Bind Port
 	RPCBindPort = 111
 
-	// BackendPvcBoundTimeout defines the timeout for PVC Bound check
+	// DefaultBackendPvcBoundTimeout defines the timeout for PVC Bound check.
 	// set to 60 seconds
-	BackendPvcBoundTimeout = 60 * time.Second
+	DefaultBackendPvcBoundTimeout = 60
 )
 
 var (
@@ -423,7 +423,7 @@ func (p *Provisioner) deleteService(nfsServerOpts *KernelNFSServerOptions) error
 	svcName := "nfs-" + nfsServerOpts.pvName
 	klog.V(4).Infof("Verifying if Service(%v) for NFS storage exists.", svcName)
 
-	//Check if the Serivce still exists. It could have been removed
+	//Check if the Service still exists. It could have been removed
 	// or never created due to a provisioning create failure.
 	_, err := p.kubeClient.CoreV1().
 		Services(p.serverNamespace).
@@ -493,7 +493,7 @@ func (p *Provisioner) createNFSServer(nfsServerOpts *KernelNFSServerOptions) err
 		return errors.Wrapf(err, "failed to initialize NFS Storage Deployment for RWX PVC{%v}", nfsServerOpts.pvName)
 	}
 
-	err = waitForPvcBound(p.kubeClient, p.serverNamespace, "nfs-"+nfsServerOpts.pvName, BackendPvcBoundTimeout)
+	err = waitForPvcBound(p.kubeClient, p.serverNamespace, "nfs-"+nfsServerOpts.pvName, p.backendPvcTimeout)
 	if err != nil {
 		return err
 	}

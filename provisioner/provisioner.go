@@ -33,7 +33,9 @@ package provisioner
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/openebs/maya/pkg/alertlog"
 
@@ -67,6 +69,14 @@ func NewProvisioner(stopCh chan struct{}, kubeClient *clientset.Clientset) (*Pro
 	if len(strings.TrimSpace(namespace)) == 0 {
 		return nil, fmt.Errorf("Cannot start Provisioner: failed to get namespace")
 	}
+
+	backendPvcTimeoutStr := getBackendPvcTimeout()
+	backendPvcTimeoutVal, err := strconv.Atoi(backendPvcTimeoutStr)
+	if err != nil || backendPvcTimeoutVal == 0 {
+		klog.Warningf("Invalid backendPvcTimeout value=%d, using default value %d", backendPvcTimeoutVal, DefaultBackendPvcBoundTimeout)
+		backendPvcTimeoutVal = DefaultBackendPvcBoundTimeout
+	}
+
 	kubeInformerFactory := kubeinformers.NewSharedInformerFactory(kubeClient, 0)
 	k8sNodeInformer := kubeInformerFactory.Core().V1().Nodes().Informer()
 
@@ -86,10 +96,11 @@ func NewProvisioner(stopCh chan struct{}, kubeClient *clientset.Clientset) (*Pro
 				Value: getDefaultNFSServerType(),
 			},
 		},
-		useClusterIP:  menv.Truthy(ProvisionerNFSServerUseClusterIP),
-		k8sNodeLister: listersv1.NewNodeLister(k8sNodeInformer.GetIndexer()),
-		nodeAffinity:  getNodeAffinityRules(),
-		pvTracker:     pvTracker,
+		useClusterIP:      menv.Truthy(ProvisionerNFSServerUseClusterIP),
+		k8sNodeLister:     listersv1.NewNodeLister(k8sNodeInformer.GetIndexer()),
+		nodeAffinity:      getNodeAffinityRules(),
+		pvTracker:         pvTracker,
+		backendPvcTimeout: time.Duration(backendPvcTimeoutVal) * time.Second,
 	}
 	p.getVolumeConfig = p.GetVolumeConfig
 

@@ -19,6 +19,7 @@ package tests
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/ghodss/yaml"
 	. "github.com/onsi/ginkgo"
@@ -42,11 +43,10 @@ var _ = Describe("TEST NFS PROVISIONER WITH INVALID BACKEND SC", func() {
 		pvcName     = "pvc-invalid-backend-sc"
 
 		// nfs provisioner values
-		openebsNamespace = "openebs"
-		nfsServerLabel   = "openebs.io/nfs-server"
 		scName           = "nfs-server-invalid-sc"
 		backendScName    = "nfs-invalid-backend-sc"
 		scNfsServerType  = "kernel"
+		openebsNamespace = "openebs"
 	)
 
 	When("create storageclass with nfs configuration", func() {
@@ -89,48 +89,43 @@ var _ = Describe("TEST NFS PROVISIONER WITH INVALID BACKEND SC", func() {
 				WithStorageClass(scName).
 				WithAccessModes(accessModes).
 				WithCapacity(capacity).Build()
-			Expect(err).To(BeNil(), "while building pvc {%s} in namespace {%s}", pvcName, applicationNamespace)
+			Expect(err).To(BeNil(), "while building pvc object for %s/%s", applicationNamespace, pvcName)
 
 			By("creating above pvc")
 			err = Client.createPVC(pvcObj)
-			Expect(err).To(BeNil(), "while creating pvc {%s} in namespace {%s}", pvcName, applicationNamespace)
-
-			pvcPhase, err := Client.waitForPVCBound(applicationNamespace, pvcName)
-			Expect(err).To(BeNil(), "while waiting for pvc %s/%s bound phase", applicationNamespace, pvcName)
-			Expect(pvcPhase).To(Equal(corev1.ClaimBound), "pvc %s/%s should be in bound phase", applicationNamespace, pvcName)
+			Expect(err).To(BeNil(), "while creating pvc %s/%s", applicationNamespace, pvcName)
 		})
 	})
 
-	When("verifying nfs-server state", func() {
-		It("should have nfs-server in pending state", func() {
-			By("fetching nfs-server deployment name")
+	When("verifying NFS PVC state", func() {
+		It("should have NFS PVC in pending state", func() {
 			pvcObj, err := Client.getPVC(applicationNamespace, pvcName)
-			Expect(err).To(BeNil(), "while fetching pvc {%s} in namespace {%s}", pvcName, applicationNamespace)
+			Expect(err).To(BeNil(), "while fetching pvc %s/%s", applicationNamespace, pvcName)
+			Expect(pvcObj.Status.Phase).To(Equal(corev1.ClaimPending), "while verifying NFS PVC claim phase")
 
-			nfsDeployment := fmt.Sprintf("nfs-%s", pvcObj.Spec.VolumeName)
-			podList, err := Client.listPods(openebsNamespace, fmt.Sprintf("%s=%s", nfsServerLabel, nfsDeployment))
-			Expect(err).To(BeNil(), "while fetching nfs-server pod")
-			Expect(podList.Items[0].Status.Phase).To(Equal(corev1.PodPending), "while verifying nfs-server pod state")
+			var isExpectedEventExist bool
+			maxRetryCount := 15
+			backendPvcName := "nfs-pvc-" + pvcObj.UID
+			for retries := 0; retries < maxRetryCount; retries++ {
+				// Verify for provision failure events on PVC
+				eventList, err := Client.getEvents(pvcObj)
+				Expect(err).To(BeNil(), "while fetching PVC %s/%s", pvcObj.Namespace, pvcObj.Name)
 
-			var unboundPVCCondFound bool
-			for _, v := range podList.Items[0].Status.Conditions {
-				if strings.Contains(v.Message, "pod has unbound immediate PersistentVolumeClaims") {
-					unboundPVCCondFound = true
+				for _, event := range eventList.Items {
+					if event.Reason == "ProvisioningFailed" &&
+						strings.Contains(event.Message,
+							fmt.Sprintf("timed out waiting for PVC{%s/%s} to bound", openebsNamespace, backendPvcName)) {
+						isExpectedEventExist = true
+						break
+					}
 				}
+				if isExpectedEventExist {
+					break
+				}
+				// event will be generated after 60 seconds
+				time.Sleep(time.Second * 10)
 			}
-			Expect(unboundPVCCondFound).Should(BeTrue(), "while checking unbound PVC condition for nfs-server pod")
-		})
-	})
-
-	When("verifying backend PVC state", func() {
-		It("should have backend in pending state", func() {
-			pvcObj, err := Client.getPVC(applicationNamespace, pvcName)
-			Expect(err).To(BeNil(), "while fetching pvc {%s} in namespace {%s}", pvcName, applicationNamespace)
-
-			backendPVCName := "nfs-" + pvcObj.Spec.VolumeName
-			backendPvcObj, err := Client.getPVC(openebsNamespace, backendPVCName)
-			Expect(err).To(BeNil(), "while fetching backend pvc {%s} in namespace {%s}", backendPVCName, openebsNamespace)
-			Expect(backendPvcObj.Status.Phase).To(Equal(corev1.ClaimPending), "while verifying backed PVC claim phase")
+			Expect(isExpectedEventExist).To(BeTrue(), "ProvisioningFailed event should exist with PVC bound timed out")
 		})
 	})
 
@@ -138,8 +133,7 @@ var _ = Describe("TEST NFS PROVISIONER WITH INVALID BACKEND SC", func() {
 		It("should delete the pvc", func() {
 			By("deleting above pvc")
 			err := Client.deletePVC(applicationNamespace, pvcName)
-			Expect(err).To(BeNil(), "while deleting pvc {%s} in namespace {%s}", pvcName, applicationNamespace)
-
+			Expect(err).To(BeNil(), "while deleting pvc %s/%s", applicationNamespace, pvcName)
 		})
 	})
 

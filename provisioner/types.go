@@ -54,6 +54,9 @@ type Provisioner struct {
 
 	// nodeAffinity specifies requirements for scheduling NFS Server
 	nodeAffinity NodeAffinity
+
+	// pvTracker to track in-progress provisioning request
+	pvTracker ProvisioningTracker
 }
 
 //VolumeConfig struct contains the merged configuration of the PVC

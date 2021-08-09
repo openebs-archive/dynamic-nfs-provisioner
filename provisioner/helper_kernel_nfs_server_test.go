@@ -17,27 +17,34 @@ limitations under the License.
 package provisioner
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
 	errors "github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/informers"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/fake"
+	"k8s.io/client-go/tools/cache"
 )
 
 func getInt64Ptr(val int64) *int64 {
 	return &val
 }
 
-func getFakePVCObject(pvcNamespace, pvcName, scName string) *corev1.PersistentVolumeClaim {
+func getFakePVCObject(pvcNamespace, pvcName, scName, uid string) *corev1.PersistentVolumeClaim {
 	return &corev1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      pvcName,
 			Namespace: pvcNamespace,
+			UID:       types.UID(uid),
 		},
 		Spec: corev1.PersistentVolumeClaimSpec{
 			StorageClassName: &scName,
@@ -158,7 +165,7 @@ func TestCreateBackendPVC(t *testing.T) {
 				serverNamespace: "nfs-server-ns2",
 			},
 			expectedPVCName:   "nfs-test2-pv",
-			preProvisionedPVC: getFakePVCObject("nfs-server-ns2", "nfs-test2-pv", "test2-sc"),
+			preProvisionedPVC: getFakePVCObject("nfs-server-ns2", "nfs-test2-pv", "test2-sc", "uid"),
 		},
 		"when PVC is pre-provisioned with same name in provisioner namespace": {
 			options: &KernelNFSServerOptions{
@@ -172,7 +179,7 @@ func TestCreateBackendPVC(t *testing.T) {
 				serverNamespace: "nfs-server-ns3",
 			},
 			expectedPVCName:   "nfs-test3-pv",
-			preProvisionedPVC: getFakePVCObject("openebs", "nfs-test3-pv", "test3-sc"),
+			preProvisionedPVC: getFakePVCObject("openebs", "nfs-test3-pv", "test3-sc", "uid"),
 		},
 	}
 
@@ -230,7 +237,7 @@ func TestDeleteBackendPVC(t *testing.T) {
 				kubeClient:      fake.NewSimpleClientset(),
 				serverNamespace: "nfs-server-ns1",
 			},
-			existingPVC: getFakePVCObject("nfs-server-ns1", "nfs-test1-pv", "test1-sc"),
+			existingPVC: getFakePVCObject("nfs-server-ns1", "nfs-test1-pv", "test1-sc", "uid"),
 		},
 		"when PVC is already deleted": {
 			options: &KernelNFSServerOptions{
@@ -291,9 +298,9 @@ func TestCreateDeployment(t *testing.T) {
 		"when there are no errors deployment should get created": {
 			// NOTE: Populated only fields required for test
 			options: &KernelNFSServerOptions{
-				provisionerNS: "openebs",
-				pvName:        "test1-pv",
-				pvcName:       "nfs-test1-pv",
+				provisionerNS:  "openebs",
+				pvName:         "test1-pv",
+				backendPvcName: "nfs-test1-pv",
 			},
 			provisioner: &Provisioner{
 				kubeClient:      fake.NewSimpleClientset(),
@@ -309,9 +316,9 @@ func TestCreateDeployment(t *testing.T) {
 		},
 		"when deployment is pre-provisioned": {
 			options: &KernelNFSServerOptions{
-				provisionerNS: "openebs",
-				pvName:        "test2-pv",
-				pvcName:       "nfs-test2-pv",
+				provisionerNS:  "openebs",
+				pvName:         "test2-pv",
+				backendPvcName: "nfs-test2-pv",
 			},
 			provisioner: &Provisioner{
 				kubeClient:      fake.NewSimpleClientset(),
@@ -324,10 +331,10 @@ func TestCreateDeployment(t *testing.T) {
 		},
 		"when deployment exist with same name in provisioner namespace": {
 			options: &KernelNFSServerOptions{
-				provisionerNS: "openebs",
-				pvName:        "test3-pv",
-				pvcName:       "nfs-test3-pv",
-				fsGroup:       getInt64Ptr(123),
+				provisionerNS:  "openebs",
+				pvName:         "test3-pv",
+				backendPvcName: "nfs-test3-pv",
+				fsGroup:        getInt64Ptr(123),
 			},
 			provisioner: &Provisioner{
 				kubeClient:      fake.NewSimpleClientset(),
@@ -346,7 +353,7 @@ func TestCreateDeployment(t *testing.T) {
 			options: &KernelNFSServerOptions{
 				provisionerNS:         "openebs",
 				pvName:                "test4-pv",
-				pvcName:               "nfs-test4-pv",
+				backendPvcName:        "nfs-test4-pv",
 				fsGroup:               getInt64Ptr(123),
 				leaseTime:             100,
 				graceTime:             100,
@@ -421,9 +428,9 @@ func TestDeleteDeployment(t *testing.T) {
 		"when there are no errors deployment should get deleted": {
 			// NOTE: Populated only fields required for test
 			options: &KernelNFSServerOptions{
-				provisionerNS: "openebs",
-				pvName:        "test1-pv",
-				pvcName:       "nfs-test1-pv",
+				provisionerNS:  "openebs",
+				pvName:         "test1-pv",
+				backendPvcName: "nfs-test1-pv",
 			},
 			provisioner: &Provisioner{
 				kubeClient:      fake.NewSimpleClientset(),
@@ -433,9 +440,9 @@ func TestDeleteDeployment(t *testing.T) {
 		},
 		"when deployment is already deleted": {
 			options: &KernelNFSServerOptions{
-				provisionerNS: "openebs",
-				pvName:        "test2-pv",
-				pvcName:       "nfs-test2-pv",
+				provisionerNS:  "openebs",
+				pvName:         "test2-pv",
+				backendPvcName: "nfs-test2-pv",
 			},
 			provisioner: &Provisioner{
 				kubeClient:      fake.NewSimpleClientset(),
@@ -573,9 +580,9 @@ func TestDeleteService(t *testing.T) {
 		"when there are no errors service should get deleted": {
 			// NOTE: Populated only fields required for test
 			options: &KernelNFSServerOptions{
-				provisionerNS: "openebs",
-				pvName:        "test1-pv",
-				pvcName:       "nfs-test1-pv",
+				provisionerNS:  "openebs",
+				pvName:         "test1-pv",
+				backendPvcName: "nfs-test1-pv",
 			},
 			provisioner: &Provisioner{
 				kubeClient:      fake.NewSimpleClientset(),
@@ -585,9 +592,9 @@ func TestDeleteService(t *testing.T) {
 		},
 		"when service is already deleted": {
 			options: &KernelNFSServerOptions{
-				provisionerNS: "openebs",
-				pvName:        "test2-pv",
-				pvcName:       "nfs-test2-pv",
+				provisionerNS:  "openebs",
+				pvName:         "test2-pv",
+				backendPvcName: "nfs-test2-pv",
 			},
 			provisioner: &Provisioner{
 				kubeClient:      fake.NewSimpleClientset(),
@@ -633,10 +640,11 @@ func TestDeleteService(t *testing.T) {
 
 func TestGetNFSServerAddress(t *testing.T) {
 	tests := map[string]struct {
-		options           *KernelNFSServerOptions
-		provisioner       *Provisioner
-		isErrExpected     bool
-		expectedServiceIP string
+		options               *KernelNFSServerOptions
+		provisioner           *Provisioner
+		isErrExpected         bool
+		expectedServiceIP     string
+		shouldBoundBackendPvc bool
 	}{
 		"when there are no errors service address should be returned": {
 			// NOTE: Populated only fields required for test
@@ -650,7 +658,8 @@ func TestGetNFSServerAddress(t *testing.T) {
 				kubeClient:      fake.NewSimpleClientset(),
 				serverNamespace: "nfs-server-ns1",
 			},
-			expectedServiceIP: "nfs-test1-pv.nfs-server-ns1.svc.cluster.local",
+			expectedServiceIP:     "nfs-test1-pv.nfs-server-ns1.svc.cluster.local",
+			shouldBoundBackendPvc: true,
 		},
 		"when opted for clusterIP it should service address": {
 			// NOTE: Populated only fields required for test
@@ -667,13 +676,48 @@ func TestGetNFSServerAddress(t *testing.T) {
 			},
 			// Since we are using fake clients there won't be ClusterIP on service
 			// so expecting for empty value
-			expectedServiceIP: "",
+			expectedServiceIP:     "",
+			shouldBoundBackendPvc: true,
+		},
+		"when backend PVC failed to bound": {
+			// NOTE: Populated only fields required for test
+			options: &KernelNFSServerOptions{
+				provisionerNS:       "openebs",
+				pvName:              "test3-pv",
+				capacity:            "5G",
+				backendStorageClass: "test3-sc",
+			},
+			provisioner: &Provisioner{
+				kubeClient:      fake.NewSimpleClientset(),
+				serverNamespace: "nfs-server-ns3",
+				useClusterIP:    false,
+			},
+			// Since we are using fake clients there won't be ClusterIP on service
+			// so expecting for empty value
+			expectedServiceIP:     "",
+			isErrExpected:         true,
+			shouldBoundBackendPvc: false,
 		},
 	}
 	os.Setenv(string(NFSServerImageKey), "openebs/nfs-server:ci")
 	for name, test := range tests {
 		name := name
 		test := test
+		informer := informers.NewSharedInformerFactory(test.provisioner.kubeClient, 0)
+		pvcInformer := informer.Core().V1().PersistentVolumeClaims().Informer()
+		pvcInformer.AddEventHandler(
+			cache.ResourceEventHandlerFuncs{
+				AddFunc: func(obj interface{}) {
+					if test.shouldBoundBackendPvc {
+						boundPvc(test.provisioner.kubeClient, obj)
+					}
+				},
+			},
+		)
+		stopCh := make(chan struct{})
+		informer.Start(stopCh)
+		assert.True(t, cache.WaitForCacheSync(stopCh, pvcInformer.HasSynced))
+
 		t.Run(name, func(t *testing.T) {
 			serviceIP, err := test.provisioner.getNFSServerAddress(test.options)
 			if test.isErrExpected && err == nil {
@@ -689,6 +733,24 @@ func TestGetNFSServerAddress(t *testing.T) {
 				}
 			}
 		})
+
+		// to stop pvc informer
+		close(stopCh)
 	}
 	os.Unsetenv(string(NFSServerImageKey))
+}
+
+func boundPvc(client kubernetes.Interface, obj interface{}) {
+	pvc, ok := obj.(*corev1.PersistentVolumeClaim)
+	if !ok {
+		return
+	}
+
+	pvc.Status.Phase = corev1.ClaimBound
+
+	_, err := client.CoreV1().PersistentVolumeClaims(pvc.Namespace).Update(pvc)
+	if err != nil {
+		fmt.Printf("failed to update PVC object err=%+v\n", err)
+	}
+	return
 }

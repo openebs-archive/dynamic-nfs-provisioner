@@ -18,12 +18,12 @@ Before installing nfs-provisioner make sure your Kubernetes cluster meets the fo
 ### Install NFS Provisioner through kubectl
 To install NFS Provisioner through kubectl, run below command:
 ```
-kubectl apply -f deploy/kubectl/openebs-nfs-provisioner.yaml
+kubectl apply -f https://raw.githubusercontent.com/openebs/charts/gh-pages/nfs-operator.yaml
 ```
 
 Above command will install the NFS Provisioner in *openebs* namespace and creates a Storageclass named *openebs-rwx*, with backend Storageclass *openebs-hostpath*.
 
-Above installation will use images with `ci` tag. To install specific version of nfs-provisioner through kubectl, you need to update the image tag in *deploy/kubectl/openebs-nfs-provisioner.yaml*
+Above installation will use latest stable release tag. To install a specific release version of nfs-provisioner, you can download YAML file from [here](https://github.com/openebs/charts/tree/gh-pages).
 
 
 ### Install NFS Provisioner through Helm

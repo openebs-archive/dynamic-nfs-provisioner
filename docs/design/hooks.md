@@ -15,6 +15,7 @@
         - [Hook Definition](#hook-definition)
         - [Configmap structure](#configmap-structure)
         - [NFS Provisioner changes](#nfs-provisioner-changes)
+        - [Extending Hook](#extending-hook)
 - [Upgrade](#upgrade)
 
 ## Summary
@@ -69,26 +70,13 @@ User needs to provide Configmap name as a value of `OPENEBS_IO_HOOK_CONFIG` envi
 NFS Provisioner uses `Provisioner` to provision NFS PV. The existing `Provisioner` definition needs to be extended to use the following hooks definition.
 
 ```go
-// ResourceType defines type of resource
-type ResourceType string
-
-const (
-	// Type of resources created by nfs-provisioner
-	ResourceBackendPVC          ResourceType = "BackendPVC"
-	ResourceBackendPV           ResourceType = "BackendPV"
-	ResourceNFSService          ResourceType = "NFSService"
-	ResourceNFSPV               ResourceType = "NFSPV"
-	ResourceNFSServerDeployment ResourceType = "NFSServerDeployment"
-
-	// ResourceAll represent the all above resources
-	ResourceAll ResourceType = "All"
-)
-
 // HookActionType defines type of action for annotation and finalizer
 type HookActionType string
 
 const (
-	HookActionAdd    HookActionType = "Add"
+	// HookActionAdd represent add action
+	HookActionAdd HookActionType = "Add"
+	// HookActionAdd represent remove action
 	HookActionRemove HookActionType = "Remove"
 )
 
@@ -96,18 +84,46 @@ const (
 type ProvisionerEventType string
 
 const (
+	// ProvisionerEventCreate represent create event
 	ProvisionerEventCreate ProvisionerEventType = "Create"
+	// ProvisionerEventDelete represent delete event
 	ProvisionerEventDelete ProvisionerEventType = "Delete"
 )
 
-// HookResource represent the resources on which hook action
-// needs to be executed
-type HookResource struct {
-	// List of Annotations, mapped to the type of resources, needs to be added on the given resource
-	Annotations map[ResourceType][]string `json:"annotations"`
+// PVHook defines the field which will be updated for PV Hook Action
+type PVHook struct {
+	// Annotations needs to be added/removed on/from the PV
+	Annotations map[string]string `json:"annotations,omitempty"`
 
-	// List of Finalizers, mapped to the type of resources, needs to be added on the given resource
-	Finalizers map[ResourceType][]string `json:"finalizers"`
+	// Finalizers needs to be added/removed on/from the PV
+	Finalizers []string `json:"finalizers,omitempty"`
+}
+
+// PVCHook defines the field which will be updated for PVC Hook Action
+type PVCHook struct {
+	// Annotations needs to be added/removed on/from the PVC
+	Annotations map[string]string `json:"annotations,omitempty"`
+
+	// Finalizers needs to be added/removed on/from the PVC
+	Finalizers []string `json:"finalizers,omitempty"`
+}
+
+// ServiceHook defines the field which will be updated for Service Hook Action
+type ServiceHook struct {
+	// Annotations needs to be added/removed on/from the Service
+	Annotations map[string]string `json:"annotations,omitempty"`
+
+	// Finalizers needs to be added/removed on/from the Service
+	Finalizers []string `json:"finalizers,omitempty"`
+}
+
+// DeploymentHook defines the field which will be updated for Deployment Hook Action
+type DeploymentHook struct {
+	// Annotations needs to be added/removed on/from the Deployment
+	Annotations map[string]string `json:"annotations,omitempty"`
+
+	// Finalizers needs to be added/removed on/from the Deployment
+	Finalizers []string `json:"finalizers,omitempty"`
 }
 
 // HookConfig represent the to be executed by nfs-provisioner
@@ -115,8 +131,20 @@ type HookConfig struct {
 	// Name represent hook name
 	Name string `json:"name"`
 
-	// Resource store the resources on which this hook will be executed
-	Resource HookResource `json:"resource"`
+	// NFSPVConfig represent config for NFSPV resource
+	NFSPVConfig *PVHook `json:"nfsPV,omitempty"`
+
+	// BackendPVConfig represent config for BackendPV resource
+	BackendPVConfig *PVHook `json:"backendPV,omitempty"`
+
+	// BackendPVCConfig represent config for BackendPVC resource
+	BackendPVCConfig *PVCHook `json:"backendPVC,omitempty"`
+
+	// NFSServiceConfig represent config for NFS Service resource
+	NFSServiceConfig *ServiceHook `json:"NFSService,omitempty"`
+
+	// NFSDeploymentConfig represent config for NFS Deployment resource
+	NFSDeploymentConfig *DeploymentHook `json:"NFSDeployment,omitempty"`
 
 	// Event defines provisioning event on which
 	// given hook action needs to be executed
@@ -124,9 +152,15 @@ type HookConfig struct {
 
 	// Action represent the type of hook action, i.e HookActionAdd or HookActionRemove
 	Action HookActionType `json:"hookAction"`
+}
 
-  // Version represent HookConfig format version; includes major, minor and patch version
-  Version string `json:"version"`
+// Hook stores HookConfig and its version
+type Hook struct {
+	//Config represent the list of HookConfig
+	Config []HookConfig `json:"hooks"`
+
+	// Version represent HookConfig format version; includes major, minor and patch version
+	Version string `json:"version"`
 }
 
 //Provisioner struct has the configuration and utilities required
@@ -167,69 +201,98 @@ type Provisioner struct {
 ```
 
 #### Configmap structure
-User needs to create Configmap resource with name **hook-config** in nfs-provisioner namespace. Hook configuration needs to be provided in data field **config**.
+User needs to create hook Configmap resource in nfs-provisioner namespace. Hook configuration needs to be provided in data field **config**.
 Configmap needs be defined as below:
 
 ```yaml
 apiVersion: v1
-data:
-  config: |
-    - hookAction: Add
-      name: hook1
-      provisioningEvent: Create
-      resource:
-        annotations:
-          BackendPV:
-          - example.io/track=true
-          - test.io/owner=teamA
-          BackendPVC:
-          - example.io/track=true
-          - test.io/owner=teamA
-          NFSPV:
-          - example.io/track=true
-          - test.io/owner=teamA
-        finalizers:
-          BackendPV:
-          - example.io/tracking-protection
-          - test.io/track=true
-          BackendPVC:
-          - example.io/tracking-protection
-          - test.io/track=true
-          NFSPV:
-          - example.io/tracking-protection
-          - test.io/track=true
-      version: 1.0.0
-    - hookAction: Remove
-      name: hook2
-      provisioningEvent: Delete
-      resource:
-        annotations:
-          BackendPV:
-          - example.io/track=true
-          - test.io/owner=teamA
-          BackendPVC:
-          - example.io/track=true
-          - test.io/owner=teamA
-          NFSPV:
-          - example.io/track=true
-          - test.io/owner=teamA
-        finalizers:
-          BackendPV:
-          - test.io/track=true
-          BackendPVC:
-          - test.io/track=true
-          NFSPV:
-          - test.io/track=true
-      version: 1.0.0
 kind: ConfigMap
 metadata:
   name: hook-config
   namespace: openebs
+data:
+  config: |
+    hooks:
+    - NFSDeployment:
+        annotations:
+          example.io/track: "true"
+          test.io/owner: teamA
+        finalizers:
+        - test.io/tracking-protection
+      NFSService:
+        annotations:
+          example.io/track: "true"
+          test.io/owner: teamA
+        finalizers:
+        - test.io/tracking-protection
+      backendPV:
+        annotations:
+          example.io/track: "true"
+          test.io/owner: teamA
+        finalizers:
+        - test.io/tracking-protection
+      backendPVC:
+        annotations:
+          example.io/track: "true"
+          test.io/owner: teamA
+        finalizers:
+        - test.io/tracking-protection
+      hookAction: Add
+      name: createHook
+      nfsPV:
+        annotations:
+          example.io/track: "true"
+          test.io/owner: teamA
+        finalizers:
+        - test.io/tracking-protection
+      provisioningEvent: Create
+    - NFSDeployment:
+        finalizers:
+        - test.io/tracking-protection
+      NFSService:
+        finalizers:
+        - test.io/tracking-protection
+      backendPV:
+        finalizers:
+        - test.io/tracking-protection
+      backendPVC:
+        finalizers:
+        - test.io/tracking-protection
+      hookAction: Remove
+      name: deleteHook
+      nfsPV:
+        finalizers:
+        - test.io/tracking-protection
+      provisioningEvent: Delete
+    version: 1.0.0
 ```
 
 #### NFS Provisioner changes
-NFS Provisioner needs to lookup Configmap named **hook-config** in nfs-provisioner namespace. If Configmap exists then provisioner needs to initialize **Provisioner** with hook configuration provided in Configmap.
+If NFS Provisioner is configured with environment variable **OPENEBS_IO_HOOK_CONFIG** set then Provisioner needs to lookup the provided Configmap in nfs-provisioner namespace. If Configmap exists then provisioner needs to initialize **Provisioner** with hook configuration provided in Configmap.
 NFS Provisioner executes two events, volume provisioning, and volume deletion. On these two events provisioner needs to execute all the hooks as per the given hook Action.
+
+#### Extending Hook
+As of now, This document covers design to add/remove only Annotation and Finalizer of the NFS resources. If required, Hook for relevant resource can be extended to modify the other field also. Since hook takes configuration in YAML format, new field defination should be added according to kubernetes definitation only.
+
+For example, To update **ImagePullSecrets** field of *NFSDeployment*, we can extend **DeploymentHook** as below:
+```go
+import (
+  corev1 "k8s.io/api/core/v1"
+)
+
+// DeploymentHook defines the field which will be updated for Deployment Hook Action
+type DeploymentHook struct {
+	// Annotations needs to be added/removed on/from the Deployment
+	Annotations map[string]string `json:"annotations,omitempty"`
+
+	// Finalizers needs to be added/removed on/from the Deployment
+	Finalizers []string `json:"finalizers,omitempty"`
+
+  //ImagePullSecrets needs to be added/remove on/from the deployment /* NEW FIELD */
+  ImagePullSecrets []corev1.LocalObjectReference  /* NEW FIELD */
+}
+```
+
 
 ## Upgrade
 No specific action is required to upgrade the older version to use hooks.

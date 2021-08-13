@@ -73,7 +73,7 @@ func NewProvisioner(stopCh chan struct{}, kubeClient *clientset.Clientset) (*Pro
 	backendPvcTimeoutStr := getBackendPvcTimeout()
 	backendPvcTimeoutVal, err := strconv.Atoi(backendPvcTimeoutStr)
 	if err != nil || backendPvcTimeoutVal == 0 {
-		klog.Warningf("Invalid backendPvcTimeout value=%d, using default value %d", backendPvcTimeoutVal, DefaultBackendPvcBoundTimeout)
+		klog.Warningf("Invalid backendPvcTimeout value=%s, using default value %d", backendPvcTimeoutStr, DefaultBackendPvcBoundTimeout)
 		backendPvcTimeoutVal = DefaultBackendPvcBoundTimeout
 	}
 

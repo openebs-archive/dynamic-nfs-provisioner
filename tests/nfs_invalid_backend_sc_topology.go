@@ -122,6 +122,11 @@ var _ = Describe("TEST PROVISIONING WITH DIFFERENT TOPOLOGY FOR BACKEND SC", fun
 					Name:  "BasePath",
 					Value: "/tmp/openebs",
 				},
+				{
+					// Ref: https://github.com/openebs/dynamic-localpv-provisioner/blob/develop/cmd/provisioner-localpv/app/config.go#L103
+					Name:  "NodeAffinityLabel",
+					Value: backendScNodeAffinityLabel,
+				},
 			}
 
 			casObjStr, err := yaml.Marshal(casObj)

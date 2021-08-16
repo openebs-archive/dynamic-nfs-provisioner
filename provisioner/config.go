@@ -21,6 +21,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/ghodss/yaml"
 	mconfig "github.com/openebs/maya/pkg/apis/openebs.io/v1alpha1"
 	cast "github.com/openebs/maya/pkg/castemplate/v1alpha1"
 	"github.com/openebs/maya/pkg/util"
@@ -58,6 +59,12 @@ const (
 
 	// FSGroupID defines the permissions of nfs share volume
 	FSGroupID = "FSGID"
+
+	// nfsServerResourceRequests holds key name that represent NFS Resource Requests
+	nfsServerResourceRequests = "NFSServerResourceRequests"
+
+	// nfsServerResourceLimits holds key name that represent NFS Resource Limits
+	nfsServerResourceLimits = "NFSServerResourceLimits"
 )
 
 const (
@@ -190,6 +197,35 @@ func (c *VolumeConfig) GetFSGroupID() (*int64, error) {
 		return nil, err
 	}
 	return &fsGIDInt, nil
+}
+
+// GetResourceRequirements fetches the resource(cpu & memory) request &
+// limits for NFS server from StorageClass only if specified
+func (c *VolumeConfig) GetResourceRequirements() (*v1.ResourceRequirements, error) {
+	var err error
+	resourceRequirements := &v1.ResourceRequirements{}
+	resourceRequirements.Requests, err = c.getResourceList(nfsServerResourceRequests)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceRequirements.Limits, err = c.getResourceList(nfsServerResourceLimits)
+	if err != nil {
+		return nil, err
+	}
+	return resourceRequirements, nil
+}
+
+// getResourceList is a utility function to extract resource list
+// and convert from map[string]interface{} to proper Go struct
+func (c *VolumeConfig) getResourceList(key string) (v1.ResourceList, error) {
+	var resourceList v1.ResourceList
+	dataStr := c.getValue(key)
+	err := yaml.Unmarshal([]byte(dataStr), &resourceList)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to marshal data %s", dataStr)
+	}
+	return resourceList, nil
 }
 
 //getValue is a utility function to extract the value

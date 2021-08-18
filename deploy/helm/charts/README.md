@@ -135,6 +135,7 @@ helm install openebs-nfs openebs-nfs/nfs-provisioner --namespace openebs --creat
 | `nfsStorageClass.reclaimPolicy`       | ReclaimPolicy for NFS PVs                      | `"Delete"`                     |
 | `nfsStorageClass.leaseTime`       | Renewal period(in seconds) for NFS client state                      | `90`                     |
 | `nfsStorageClass.graceTime`       | Recovery period(in seconds) to reclaim locks for NFS client                      | `90`                     |
+| `nfsStorageClass.nfsServerResources`       | Resource requests and limits of NFS Server      | `""`                     |
 | `rbac.create`                         | Enable RBAC Resources                          | `true`                         |
 | `rbac.pspEnabled`                     | Create pod security policy resources           | `false`                        |
 

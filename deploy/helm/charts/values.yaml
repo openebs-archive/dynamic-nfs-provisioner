@@ -52,12 +52,16 @@ nfsProvisioner:
   # choice for the user. This also increases chances charts run on environments with little
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  #   ## Normal cases CPU and memory usage are around ~10 millicores and
+  #   ## memory usage is around ~16Mb(after provisioing 70 volumes)
   #   requests:
-  #     cpu: 100m
-  #     memory: 128Mi
+  #     cpu: 50m
+  #     memory: 50M
+  #   ## During provisioning(large no.of pvcs at a time) time CPU and memory usage
+  #   ## are around ~67 millicores(6.7% of cpu) and memory usage is around ~34Mb
   #   limits:
-  #     cpu: 100m
-  #     memory: 128Mi
+  #     cpu: 200m
+  #     memory: 200Mi
   # If set to false, containers created by the nfs provisioner will run without extra privileges.
   privileged: true
   nodeSelector: {}

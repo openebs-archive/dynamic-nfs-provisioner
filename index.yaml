@@ -3,6 +3,35 @@ entries:
   nfs-provisioner:
   - apiVersion: v2
     appVersion: 0.5.0
+    created: "2021-08-19T04:34:12.634970113Z"
+    description: Helm chart for OpenEBS Dynamic NFS PV. For instructions to install
+      OpenEBS Dynamic NFS PV using helm chart, refer to https://openebs.github.io/dynamic-nfs-provisioner.
+    digest: cbe25d39b652fa3e1d734b0416edfdb47db65381817b9826fb5c986655451727
+    home: http://www.openebs.io/
+    icon: https://raw.githubusercontent.com/cncf/artwork/master/projects/openebs/icon/color/openebs-icon-color.png
+    keywords:
+    - storage
+    - nfs
+    - dynamic-nfs-pv
+    - kubernetes
+    maintainers:
+    - email: kiran.mova@mayadata.io
+      name: kmova
+    - email: mayank.patel@mayadata.io
+      name: mynktl
+    - email: rahulkrishnanfs@gmail.com
+      name: rahulkrishnanra
+    - email: sai.chaithanya@mayadata.io
+      name: mittachaitu
+    name: nfs-provisioner
+    sources:
+    - https://github.com/openebs/dynamic-nfs-provisioner
+    type: application
+    urls:
+    - https://github.com/openebs/dynamic-nfs-provisioner/releases/download/nfs-provisioner-0.5.2/nfs-provisioner-0.5.2.tgz
+    version: 0.5.2
+  - apiVersion: v2
+    appVersion: 0.5.0
     created: "2021-08-13T06:42:51.052679938Z"
     description: Helm chart for OpenEBS Dynamic NFS PV. For instructions to install
       OpenEBS Dynamic NFS PV using helm chart, refer to https://openebs.github.io/dynamic-nfs-provisioner.
@@ -204,4 +233,4 @@ entries:
     urls:
     - https://github.com/openebs/dynamic-nfs-provisioner/releases/download/nfs-provisioner-0.3.1/nfs-provisioner-0.3.1.tgz
     version: 0.3.1
-generated: "2021-08-13T06:42:51.052965555Z"
+generated: "2021-08-19T04:34:12.635021113Z"

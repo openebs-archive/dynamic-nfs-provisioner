@@ -484,3 +484,25 @@ func (k *KubeClient) waitForDeploymentRollout(ns, deployment string) error {
 func (k *KubeClient) listEvents(namespace string) (*corev1.EventList, error) {
 	return k.CoreV1().Events(namespace).List(metav1.ListOptions{})
 }
+
+// createConfigMap will create k8s resource for given configMap object
+func (k *KubeClient) createConfigMap(cmap *corev1.ConfigMap) error {
+	_, err := k.CoreV1().ConfigMaps(cmap.Namespace).Create(cmap)
+	if err != nil {
+		if !k8serrors.IsAlreadyExists(err) {
+			return err
+		}
+	}
+	return nil
+}
+
+func (k *KubeClient) deleteConfigMap(namespace, configMapName string) error {
+	err := k.CoreV1().ConfigMaps(namespace).Delete(configMapName, &metav1.DeleteOptions{})
+	if err != nil {
+		if k8serrors.IsNotFound(err) {
+			err = nil
+		}
+	}
+
+	return err
+}

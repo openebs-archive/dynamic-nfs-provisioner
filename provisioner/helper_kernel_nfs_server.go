@@ -23,6 +23,7 @@ import (
 	errors "github.com/pkg/errors"
 	"k8s.io/klog"
 
+	nfshook "github.com/openebs/dynamic-nfs-provisioner/pkg/hook"
 	deployment "github.com/openebs/dynamic-nfs-provisioner/pkg/kubernetes/api/apps/v1/deployment"
 	container "github.com/openebs/dynamic-nfs-provisioner/pkg/kubernetes/api/core/v1/container"
 	persistentvolumeclaim "github.com/openebs/dynamic-nfs-provisioner/pkg/kubernetes/api/core/v1/persistentvolumeclaim"
@@ -53,9 +54,9 @@ const (
 	//RPCBindPort set the RPC Bind Port
 	RPCBindPort = 111
 
-	// BackendPvcBoundTimeout defines the timeout for PVC Bound check
+	// DefaultBackendPvcBoundTimeout defines the timeout for PVC Bound check.
 	// set to 60 seconds
-	BackendPvcBoundTimeout = 60 * time.Second
+	DefaultBackendPvcBoundTimeout = 60
 )
 
 var (
@@ -144,6 +145,13 @@ func (p *Provisioner) createBackendPVC(nfsServerOpts *KernelNFSServerOptions) er
 		return errors.Wrapf(err, "unable to build PVC {%s/%s}", pvcObj.Namespace, pvcObj.Name)
 	}
 
+	if p.hook != nil && p.hook.ActionExists(nfshook.ResourceBackendPVC, nfshook.ProvisionerEventCreate) {
+		err = p.hook.Action(pvcObj, nfshook.ResourceBackendPVC, nfshook.ProvisionerEventCreate)
+		if err != nil {
+			return errors.Wrapf(err, "failed to execute hook on Backend PVC")
+		}
+	}
+
 	_, err = p.kubeClient.CoreV1().
 		PersistentVolumeClaims(p.serverNamespace).
 		Create(pvcObj)
@@ -179,6 +187,19 @@ func (p *Provisioner) deleteBackendPVC(nfsServerOpts *KernelNFSServerOptions) er
 
 	//TODO
 	// remove finalizer
+	if p.hook != nil && p.hook.ActionExists(nfshook.ResourceBackendPV, nfshook.ProvisionerEventDelete) {
+		err = p.hook.ExecuteHookOnBackendPV(p.kubeClient, p.serverNamespace, "nfs-"+nfsServerOpts.pvName, nfshook.ProvisionerEventDelete)
+		if err != nil {
+			return errors.Wrapf(err, "failed to execute hook on backend PV")
+		}
+	}
+
+	if p.hook != nil && p.hook.ActionExists(nfshook.ResourceBackendPVC, nfshook.ProvisionerEventDelete) {
+		err = p.hook.ExecuteHookOnBackendPVC(p.kubeClient, p.serverNamespace, "nfs-"+nfsServerOpts.pvName, nfshook.ProvisionerEventDelete)
+		if err != nil {
+			return errors.Wrapf(err, "failed to execute hook on backend PVC")
+		}
+	}
 
 	// Delete PVC
 	err = p.kubeClient.CoreV1().
@@ -297,6 +318,13 @@ func (p *Provisioner) createDeployment(nfsServerOpts *KernelNFSServerOptions) er
 		return errors.Wrapf(err, "unable to build Deployment")
 	}
 
+	if p.hook != nil && p.hook.ActionExists(nfshook.ResourceNFSServerDeployment, nfshook.ProvisionerEventCreate) {
+		err = p.hook.Action(deployObj, nfshook.ResourceNFSServerDeployment, nfshook.ProvisionerEventCreate)
+		if err != nil {
+			return errors.Wrapf(err, "failed to execute hook on nfs-server deployment object")
+		}
+	}
+
 	_, err = p.kubeClient.AppsV1().
 		Deployments(p.serverNamespace).
 		Create(deployObj)
@@ -329,6 +357,13 @@ func (p *Provisioner) deleteDeployment(nfsServerOpts *KernelNFSServerOptions) er
 		klog.Infof("Volume %v has been initialized with Deployment:%v. Initiating delete...", nfsServerOpts.pvName, deployName)
 	} else if err != nil && k8serrors.IsNotFound(err) {
 		return nil
+	}
+
+	if p.hook != nil && p.hook.ActionExists(nfshook.ResourceNFSServerDeployment, nfshook.ProvisionerEventDelete) {
+		err = p.hook.ExecuteHookOnNFSDeployment(p.kubeClient, p.serverNamespace, deployName, nfshook.ProvisionerEventDelete)
+		if err != nil {
+			return errors.Wrapf(err, "failed to execute hook on nfs-server Deployment")
+		}
 	}
 
 	//TODO
@@ -399,6 +434,13 @@ func (p *Provisioner) createService(nfsServerOpts *KernelNFSServerOptions) error
 		return errors.Wrapf(err, "unable to build Service")
 	}
 
+	if p.hook != nil && p.hook.ActionExists(nfshook.ResourceNFSService, nfshook.ProvisionerEventCreate) {
+		err = p.hook.Action(svcObj, nfshook.ResourceNFSService, nfshook.ProvisionerEventCreate)
+		if err != nil {
+			return errors.Wrapf(err, "failed to execute hook on NFS Service object")
+		}
+	}
+
 	_, err = p.kubeClient.CoreV1().
 		Services(p.serverNamespace).
 		Create(svcObj)
@@ -423,7 +465,7 @@ func (p *Provisioner) deleteService(nfsServerOpts *KernelNFSServerOptions) error
 	svcName := "nfs-" + nfsServerOpts.pvName
 	klog.V(4).Infof("Verifying if Service(%v) for NFS storage exists.", svcName)
 
-	//Check if the Serivce still exists. It could have been removed
+	//Check if the Service still exists. It could have been removed
 	// or never created due to a provisioning create failure.
 	_, err := p.kubeClient.CoreV1().
 		Services(p.serverNamespace).
@@ -435,6 +477,12 @@ func (p *Provisioner) deleteService(nfsServerOpts *KernelNFSServerOptions) error
 		return nil
 	}
 
+	if p.hook != nil && p.hook.ActionExists(nfshook.ResourceNFSService, nfshook.ProvisionerEventDelete) {
+		err = p.hook.ExecuteHookOnNFSService(p.kubeClient, p.serverNamespace, svcName, nfshook.ProvisionerEventDelete)
+		if err != nil {
+			return errors.Wrapf(err, "failed to execute hook on NFS Service")
+		}
+	}
 	//TODO
 	// remove finalizer
 
@@ -493,9 +541,16 @@ func (p *Provisioner) createNFSServer(nfsServerOpts *KernelNFSServerOptions) err
 		return errors.Wrapf(err, "failed to initialize NFS Storage Deployment for RWX PVC{%v}", nfsServerOpts.pvName)
 	}
 
-	err = waitForPvcBound(p.kubeClient, p.serverNamespace, "nfs-"+nfsServerOpts.pvName, BackendPvcBoundTimeout)
+	err = waitForPvcBound(p.kubeClient, p.serverNamespace, "nfs-"+nfsServerOpts.pvName, p.backendPvcTimeout)
 	if err != nil {
 		return err
+	}
+
+	if p.hook != nil && p.hook.ActionExists(nfshook.ResourceBackendPV, nfshook.ProvisionerEventCreate) {
+		err = p.hook.ExecuteHookOnBackendPV(p.kubeClient, p.serverNamespace, "nfs-"+nfsServerOpts.pvName, nfshook.ProvisionerEventCreate)
+		if err != nil {
+			return errors.Wrapf(err, "failed to execute hook on backend PV")
+		}
 	}
 
 	err = p.createService(nfsServerOpts)

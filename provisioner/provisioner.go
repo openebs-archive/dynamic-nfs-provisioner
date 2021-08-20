@@ -33,7 +33,9 @@ package provisioner
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/openebs/maya/pkg/alertlog"
 
@@ -48,29 +50,50 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	kubeinformers "k8s.io/client-go/informers"
+	"k8s.io/client-go/kubernetes"
 	listersv1 "k8s.io/client-go/listers/core/v1"
 	v1helper "k8s.io/kubernetes/pkg/apis/core/v1/helper"
 
-	//metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	nfshook "github.com/openebs/dynamic-nfs-provisioner/pkg/hook"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
 )
 
 var (
 	NodeAffinityRulesMismatchEvent = "No matching nodes found for given affinity rules"
+
+	// HookConfigMapDataField defines configmap data key for hook config
+	HookConfigMapDataField = "config"
 )
 
 // NewProvisioner will create a new Provisioner object and initialize
 //  it with global information used across PV create and delete operations.
 func NewProvisioner(stopCh chan struct{}, kubeClient *clientset.Clientset) (*Provisioner, error) {
-
 	namespace := getOpenEBSNamespace()
 	if len(strings.TrimSpace(namespace)) == 0 {
 		return nil, fmt.Errorf("Cannot start Provisioner: failed to get namespace")
 	}
+
+	backendPvcTimeoutStr := getBackendPvcTimeout()
+	backendPvcTimeoutVal, err := strconv.Atoi(backendPvcTimeoutStr)
+	if err != nil || backendPvcTimeoutVal == 0 {
+		klog.Warningf("Invalid backendPvcTimeout value=%s, using default value %d", backendPvcTimeoutStr, DefaultBackendPvcBoundTimeout)
+		backendPvcTimeoutVal = DefaultBackendPvcBoundTimeout
+	}
+
 	kubeInformerFactory := kubeinformers.NewSharedInformerFactory(kubeClient, 0)
 	k8sNodeInformer := kubeInformerFactory.Core().V1().Nodes().Informer()
 
 	nfsServerNs := getNfsServerNamespace()
+
+	var hook *nfshook.Hook
+	hookCmap := getHookConfigMapName()
+	if hookCmap != "" {
+		err := initializeHook(kubeClient, namespace, hookCmap, &hook)
+		if err != nil {
+			return nil, errors.Errorf("failed to initialize hooks, err={%s}", err)
+		}
+	}
 
 	pvTracker := NewProvisioningTracker()
 
@@ -86,10 +109,12 @@ func NewProvisioner(stopCh chan struct{}, kubeClient *clientset.Clientset) (*Pro
 				Value: getDefaultNFSServerType(),
 			},
 		},
-		useClusterIP:  menv.Truthy(ProvisionerNFSServerUseClusterIP),
-		k8sNodeLister: listersv1.NewNodeLister(k8sNodeInformer.GetIndexer()),
-		nodeAffinity:  getNodeAffinityRules(),
-		pvTracker:     pvTracker,
+		useClusterIP:      menv.Truthy(ProvisionerNFSServerUseClusterIP),
+		k8sNodeLister:     listersv1.NewNodeLister(k8sNodeInformer.GetIndexer()),
+		nodeAffinity:      getNodeAffinityRules(),
+		pvTracker:         pvTracker,
+		hook:              hook,
+		backendPvcTimeout: time.Duration(backendPvcTimeoutVal) * time.Second,
 	}
 	p.getVolumeConfig = p.GetVolumeConfig
 
@@ -202,7 +227,11 @@ func (p *Provisioner) Delete(pv *v1.PersistentVolume) (err error) {
 		sendEventOrIgnore(pvcName, pv.Name, size.String(), pvType, analytics.VolumeDeprovision)
 
 		if nfsServerType == "kernel" {
-			err = p.DeleteKernalNFSServer(pv)
+			if err = p.DeleteKernalNFSServer(pv); err == nil {
+				if p.hook != nil && p.hook.ActionExists(nfshook.ResourceNFSPV, nfshook.ProvisionerEventDelete) {
+					err = p.hook.ExecuteHookOnNFSPV(p.kubeClient, pv.Name, nfshook.ProvisionerEventDelete)
+				}
+			}
 		}
 
 		if err == nil {
@@ -270,4 +299,23 @@ func sendEventOrIgnore(pvcName, pvName, capacity, stgType, method string) {
 		SetReplicaCount("", method).
 		SetCategory(method).
 		SetVolumeCapacity(capacity).Send()
+}
+
+func initializeHook(kubeClient kubernetes.Interface, namespace, hookCmap string, hook **nfshook.Hook) error {
+	cmapObj, err := kubeClient.CoreV1().ConfigMaps(namespace).Get(hookCmap, metav1.GetOptions{})
+	if err != nil {
+		return errors.Wrapf(err, "failed to fetch hook configmap=%s", hookCmap)
+	}
+
+	data, ok := cmapObj.Data[HookConfigMapDataField]
+	if !ok {
+		return errors.Errorf("hook configmap=%s doesn't have data field=%s", hookCmap, HookConfigMapDataField)
+	}
+
+	hookObj, err := nfshook.ParseHooks([]byte(data))
+	if err != nil {
+		return err
+	}
+	*hook = hookObj
+	return nil
 }

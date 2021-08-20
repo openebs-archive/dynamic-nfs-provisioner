@@ -194,9 +194,10 @@ type Provisioner struct {
 	// nodeAffinity specifies requirements for scheduling NFS Server
 	nodeAffinity NodeAffinity
 
-    /* New Field */
-    // hooks which needs to be executed on provisioning events
-    hooks []HookConfig
+  /* New Field */
+  // hooks which needs to be executed on provisioning events
+  // Note: nfshook -> github.com/openebs/dynamic-nfs-provisioner/pkg/hook
+  hook *nfshook.Hook
 }
 ```
 
@@ -272,7 +273,7 @@ If NFS Provisioner is configured with environment variable **OPENEBS_IO_HOOK_CON
 NFS Provisioner executes two events, volume provisioning, and volume deletion. On these two events provisioner needs to execute all the hooks as per the given hook Action.
 
 #### Extending Hook
-As of now, This document covers design to add/remove only Annotation and Finalizer of the NFS resources. If required, Hook for relevant resource can be extended to modify the other field also. Since hook takes configuration in YAML format, new field defination should be added according to kubernetes definitation only.
+As of now, This document covers design to add/remove only Annotation and Finalizer of the NFS resources. If required, Hook for relevant resource can be extended to modify the other field also. Since hook takes configuration in YAML format, new field definition should be added according to kubernetes definition only.
 
 For example, To update **ImagePullSecrets** field of *NFSDeployment*, we can extend **DeploymentHook** as below:
 ```go

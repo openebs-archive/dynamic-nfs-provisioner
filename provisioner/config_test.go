@@ -35,7 +35,7 @@ func TestGetResourceList(t *testing.T) {
 		"When NFS resource requests has only memory field": {
 			volumeConfig: &VolumeConfig{
 				options: map[string]interface{}{
-					nfsServerResourceRequests: map[string]string{
+					NFSServerResourceRequests: map[string]string{
 						"value": func() string {
 							resourceList := make(map[corev1.ResourceName]resource.Quantity)
 							resourceList[corev1.ResourceMemory] = resource.MustParse("500M")
@@ -48,7 +48,7 @@ func TestGetResourceList(t *testing.T) {
 					},
 				},
 			},
-			key: nfsServerResourceRequests,
+			key: NFSServerResourceRequests,
 			expectedResourceList: map[corev1.ResourceName]resource.Quantity{
 				corev1.ResourceMemory: resource.MustParse("500M"),
 			},
@@ -56,7 +56,7 @@ func TestGetResourceList(t *testing.T) {
 		"When NFS resource requests has both memory and cpu": {
 			volumeConfig: &VolumeConfig{
 				options: map[string]interface{}{
-					nfsServerResourceRequests: map[string]string{
+					NFSServerResourceRequests: map[string]string{
 						"value": func() string {
 							resourceList := make(map[corev1.ResourceName]resource.Quantity)
 							resourceList[corev1.ResourceMemory] = resource.MustParse("500M")
@@ -70,7 +70,7 @@ func TestGetResourceList(t *testing.T) {
 					},
 				},
 			},
-			key: nfsServerResourceRequests,
+			key: NFSServerResourceRequests,
 			expectedResourceList: map[corev1.ResourceName]resource.Quantity{
 				corev1.ResourceMemory: resource.MustParse("500M"),
 				corev1.ResourceCPU:    resource.MustParse("500m"),
@@ -137,18 +137,18 @@ func TestGetResourceList(t *testing.T) {
 					},
 				},
 			},
-			key:                  nfsServerResourceRequests,
+			key:                  NFSServerResourceRequests,
 			expectedResourceList: nil,
 		},
 		"When invalid NFS resource requests are specified error should occur": {
 			volumeConfig: &VolumeConfig{
 				options: map[string]interface{}{
-					nfsServerResourceRequests: map[string]string{
+					NFSServerResourceRequests: map[string]string{
 						"value": `memory: 50Ci`,
 					},
 				},
 			},
-			key:           nfsServerResourceRequests,
+			key:           NFSServerResourceRequests,
 			isErrExpected: true,
 		},
 	}

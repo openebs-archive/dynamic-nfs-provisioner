@@ -60,11 +60,11 @@ const (
 	// FSGroupID defines the permissions of nfs share volume
 	FSGroupID = "FSGID"
 
-	// nfsServerResourceRequests holds key name that represent NFS Resource Requests
-	nfsServerResourceRequests = "NFSServerResourceRequests"
+	// NFSServerResourceRequests holds key name that represent NFS Resource Requests
+	NFSServerResourceRequests = "NFSServerResourceRequests"
 
-	// nfsServerResourceLimits holds key name that represent NFS Resource Limits
-	nfsServerResourceLimits = "NFSServerResourceLimits"
+	// NFSServerResourceLimits holds key name that represent NFS Resource Limits
+	NFSServerResourceLimits = "NFSServerResourceLimits"
 )
 
 const (
@@ -199,17 +199,17 @@ func (c *VolumeConfig) GetFSGroupID() (*int64, error) {
 	return &fsGIDInt, nil
 }
 
-// GetResourceRequirements fetches the resource(cpu & memory) request &
+// GetNFSServerResourceRequirements fetches the resource(cpu & memory) request &
 // limits for NFS server from StorageClass only if specified
-func (c *VolumeConfig) GetResourceRequirements() (*v1.ResourceRequirements, error) {
+func (c *VolumeConfig) GetNFSServerResourceRequirements() (*v1.ResourceRequirements, error) {
 	var err error
 	resourceRequirements := &v1.ResourceRequirements{}
-	resourceRequirements.Requests, err = c.getResourceList(nfsServerResourceRequests)
+	resourceRequirements.Requests, err = c.getResourceList(NFSServerResourceRequests)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceRequirements.Limits, err = c.getResourceList(nfsServerResourceLimits)
+	resourceRequirements.Limits, err = c.getResourceList(NFSServerResourceLimits)
 	if err != nil {
 		return nil, err
 	}

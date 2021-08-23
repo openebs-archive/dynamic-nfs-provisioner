@@ -55,7 +55,7 @@ func (p *Provisioner) ProvisionKernalNFSServer(opts pvController.ProvisionOption
 		return nil, err
 	}
 
-	resources, err := volumeConfig.GetResourceRequirements()
+	resources, err := volumeConfig.GetNFSServerResourceRequirements()
 	if err != nil {
 		klog.Errorf("Failed to get NFS server resource requirements(requests & limits) error: %s", err.Error())
 		return nil, err

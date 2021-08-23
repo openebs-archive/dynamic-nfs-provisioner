@@ -61,11 +61,11 @@ type Provisioner struct {
 	// pvTracker to track in-progress provisioning request
 	pvTracker ProvisioningTracker
 
-	// hooks which needs to be executed on provisioning events
-	hook *nfshook.Hook
-
 	// backendPvcTimeout defines timeout for backend PVC Bound check
 	backendPvcTimeout time.Duration
+
+	// hooks which needs to be executed on provisioning events
+	hook *nfshook.Hook
 }
 
 //VolumeConfig struct contains the merged configuration of the PVC

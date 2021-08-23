@@ -146,6 +146,9 @@ spec:
         # leader election is enabled.
         #- name: LEADER_ELECTION_ENABLED
         #  value: "true"
+        # Set Timeout for backend PVC to bound, Default value is 60 seconds
+        #- name: OPENEBS_IO_NFS_SERVER_BACKEND_PVC_TIMEOUT
+        #  value: "60"
         # Process name used for matching is limited to the 15 characters
         # present in the pgrep output.
         # So fullname can't be used here with pgrep (>15 chars).A regular expression
@@ -160,6 +163,21 @@ spec:
             - test `pgrep "^provisioner-nfs.*"` = 1
           initialDelaySeconds: 30
           periodSeconds: 60
+        resources:
+        # We usually recommend not to specify default resources and to leave this as a conscious
+        # choice for the user. This also increases chances charts run on environments with little
+        # resources, such as Minikube. If you do want to specify resources, uncomment the following
+        # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+        # ## Normal cases CPU and memory usage are around ~10 millicores and
+        # ## memory usage is around ~16Mb(after provisioing 70 volumes)
+          requests:
+            cpu: 50m
+            memory: 50M
+          ## During provisioning(large no.of pvcs at a time) time CPU and memory usage
+          ## are around ~67 millicores(6.7% of cpu) and memory usage is around ~34Mb
+          limits:
+            cpu: 200m
+            memory: 200M
 ---
 #Sample storage classes for OpenEBS Local PV
 apiVersion: storage.k8s.io/v1

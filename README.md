@@ -42,7 +42,7 @@ Ensure that the default NFS client is operating. To do this start PowerShell as 
 ## Install
 ### Install NFS Provisioner through kubectl
 ```
-kubectl apply -f deploy/kubectl/openebs-nfs-provisioner.yaml
+kubectl apply -f https://openebs.github.io/charts/nfs-operator.yaml
 ```
 
 Create a StorageClass with required backing storage class. Example:

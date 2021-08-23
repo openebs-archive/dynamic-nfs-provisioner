@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	errors "github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -655,8 +656,9 @@ func TestGetNFSServerAddress(t *testing.T) {
 				backendStorageClass: "test1-sc",
 			},
 			provisioner: &Provisioner{
-				kubeClient:      fake.NewSimpleClientset(),
-				serverNamespace: "nfs-server-ns1",
+				kubeClient:        fake.NewSimpleClientset(),
+				serverNamespace:   "nfs-server-ns1",
+				backendPvcTimeout: 60 * time.Second,
 			},
 			expectedServiceIP:     "nfs-test1-pv.nfs-server-ns1.svc.cluster.local",
 			shouldBoundBackendPvc: true,
@@ -670,9 +672,10 @@ func TestGetNFSServerAddress(t *testing.T) {
 				backendStorageClass: "test2-sc",
 			},
 			provisioner: &Provisioner{
-				kubeClient:      fake.NewSimpleClientset(),
-				serverNamespace: "nfs-server-ns2",
-				useClusterIP:    true,
+				kubeClient:        fake.NewSimpleClientset(),
+				serverNamespace:   "nfs-server-ns2",
+				useClusterIP:      true,
+				backendPvcTimeout: 60 * time.Second,
 			},
 			// Since we are using fake clients there won't be ClusterIP on service
 			// so expecting for empty value
@@ -688,9 +691,30 @@ func TestGetNFSServerAddress(t *testing.T) {
 				backendStorageClass: "test3-sc",
 			},
 			provisioner: &Provisioner{
-				kubeClient:      fake.NewSimpleClientset(),
-				serverNamespace: "nfs-server-ns3",
-				useClusterIP:    false,
+				kubeClient:        fake.NewSimpleClientset(),
+				serverNamespace:   "nfs-server-ns3",
+				useClusterIP:      false,
+				backendPvcTimeout: 60 * time.Second,
+			},
+			// Since we are using fake clients there won't be ClusterIP on service
+			// so expecting for empty value
+			expectedServiceIP:     "",
+			isErrExpected:         true,
+			shouldBoundBackendPvc: false,
+		},
+		"when provisioner configured with very low backendPvcTimeout value": {
+			// NOTE: Populated only fields required for test
+			options: &KernelNFSServerOptions{
+				provisionerNS:       "openebs",
+				pvName:              "test3-pv",
+				capacity:            "5G",
+				backendStorageClass: "test3-sc",
+			},
+			provisioner: &Provisioner{
+				kubeClient:        fake.NewSimpleClientset(),
+				serverNamespace:   "nfs-server-ns3",
+				useClusterIP:      false,
+				backendPvcTimeout: 1 * time.Second,
 			},
 			// Since we are using fake clients there won't be ClusterIP on service
 			// so expecting for empty value

@@ -117,18 +117,19 @@ helm install openebs-nfs openebs-nfs/nfs-provisioner --namespace openebs --creat
 | `nfsProvisioner.healthCheck.periodSeconds` | How often to perform the liveness probe        | `60`                           | 
 | `nfsProvisioner.image.registry`       | Registry for NFS Provisioner image            | `""`                            |
 | `nfsProvisioner.image.repository`     | Image repository for NFS Provisioner          | `openebs/provisioner-nfs`       |
-| `nfsProvisioner.image.tag`            | Image tag for NFS Provisioner	                | `0.5.0`                            |
+| `nfsProvisioner.image.tag`            | Image tag for NFS Provisioner	                | `0.6.0`                            |
 | `nfsProvisioner.image.pullPolicy`     | Image pull policy for NFS Provisioner image   | `IfNotPresent`                  |
 | `nfsProvisioner.annotations`          | Annotations for NFS Provisioner metadata      | `""`                            |
 | `nfsProvisioner.nodeSelector`         | Nodeselector for NFS Provisioner pod          | `""`                            |
 | `nfsProvisioner.nfsServerAlpineImage.registry`         | Registry for nfs-server-alpine          | `""`                            |
 | `nfsProvisioner.nfsServerAlpineImage.repository`         | Image repository for nfs-server-alpine          | `openebs/nfs-server-alpine`                            |
-| `nfsProvisioner.nfsServerAlpineImage.tag`         | Image tag for nfs-server-alpine          | `0.5.0`                            |
+| `nfsProvisioner.nfsServerAlpineImage.tag`         | Image tag for nfs-server-alpine          | `0.6.0`                            |
 | `nfsProvisioner.resources`            | Resource request and limit for the container  | `true`                          |
 | `nfsProvisioner.securityContext`      | Security context for container                | `""`                            |
 | `nfsProvisioner.tolerations`          | NFS Provisioner pod toleration values         | `""`                            |
 | `nfsProvisioner.nfsServerNamespace`          | NFS server namespace         | `"openebs"`                            |
 | `nfsProvisioner.nfsServerNodeAffinity`       | NFS Server node affinity rules                | `""`                          |
+| `nfsProvisioner.nfsBackendPvcTimeout`       | Timeout for backend PVC binding in seconds                | `"60"`                          |
 | `nfsStorageClass.backendStorageClass` | StorageClass to be used to provision the backend volume. If not specified, the default StorageClass is used. | `""`                         |
 | `nfsStorageClass.isDefaultClass`      | Make 'openebs-kernel-nfs' the default StorageClass | `"false"`                         |
 | `nfsStorageClass.reclaimPolicy`       | ReclaimPolicy for NFS PVs                      | `"Delete"`                     |

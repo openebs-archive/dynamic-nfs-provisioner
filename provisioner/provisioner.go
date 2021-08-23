@@ -113,8 +113,8 @@ func NewProvisioner(stopCh chan struct{}, kubeClient *clientset.Clientset) (*Pro
 		k8sNodeLister:     listersv1.NewNodeLister(k8sNodeInformer.GetIndexer()),
 		nodeAffinity:      getNodeAffinityRules(),
 		pvTracker:         pvTracker,
-		hook:              hook,
 		backendPvcTimeout: time.Duration(backendPvcTimeoutVal) * time.Second,
+		hook:              hook,
 	}
 	p.getVolumeConfig = p.GetVolumeConfig
 

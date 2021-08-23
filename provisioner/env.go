@@ -55,11 +55,11 @@ const (
 	// NodeAffinityKey holds the env name representing Node affinity rules
 	NodeAffinityKey menv.ENVKey = "OPENEBS_IO_NFS_SERVER_NODE_AFFINITY"
 
-	// NFSHookConfigMapName defines env variable name to hold hook configmap name
-	NFSHookConfigMapName menv.ENVKey = "OPENEBS_IO_NFS_HOOK_CONFIGMAP"
-
 	// NFSBackendPvcTimeout defines env name to store BackendPvcBoundTimeout value
 	NFSBackendPvcTimeout menv.ENVKey = "OPENEBS_IO_NFS_SERVER_BACKEND_PVC_TIMEOUT"
+
+	// NFSHookConfigMapName defines env variable name to hold hook configmap name
+	NFSHookConfigMapName menv.ENVKey = "OPENEBS_IO_NFS_HOOK_CONFIGMAP"
 )
 
 var (
@@ -101,10 +101,10 @@ func getNfsServerNodeAffinity() string {
 	return menv.Get(NodeAffinityKey)
 }
 
-func getHookConfigMapName() string {
-	return menv.Get(NFSHookConfigMapName)
-}
-
 func getBackendPvcTimeout() string {
 	return menv.Get(NFSBackendPvcTimeout)
+}
+
+func getHookConfigMapName() string {
+	return menv.Get(NFSHookConfigMapName)
 }

@@ -56,6 +56,12 @@ func (p *Provisioner) ProvisionKernalNFSServer(opts pvController.ProvisionOption
 		return nil, err
 	}
 
+	resources, err := volumeConfig.GetNFSServerResourceRequirements()
+	if err != nil {
+		klog.Errorf("Failed to get NFS server resource requirements(requests & limits) error: %s", err.Error())
+		return nil, err
+	}
+
 	//Extract the details to create a NFS Server
 	nfsServerOpts := &KernelNFSServerOptions{
 		pvName:                name,
@@ -69,6 +75,7 @@ func (p *Provisioner) ProvisionKernalNFSServer(opts pvController.ProvisionOption
 		pvcName:               pvc.Name,
 		pvcNamespace:          pvc.Namespace,
 		pvcUID:                string(pvc.UID),
+		resources:             resources,
 	}
 
 	nfsService, err := p.getNFSServerAddress(nfsServerOpts)

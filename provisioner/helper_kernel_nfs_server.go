@@ -93,6 +93,12 @@ type KernelNFSServerOptions struct {
 	// fsGID defines the filesystem group ID if set then nfs share
 	// volume permissions will be updated by OR'ing with rw-rw----
 	fsGroup *int64
+
+	// resources defines the request & limits of NFS server
+	// This will be populated from NFS StorageClass. If not
+	// specified resource limits will not be applied on NFS
+	// Server container
+	resources *corev1.ResourceRequirements
 }
 
 // validate checks that the required fields to create NFS Server
@@ -213,6 +219,7 @@ func (p *Provisioner) deleteBackendPVC(nfsServerOpts *KernelNFSServerOptions) er
 
 // createDeployment creates a new NFS Server Deployment for a given NFS PVC
 func (p *Provisioner) createDeployment(nfsServerOpts *KernelNFSServerOptions) error {
+	var resourceRequirements corev1.ResourceRequirements
 	klog.V(4).Infof("Creating Deployment")
 	if err := nfsServerOpts.validate(); err != nil {
 		return err
@@ -238,6 +245,9 @@ func (p *Provisioner) createDeployment(nfsServerOpts *KernelNFSServerOptions) er
 
 	nfsDeployLabelSelector := map[string]string{
 		"openebs.io/nfs-server": deployName,
+	}
+	if nfsServerOpts.resources != nil {
+		resourceRequirements = *nfsServerOpts.resources
 	}
 
 	//TODO
@@ -302,7 +312,8 @@ func (p *Provisioner) createDeployment(nfsServerOpts *KernelNFSServerOptions) er
 									MountPath: "/nfsshare",
 								},
 							},
-						),
+						).
+						WithResources(&resourceRequirements),
 				).
 				WithVolumeBuilders(
 					volume.NewBuilder().

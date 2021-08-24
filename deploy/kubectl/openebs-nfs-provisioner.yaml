@@ -188,6 +188,16 @@ metadata:
         value: "kernel"
       - name: BackendStorageClass
         value: "openebs-hostpath"
+      #  NFSServerResourceRequests defines the resource requests for NFS Server
+      #- name: NFSServerResourceRequests
+      #  value: |-
+      #      memory: 50Mi
+      #      cpu: 50m
+      #  NFSServerResourceLimits defines the resource limits for NFS Server
+      #- name: NFSServerResourceLimits
+      #  value: |-
+      #      memory: 100Mi
+      #      cpu: 100m
       #  LeaseTime defines the renewl period(in seconds) for client state
       #- name: LeaseTime
       #  value: 30

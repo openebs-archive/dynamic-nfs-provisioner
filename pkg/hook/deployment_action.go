@@ -19,6 +19,8 @@ package hook
 import (
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
+
+	"github.com/openebs/dynamic-nfs-provisioner/pkg/helper"
 )
 
 // deployment_hook_action will execute the given hook config on the object for the given action
@@ -45,11 +47,11 @@ func deployment_hook_action(hookCfg *DeploymentHook, action HookActionType, obj 
 // deployment_hook_action_add will add the given hook config to the given object
 func deployment_hook_action_add(obj *appsv1.Deployment, hookCfg DeploymentHook) {
 	if len(hookCfg.Annotations) != 0 {
-		addAnnotations(&obj.ObjectMeta, hookCfg.Annotations)
+		helper.AddAnnotations(&obj.ObjectMeta, hookCfg.Annotations)
 	}
 
 	if len(hookCfg.Finalizers) != 0 {
-		addFinalizers(&obj.ObjectMeta, hookCfg.Finalizers)
+		helper.AddFinalizers(&obj.ObjectMeta, hookCfg.Finalizers)
 	}
 	return
 }
@@ -57,11 +59,11 @@ func deployment_hook_action_add(obj *appsv1.Deployment, hookCfg DeploymentHook) 
 // deployment_hook_action_remove will remove the given hook config to the given object
 func deployment_hook_action_remove(obj *appsv1.Deployment, hookCfg DeploymentHook) {
 	if len(hookCfg.Annotations) != 0 {
-		removeAnnotations(&obj.ObjectMeta, hookCfg.Annotations)
+		helper.RemoveAnnotations(&obj.ObjectMeta, hookCfg.Annotations)
 	}
 
 	if len(hookCfg.Finalizers) != 0 {
-		removeFinalizers(&obj.ObjectMeta, hookCfg.Finalizers)
+		helper.RemoveFinalizers(&obj.ObjectMeta, hookCfg.Finalizers)
 	}
 	return
 }

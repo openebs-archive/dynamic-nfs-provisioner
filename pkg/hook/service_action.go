@@ -17,6 +17,7 @@ limitations under the License.
 package hook
 
 import (
+	"github.com/openebs/dynamic-nfs-provisioner/pkg/helper"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 )
@@ -45,11 +46,11 @@ func service_hook_action(hookCfg *ServiceHook, action HookActionType, obj interf
 // service_hook_action_add will add the given hook config to the given object
 func service_hook_action_add(obj *corev1.Service, hookCfg ServiceHook) {
 	if len(hookCfg.Annotations) != 0 {
-		addAnnotations(&obj.ObjectMeta, hookCfg.Annotations)
+		helper.AddAnnotations(&obj.ObjectMeta, hookCfg.Annotations)
 	}
 
 	if len(hookCfg.Finalizers) != 0 {
-		addFinalizers(&obj.ObjectMeta, hookCfg.Finalizers)
+		helper.AddFinalizers(&obj.ObjectMeta, hookCfg.Finalizers)
 	}
 	return
 }
@@ -57,11 +58,11 @@ func service_hook_action_add(obj *corev1.Service, hookCfg ServiceHook) {
 // service_hook_action_remove will remove the given hook config to the given object
 func service_hook_action_remove(obj *corev1.Service, hookCfg ServiceHook) {
 	if len(hookCfg.Annotations) != 0 {
-		removeAnnotations(&obj.ObjectMeta, hookCfg.Annotations)
+		helper.RemoveAnnotations(&obj.ObjectMeta, hookCfg.Annotations)
 	}
 
 	if len(hookCfg.Finalizers) != 0 {
-		removeFinalizers(&obj.ObjectMeta, hookCfg.Finalizers)
+		helper.RemoveFinalizers(&obj.ObjectMeta, hookCfg.Finalizers)
 	}
 	return
 }

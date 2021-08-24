@@ -216,14 +216,6 @@ var _ = Describe("TEST NFS HOOK", func() {
 			pvcObj, err := Client.getPVC(applicationNamespace, pvcName)
 			Expect(err).To(BeNil(), "while fetching pvc %s/%s", applicationNamespace, pvcName)
 
-			By("verifying NFSPV")
-			nfsPVObj, err := Client.getPV(pvcObj.Spec.VolumeName)
-			Expect(err).To(BeNil(), "while fetching backend PV")
-			Expect(annotationExist(&nfsPVObj.ObjectMeta, hook.Config[0].NFSPVConfig.Annotations)).
-				To(BeTrue(), "NFS PV=%s should be annotated", pvcObj.Spec.VolumeName)
-			Expect(finalizerExist(&nfsPVObj.ObjectMeta, hook.Config[0].NFSPVConfig.Finalizers)).
-				To(BeTrue(), "NFS PV=%s should be updated with finalizers", pvcObj.Spec.VolumeName)
-
 			By("verifying backend PVC")
 			backendPVCObj, err := Client.getPVC(openebsNamespace, "nfs-"+pvcObj.Spec.VolumeName)
 			Expect(err).To(BeNil(), "while fetching backend pvc")
@@ -260,6 +252,14 @@ var _ = Describe("TEST NFS HOOK", func() {
 				BeTrue(),
 				"NFS Deployment=%s/%s should be updated with finalizers", openebsNamespace, deployObj.Name,
 			)
+
+			By("verifying NFSPV")
+			nfsPVObj, err := Client.getPV(pvcObj.Spec.VolumeName)
+			Expect(err).To(BeNil(), "while fetching backend PV")
+			Expect(annotationExist(&nfsPVObj.ObjectMeta, hook.Config[0].NFSPVConfig.Annotations)).
+				To(BeTrue(), "NFS PV=%s should be annotated", pvcObj.Spec.VolumeName)
+			Expect(finalizerExist(&nfsPVObj.ObjectMeta, hook.Config[0].NFSPVConfig.Finalizers)).
+				To(BeTrue(), "NFS PV=%s should be updated with finalizers", pvcObj.Spec.VolumeName)
 		})
 	})
 
@@ -391,18 +391,21 @@ func annotationExist(objMeta *metav1.ObjectMeta, annotations map[string]string) 
 }
 
 func finalizerExist(objMeta *metav1.ObjectMeta, finalizers []string) bool {
-	for _, finalizer := range finalizers {
-		finExist := false
-		for _, existingFinalizer := range objMeta.Finalizers {
-			if existingFinalizer == finalizer {
-				finExist = true
-			}
-		}
-
-		if finExist == false {
-			return false
-		}
+	if len(finalizers) > len(objMeta.Finalizers) {
+		return false
 	}
 
+	desiredFinalizersMap := make(map[string]struct{})
+	for _, f := range finalizers {
+		desiredFinalizersMap[f] = struct{}{}
+	}
+
+	for _, f := range objMeta.Finalizers {
+		delete(desiredFinalizersMap, f)
+	}
+
+	if len(desiredFinalizersMap) != 0 {
+		return false
+	}
 	return true
 }

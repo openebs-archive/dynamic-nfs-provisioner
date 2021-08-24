@@ -14,15 +14,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package hook
+package helper
 
 import (
+	"encoding/json"
+
+	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/strategicpatch"
 )
 
-// addFinalizers add the given finalizers to the given meta object
+// AddFinalizers add the given finalizers to the given meta object
 // Finalizer will be added only if it doesn't exist in object
-func addFinalizers(objMeta *metav1.ObjectMeta, finalizers []string) {
+func AddFinalizers(objMeta *metav1.ObjectMeta, finalizers []string) {
 	for _, f := range finalizers {
 		var finalizerExists bool
 		for _, existingF := range objMeta.Finalizers {
@@ -38,9 +42,9 @@ func addFinalizers(objMeta *metav1.ObjectMeta, finalizers []string) {
 	}
 }
 
-// addAnnotations add given annotations to given meta object
-// Annotation will be added only if it doesn't exist in object
-func addAnnotations(objMeta *metav1.ObjectMeta, annotations map[string]string) {
+// AddAnnotations add given annotations to given meta object
+// Object annotations will be overridden if any of the given annotations exists with the same key
+func AddAnnotations(objMeta *metav1.ObjectMeta, annotations map[string]string) {
 	if objMeta.Annotations == nil {
 		objMeta.Annotations = make(map[string]string)
 	}
@@ -51,8 +55,8 @@ func addAnnotations(objMeta *metav1.ObjectMeta, annotations map[string]string) {
 	return
 }
 
-// removeFinalizers remove the given finalizers from the given meta object
-func removeFinalizers(objMeta *metav1.ObjectMeta, finalizers []string) {
+// RemoveFinalizers remove the given finalizers from the given meta object
+func RemoveFinalizers(objMeta *metav1.ObjectMeta, finalizers []string) {
 	for _, f := range finalizers {
 		for i := 0; i < len(objMeta.Finalizers); i++ {
 			if objMeta.Finalizers[i] == f {
@@ -63,10 +67,30 @@ func removeFinalizers(objMeta *metav1.ObjectMeta, finalizers []string) {
 	}
 }
 
-// removeAnnotations remove the given annotations from given meta object
-func removeAnnotations(objMeta *metav1.ObjectMeta, annotations map[string]string) {
+// RemoveAnnotations remove the given annotations from given meta object
+func RemoveAnnotations(objMeta *metav1.ObjectMeta, annotations map[string]string) {
 	for k := range annotations {
 		delete(objMeta.Annotations, k)
 	}
 	return
+}
+
+// GetPatchData will return the diff data for the given objects
+func GetPatchData(oldObj, newObj interface{}) ([]byte, []byte, error) {
+	oldData, err := json.Marshal(oldObj)
+	if err != nil {
+		return nil, nil, errors.Errorf("marshal old object failed: %v", err)
+	}
+
+	newData, err := json.Marshal(newObj)
+	if err != nil {
+		return nil, nil, errors.Errorf("marshal new object failed: %v", err)
+	}
+
+	patchBytes, err := strategicpatch.CreateTwoWayMergePatch(oldData, newData, oldObj)
+	if err != nil {
+		return nil, nil, errors.Errorf("CreateTwoWayMergePatch failed: %v", err)
+	}
+
+	return patchBytes, oldData, nil
 }

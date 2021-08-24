@@ -19,7 +19,6 @@ package hook
 import (
 	"testing"
 
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -479,64 +478,6 @@ func TestExecuteHookOnBackendPV(t *testing.T) {
 			pvObj, err := clientset.CoreV1().PersistentVolumes().Get(test.obj.Name, metav1.GetOptions{})
 			assert.Nil(t, err, "failed to get PV=%s", test.pvcName)
 			assert.Equal(t, test.expectedObj, pvObj, "PV object should match")
-		})
-	}
-}
-
-func TestGetPatchData(t *testing.T) {
-	tests := []struct {
-		name           string
-		oldObj         interface{}
-		newObj         interface{}
-		expectedString string
-		expectedError  error
-	}{
-		{
-			name:           "when both objects are same, no patch required",
-			oldObj:         generateFakeServiceObj("ns1", "name1", map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-			newObj:         generateFakeServiceObj("ns1", "name1", map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-			expectedString: "{}",
-			expectedError:  nil,
-		},
-		{
-			name:           "when both objects are not same, patch data should be returned",
-			oldObj:         generateFakeServiceObj("ns1", "name1", nil, []string{"test.io/finalizer"}),
-			newObj:         generateFakeServiceObj("ns1", "name1", map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-			expectedString: "{\"metadata\":{\"annotations\":{\"test.io/key\":\"val\"}}}",
-			expectedError:  nil,
-		},
-		{
-			name:           "when object is invalid, error should be returned",
-			oldObj:         "{'ns1', 'name1'}",
-			newObj:         nil,
-			expectedString: "{}",
-			expectedError:  errors.Errorf("CreateTwoWayMergePatch failed: expected a struct, but received a string"),
-		},
-		{
-			name:           "when old object is invalid, error should be returned",
-			oldObj:         chan int(nil),
-			newObj:         nil,
-			expectedString: "{}",
-			expectedError:  errors.Errorf("marshal old object failed: json: unsupported type: chan int"),
-		},
-		{
-			name:           "when new object is invalid, error should be returned",
-			oldObj:         nil,
-			newObj:         chan int(nil),
-			expectedString: "{}",
-			expectedError:  errors.Errorf("marshal new object failed: json: unsupported type: chan int"),
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			patchBytes, _, err := getPatchData(test.oldObj, test.newObj)
-			if test.expectedError != nil {
-				assert.Equal(t, test.expectedError.Error(), err.Error(), "error should match")
-			} else {
-				assert.Nil(t, err, "getPatchData returned error=%v", err)
-				assert.Equal(t, test.expectedString, string(patchBytes), "patchData should match")
-			}
 		})
 	}
 }

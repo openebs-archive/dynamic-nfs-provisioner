@@ -17,11 +17,10 @@ limitations under the License.
 package hook
 
 import (
-	"encoding/json"
+	"github.com/openebs/dynamic-nfs-provisioner/pkg/helper"
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/util/strategicpatch"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -39,7 +38,7 @@ func (h *Hook) ExecuteHookOnNFSPV(client kubernetes.Interface, pvName string, ev
 		return errors.Wrapf(err, "failed to execute hook")
 	}
 
-	data, _, err := getPatchData(pvObjOrig, pvObj)
+	data, _, err := helper.GetPatchData(pvObjOrig, pvObj)
 	if err != nil {
 		return err
 	}
@@ -72,7 +71,7 @@ func (h *Hook) ExecuteHookOnBackendPV(client kubernetes.Interface, ns, backendPv
 		return errors.Wrapf(err, "failed to execute hook")
 	}
 
-	data, _, err := getPatchData(pvObjOrig, pvObj)
+	data, _, err := helper.GetPatchData(pvObjOrig, pvObj)
 	if err != nil {
 		return err
 	}
@@ -101,7 +100,7 @@ func (h *Hook) ExecuteHookOnBackendPVC(client kubernetes.Interface, ns, backendP
 		return errors.Wrapf(err, "failed to execute hook")
 	}
 
-	data, _, err := getPatchData(pvcObjOrig, pvcObj)
+	data, _, err := helper.GetPatchData(pvcObjOrig, pvcObj)
 	if err != nil {
 		return err
 	}
@@ -130,7 +129,7 @@ func (h *Hook) ExecuteHookOnNFSService(client kubernetes.Interface, ns, serviceN
 		return errors.Wrapf(err, "failed to execute hook")
 	}
 
-	data, _, err := getPatchData(svcObjOrig, svcObj)
+	data, _, err := helper.GetPatchData(svcObjOrig, svcObj)
 	if err != nil {
 		return err
 	}
@@ -159,7 +158,7 @@ func (h *Hook) ExecuteHookOnNFSDeployment(client kubernetes.Interface, ns, deplo
 		return errors.Wrapf(err, "failed to execute hook")
 	}
 
-	data, _, err := getPatchData(deployObjOrig, deployObj)
+	data, _, err := helper.GetPatchData(deployObjOrig, deployObj)
 	if err != nil {
 		return err
 	}
@@ -170,24 +169,4 @@ func (h *Hook) ExecuteHookOnNFSDeployment(client kubernetes.Interface, ns, deplo
 	}
 
 	return nil
-}
-
-// getPatchData will return the diff data for the given objects
-func getPatchData(oldObj, newObj interface{}) ([]byte, []byte, error) {
-	oldData, err := json.Marshal(oldObj)
-	if err != nil {
-		return nil, nil, errors.Errorf("marshal old object failed: %v", err)
-	}
-
-	newData, err := json.Marshal(newObj)
-	if err != nil {
-		return nil, nil, errors.Errorf("marshal new object failed: %v", err)
-	}
-
-	patchBytes, err := strategicpatch.CreateTwoWayMergePatch(oldData, newData, oldObj)
-	if err != nil {
-		return nil, nil, errors.Errorf("CreateTwoWayMergePatch failed: %v", err)
-	}
-
-	return patchBytes, oldData, nil
 }

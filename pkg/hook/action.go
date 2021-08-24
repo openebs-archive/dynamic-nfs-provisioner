@@ -58,33 +58,6 @@ func (h *Hook) Action(obj interface{}, resourceType int, eventType ProvisionerEv
 
 // ActionExists will check if action exists for the give resource type and event type
 func (h *Hook) ActionExists(resourceType int, eventType ProvisionerEventType) bool {
-	for _, cfg := range h.Config {
-		if cfg.Event != eventType {
-			continue
-		}
-
-		switch resourceType {
-		case ResourceBackendPVC:
-			if cfg.BackendPVCConfig != nil {
-				return true
-			}
-		case ResourceBackendPV:
-			if cfg.BackendPVConfig != nil {
-				return true
-			}
-		case ResourceNFSService:
-			if cfg.NFSServiceConfig != nil {
-				return true
-			}
-		case ResourceNFSPV:
-			if cfg.NFSPVConfig != nil {
-				return true
-			}
-		case ResourceNFSServerDeployment:
-			if cfg.NFSDeploymentConfig != nil {
-				return true
-			}
-		}
-	}
-	return false
+	_, actionExist := h.availableActions[eventType][resourceType]
+	return actionExist
 }

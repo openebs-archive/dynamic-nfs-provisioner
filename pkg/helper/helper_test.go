@@ -14,12 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package hook
+package helper
 
 import (
 	"testing"
 
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -27,6 +29,17 @@ func generateFakeObjMeta(finalizer []string, annotations map[string]string) *met
 	return &metav1.ObjectMeta{
 		Finalizers:  finalizer,
 		Annotations: annotations,
+	}
+}
+
+func generateFakeServiceObj(namespace, name string, annotations map[string]string, finalizers []string) *corev1.Service {
+	return &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        name,
+			Namespace:   namespace,
+			Finalizers:  finalizers,
+			Annotations: annotations,
+		},
 	}
 }
 
@@ -60,7 +73,7 @@ func TestAddFinalizers(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			assert.NotNil(t, test.obj, "objMeta should not be nil")
-			addFinalizers(test.obj, test.finalizers)
+			AddFinalizers(test.obj, test.finalizers)
 			assert.Equal(t, test.expectedObj, test.obj, "objMeta should match")
 		})
 	}
@@ -90,7 +103,7 @@ func TestAddAnnotations(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			assert.NotNil(t, test.obj, "objMeta should not be nil")
-			addAnnotations(test.obj, test.annotations)
+			AddAnnotations(test.obj, test.annotations)
 			assert.Equal(t, test.expectedObj, test.obj, "objMeta should match")
 		})
 	}
@@ -126,7 +139,7 @@ func TestRemoveFinalizers(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			assert.NotNil(t, test.obj, "objMeta should not be nil")
-			removeFinalizers(test.obj, test.finalizers)
+			RemoveFinalizers(test.obj, test.finalizers)
 			assert.Equal(t, test.expectedObj, test.obj, "objMeta should match")
 		})
 	}
@@ -162,8 +175,66 @@ func TestRemoveAnnotations(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			assert.NotNil(t, test.obj, "objMeta should not be nil")
-			removeAnnotations(test.obj, test.annotations)
+			RemoveAnnotations(test.obj, test.annotations)
 			assert.Equal(t, test.expectedObj, test.obj, "objMeta should match")
+		})
+	}
+}
+
+func TestGetPatchData(t *testing.T) {
+	tests := []struct {
+		name           string
+		oldObj         interface{}
+		newObj         interface{}
+		expectedString string
+		expectedError  error
+	}{
+		{
+			name:           "when both objects are same, no patch required",
+			oldObj:         generateFakeServiceObj("ns1", "name1", map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
+			newObj:         generateFakeServiceObj("ns1", "name1", map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
+			expectedString: "{}",
+			expectedError:  nil,
+		},
+		{
+			name:           "when both objects are not same, patch data should be returned",
+			oldObj:         generateFakeServiceObj("ns1", "name1", nil, []string{"test.io/finalizer"}),
+			newObj:         generateFakeServiceObj("ns1", "name1", map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
+			expectedString: "{\"metadata\":{\"annotations\":{\"test.io/key\":\"val\"}}}",
+			expectedError:  nil,
+		},
+		{
+			name:           "when object is invalid, error should be returned",
+			oldObj:         "{'ns1', 'name1'}",
+			newObj:         nil,
+			expectedString: "{}",
+			expectedError:  errors.Errorf("CreateTwoWayMergePatch failed: expected a struct, but received a string"),
+		},
+		{
+			name:           "when old object is invalid, error should be returned",
+			oldObj:         chan int(nil),
+			newObj:         nil,
+			expectedString: "{}",
+			expectedError:  errors.Errorf("marshal old object failed: json: unsupported type: chan int"),
+		},
+		{
+			name:           "when new object is invalid, error should be returned",
+			oldObj:         nil,
+			newObj:         chan int(nil),
+			expectedString: "{}",
+			expectedError:  errors.Errorf("marshal new object failed: json: unsupported type: chan int"),
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			patchBytes, _, err := GetPatchData(test.oldObj, test.newObj)
+			if test.expectedError != nil {
+				assert.Equal(t, test.expectedError.Error(), err.Error(), "error should match")
+			} else {
+				assert.Nil(t, err, "getPatchData returned error=%v", err)
+				assert.Equal(t, test.expectedString, string(patchBytes), "patchData should match")
+			}
 		})
 	}
 }

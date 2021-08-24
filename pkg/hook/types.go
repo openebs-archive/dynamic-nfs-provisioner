@@ -87,7 +87,7 @@ type HookConfig struct {
 	Name string `json:"name"`
 
 	// NFSPVConfig represent config for NFSPV resource
-	NFSPVConfig *PVHook `json:"NFSPV,omitempty"`
+	NFSPVConfig *PVHook `json:"nfsPV,omitempty"`
 
 	// BackendPVConfig represent config for BackendPV resource
 	BackendPVConfig *PVHook `json:"backendPV,omitempty"`
@@ -96,10 +96,10 @@ type HookConfig struct {
 	BackendPVCConfig *PVCHook `json:"backendPVC,omitempty"`
 
 	// NFSServiceConfig represent config for NFS Service resource
-	NFSServiceConfig *ServiceHook `json:"NFSService,omitempty"`
+	NFSServiceConfig *ServiceHook `json:"nfsService,omitempty"`
 
 	// NFSDeploymentConfig represent config for NFS Deployment resource
-	NFSDeploymentConfig *DeploymentHook `json:"NFSDeployment,omitempty"`
+	NFSDeploymentConfig *DeploymentHook `json:"nfsDeployment,omitempty"`
 
 	// Event defines provisioning event on which
 	// given hook action needs to be executed
@@ -116,4 +116,10 @@ type Hook struct {
 
 	// Version represent HookConfig format version; includes major, minor and patch version
 	Version string `json:"version"`
+
+	// Following field is for internal use of hook
+
+	// availableActions keep inventory of resources and events for which action is configured
+	// in Hook.Config
+	availableActions map[ProvisionerEventType]map[int]struct{}
 }

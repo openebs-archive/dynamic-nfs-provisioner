@@ -19,6 +19,7 @@ package hook
 import (
 	"testing"
 
+	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
@@ -583,8 +584,9 @@ func TestActionExists(t *testing.T) {
 			hook: &Hook{
 				Config: []HookConfig{
 					{
-						NFSPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:       ProvisionerEventCreate,
+						BackendPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
+						NFSPVConfig:     buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
+						Event:           ProvisionerEventCreate,
 					},
 				},
 			},
@@ -753,7 +755,11 @@ func TestActionExists(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			assert.NotNil(t, test.hook, "hook should not be nil")
-			assert.Equal(t, test.shouldExists, test.hook.ActionExists(test.resourceType, test.eventType))
+			data, err := yaml.Marshal(test.hook)
+			assert.Nil(t, err, "marshaling hook should not fail")
+			hook, err := ParseHooks(data)
+			assert.Nil(t, err, "parsing hook should not fail")
+			assert.Equal(t, test.shouldExists, hook.ActionExists(test.resourceType, test.eventType))
 		})
 	}
 }

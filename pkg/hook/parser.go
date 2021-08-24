@@ -24,10 +24,41 @@ import (
 // ParseHooks will parse the given data and return generated Hook object
 func ParseHooks(hookData []byte) (*Hook, error) {
 	var hook Hook
-	err := yaml.Unmarshal([]byte(hookData), &hook)
+	err := yaml.Unmarshal(hookData, &hook)
 	if err != nil {
 		return nil, errors.Wrapf(err, "error Unmarshalling hookData")
 	}
 
-	return &hook, nil
+	h := &hook
+	h.updateAvailableActions()
+	return h, nil
+}
+
+func (h *Hook) updateAvailableActions() {
+	h.availableActions = make(map[ProvisionerEventType]map[int]struct{})
+	h.availableActions[ProvisionerEventCreate] = make(map[int]struct{})
+	h.availableActions[ProvisionerEventDelete] = make(map[int]struct{})
+
+	for _, cfg := range h.Config {
+		if cfg.BackendPVCConfig != nil {
+			h.availableActions[cfg.Event][ResourceBackendPVC] = struct{}{}
+		}
+
+		if cfg.BackendPVConfig != nil {
+			h.availableActions[cfg.Event][ResourceBackendPV] = struct{}{}
+		}
+
+		if cfg.NFSServiceConfig != nil {
+			h.availableActions[cfg.Event][ResourceNFSService] = struct{}{}
+		}
+
+		if cfg.NFSPVConfig != nil {
+			h.availableActions[cfg.Event][ResourceNFSPV] = struct{}{}
+		}
+
+		if cfg.NFSDeploymentConfig != nil {
+			h.availableActions[cfg.Event][ResourceNFSServerDeployment] = struct{}{}
+		}
+	}
+	return
 }

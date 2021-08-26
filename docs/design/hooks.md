@@ -22,7 +22,7 @@
 This design is to implement hooks in nfs-provisioner to set annotation or finalizer on NFS PV resources during volume provisioning/deleting events. This document covers the definition of hooks and how to implement this.
 
 ## Goals
-Set custom Annotation, Finalizer on nfs resources
+Set custom Annotation, Finalizer on NFS resources
 
 ## Proposal
 ### User Stories
@@ -141,10 +141,10 @@ type HookConfig struct {
 	BackendPVCConfig *PVCHook `json:"backendPVC,omitempty"`
 
 	// NFSServiceConfig represent config for NFS Service resource
-	NFSServiceConfig *ServiceHook `json:"NFSService,omitempty"`
+	NFSServiceConfig *ServiceHook `json:"nfsService,omitempty"`
 
 	// NFSDeploymentConfig represent config for NFS Deployment resource
-	NFSDeploymentConfig *DeploymentHook `json:"NFSDeployment,omitempty"`
+	NFSDeploymentConfig *DeploymentHook `json:"nfsDeployment,omitempty"`
 
 	// Event defines provisioning event on which
 	// given hook action needs to be executed
@@ -214,13 +214,13 @@ metadata:
 data:
   config: |
     hooks:
-    - NFSDeployment:
+    - nfsDeployment:
         annotations:
           example.io/track: "true"
           test.io/owner: teamA
         finalizers:
         - test.io/tracking-protection
-      NFSService:
+      nfsService:
         annotations:
           example.io/track: "true"
           test.io/owner: teamA
@@ -247,10 +247,10 @@ data:
         finalizers:
         - test.io/tracking-protection
       provisioningEvent: Create
-    - NFSDeployment:
+    - nfsDeployment:
         finalizers:
         - test.io/tracking-protection
-      NFSService:
+      nfsService:
         finalizers:
         - test.io/tracking-protection
       backendPV:

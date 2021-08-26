@@ -20,7 +20,7 @@ import (
 	menv "github.com/openebs/maya/pkg/env/v1alpha1"
 )
 
-//This file defines the environement variable names that are specific
+//This file defines the environment variable names that are specific
 // to this provisioner. In addition to the variables defined in this file,
 // provisioner also uses the following:
 //   OPENEBS_NAMESPACE
@@ -54,6 +54,9 @@ const (
 
 	// NodeAffinityKey holds the env name representing Node affinity rules
 	NodeAffinityKey menv.ENVKey = "OPENEBS_IO_NFS_SERVER_NODE_AFFINITY"
+
+	// NFSBackendPvcTimeout defines env name to store BackendPvcBoundTimeout value
+	NFSBackendPvcTimeout menv.ENVKey = "OPENEBS_IO_NFS_SERVER_BACKEND_PVC_TIMEOUT"
 )
 
 var (
@@ -93,4 +96,8 @@ func getNFSServerImage() string {
 
 func getNfsServerNodeAffinity() string {
 	return menv.Get(NodeAffinityKey)
+}
+
+func getBackendPvcTimeout() string {
+	return menv.Get(NFSBackendPvcTimeout)
 }

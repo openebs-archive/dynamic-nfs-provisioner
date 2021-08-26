@@ -18,6 +18,8 @@ limitations under the License.
 package provisioner
 
 import (
+	"time"
+
 	mconfig "github.com/openebs/maya/pkg/apis/openebs.io/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	clientset "k8s.io/client-go/kubernetes"
@@ -54,6 +56,12 @@ type Provisioner struct {
 
 	// nodeAffinity specifies requirements for scheduling NFS Server
 	nodeAffinity NodeAffinity
+
+	// pvTracker to track in-progress provisioning request
+	pvTracker ProvisioningTracker
+
+	// backendPvcTimeout defines timeout for backend PVC Bound check
+	backendPvcTimeout time.Duration
 }
 
 //VolumeConfig struct contains the merged configuration of the PVC

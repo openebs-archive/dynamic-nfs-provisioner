@@ -40,6 +40,8 @@ nfsProvisioner:
     tag:
     pullPolicy: IfNotPresent
   enableLeaderElection: "true"
+  # Specify Configmap name for NFS Hooks
+  nfsHookConfigmapName: ""
   # Specify image name of nfs-server-alpine used for creating nfs server deployment
   # If not mentioned, default value openebs/nfs-server-alpine:tag will be used where
   # the tag will be the same as a provisioner-nfs image tag

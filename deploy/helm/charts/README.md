@@ -130,6 +130,7 @@ helm install openebs-nfs openebs-nfs/nfs-provisioner --namespace openebs --creat
 | `nfsProvisioner.nfsServerNamespace`          | NFS server namespace         | `"openebs"`                            |
 | `nfsProvisioner.nfsServerNodeAffinity`       | NFS Server node affinity rules                | `""`                          |
 | `nfsProvisioner.nfsBackendPvcTimeout`       | Timeout for backend PVC binding in seconds                | `"60"`                          |
+| `nfsProvisioner.nfsHookConfigmapName`       | Configmap name for NFS hook                | `""`                          |
 | `nfsStorageClass.backendStorageClass` | StorageClass to be used to provision the backend volume. If not specified, the default StorageClass is used. | `""`                         |
 | `nfsStorageClass.isDefaultClass`      | Make 'openebs-kernel-nfs' the default StorageClass | `"false"`                         |
 | `nfsStorageClass.reclaimPolicy`       | ReclaimPolicy for NFS PVs                      | `"Delete"`                     |

@@ -21,7 +21,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 //RegisterShutdownChannel closes the channel when signaled for termination

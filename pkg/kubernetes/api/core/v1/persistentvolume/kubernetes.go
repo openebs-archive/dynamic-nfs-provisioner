@@ -15,6 +15,7 @@
 package persistentvolume
 
 import (
+	"context"
 	"strings"
 
 	stringer "github.com/openebs/maya/pkg/apis/stringer/v1alpha1"
@@ -58,7 +59,7 @@ type deleteCollectionFn func(cli *kubernetes.Clientset, listOpts metav1.ListOpti
 
 // createFn is a typed function that abstracts
 // creation of pv
-type createFn func(cli *kubernetes.Clientset, pv *corev1.PersistentVolume) (*corev1.PersistentVolume, error)
+type createFn func(cli *kubernetes.Clientset, pv *corev1.PersistentVolume, createOpts metav1.CreateOptions) (*corev1.PersistentVolume, error)
 
 // Kubeclient enables kubernetes API operations
 // on pv instance
@@ -100,27 +101,27 @@ func (k *Kubeclient) withDefaults() {
 	}
 	if k.get == nil {
 		k.get = func(cli *kubernetes.Clientset, name string, opts metav1.GetOptions) (*corev1.PersistentVolume, error) {
-			return cli.CoreV1().PersistentVolumes().Get(name, opts)
+			return cli.CoreV1().PersistentVolumes().Get(context.TODO(), name, opts)
 		}
 	}
 	if k.list == nil {
 		k.list = func(cli *kubernetes.Clientset, opts metav1.ListOptions) (*corev1.PersistentVolumeList, error) {
-			return cli.CoreV1().PersistentVolumes().List(opts)
+			return cli.CoreV1().PersistentVolumes().List(context.TODO(), opts)
 		}
 	}
 	if k.del == nil {
 		k.del = func(cli *kubernetes.Clientset, name string, deleteOpts *metav1.DeleteOptions) error {
-			return cli.CoreV1().PersistentVolumes().Delete(name, deleteOpts)
+			return cli.CoreV1().PersistentVolumes().Delete(context.TODO(), name, *deleteOpts)
 		}
 	}
 	if k.delCollection == nil {
 		k.delCollection = func(cli *kubernetes.Clientset, listOpts metav1.ListOptions, deleteOpts *metav1.DeleteOptions) error {
-			return cli.CoreV1().PersistentVolumes().DeleteCollection(deleteOpts, listOpts)
+			return cli.CoreV1().PersistentVolumes().DeleteCollection(context.TODO(), *deleteOpts, listOpts)
 		}
 	}
 	if k.create == nil {
-		k.create = func(cli *kubernetes.Clientset, pv *corev1.PersistentVolume) (*corev1.PersistentVolume, error) {
-			return cli.CoreV1().PersistentVolumes().Create(pv)
+		k.create = func(cli *kubernetes.Clientset, pv *corev1.PersistentVolume, createOpts metav1.CreateOptions) (*corev1.PersistentVolume, error) {
+			return cli.CoreV1().PersistentVolumes().Create(context.TODO(), pv, createOpts)
 		}
 	}
 }
@@ -216,7 +217,7 @@ func (k *Kubeclient) Create(pv *corev1.PersistentVolume) (*corev1.PersistentVolu
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to create pv: %s", stringer.Yaml("persistent volume", pv))
 	}
-	return k.create(cli, pv)
+	return k.create(cli, pv, metav1.CreateOptions{})
 }
 
 // DeleteCollection deletes a collection of pv objects.

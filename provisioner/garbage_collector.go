@@ -17,6 +17,7 @@ limitations under the License.
 package provisioner
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -26,7 +27,7 @@ import (
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 var (
@@ -59,7 +60,7 @@ func RunGarbageCollector(client kubernetes.Interface, pvTracker ProvisioningTrac
 
 func cleanUpStalePvc(client kubernetes.Interface, pvTracker ProvisioningTracker, ns string) error {
 	backendPvcLabel := fmt.Sprintf("%s=%s", mayav1alpha1.CASTypeKey, "nfs-kernel")
-	pvcList, err := client.CoreV1().PersistentVolumeClaims(ns).List(metav1.ListOptions{LabelSelector: backendPvcLabel})
+	pvcList, err := client.CoreV1().PersistentVolumeClaims(ns).List(context.TODO(), metav1.ListOptions{LabelSelector: backendPvcLabel})
 	if err != nil {
 		klog.Errorf("Failed to list PVC, err=%s", err)
 		return err
@@ -123,6 +124,7 @@ func deleteBackendStaleResources(client kubernetes.Interface, nfsServerNs, nfsPv
 
 	nfsServerOpts := &KernelNFSServerOptions{
 		pvName: nfsPvName,
+		ctx:    context.TODO(),
 	}
 
 	return p.deleteNFSServer(nfsServerOpts)
@@ -137,7 +139,7 @@ func nfsPvcExists(client kubernetes.Interface, backendPvcObj corev1.PersistentVo
 		return false, errors.New("backend PVC doesn't have sufficient information of nfs pvc")
 	}
 
-	pvcObj, err := client.CoreV1().PersistentVolumeClaims(nfsPvcNs).Get(nfsPvcName, metav1.GetOptions{})
+	pvcObj, err := client.CoreV1().PersistentVolumeClaims(nfsPvcNs).Get(context.TODO(), nfsPvcName, metav1.GetOptions{})
 	if err != nil {
 		if !k8serrors.IsNotFound(err) {
 			// couldn't get the nfs pvc information due to network error or
@@ -158,7 +160,7 @@ func nfsPvcExists(client kubernetes.Interface, backendPvcObj corev1.PersistentVo
 }
 
 func pvExists(client kubernetes.Interface, pvName string) (bool, error) {
-	_, err := client.CoreV1().PersistentVolumes().Get(pvName, metav1.GetOptions{})
+	_, err := client.CoreV1().PersistentVolumes().Get(context.TODO(), pvName, metav1.GetOptions{})
 	if err == nil {
 		return true, nil
 	}

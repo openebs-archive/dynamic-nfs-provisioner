@@ -17,14 +17,15 @@ limitations under the License.
 package provisioner
 
 import (
+	"context"
 	"os"
 	"strings"
 
 	"github.com/pkg/errors"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 
 	mKube "github.com/openebs/dynamic-nfs-provisioner/pkg/kubernetes/client"
-	pvController "sigs.k8s.io/sig-storage-lib-external-provisioner/controller"
+	pvController "sigs.k8s.io/sig-storage-lib-external-provisioner/v7/controller"
 )
 
 var (
@@ -49,10 +50,10 @@ func Start() error {
 		return errors.Wrap(err, "unable to get k8s client")
 	}
 
-	serverVersion, err := kubeClient.Discovery().ServerVersion()
-	if err != nil {
-		return errors.Wrap(err, "Cannot start Provisioner: failed to get Kubernetes server version")
-	}
+	// serverVersion, err := kubeClient.Discovery().ServerVersion()
+	// if err != nil {
+	// 	return errors.Wrap(err, "Cannot start Provisioner: failed to get Kubernetes server version")
+	// }
 
 	err = performPreupgradeTasks(kubeClient)
 	if err != nil {
@@ -78,12 +79,18 @@ func Start() error {
 		kubeClient,
 		provisionerName,
 		provisioner,
-		serverVersion.GitVersion,
 		pvController.LeaderElection(isLeaderElectionEnabled()),
 	)
 	klog.V(4).Info("Provisioner started")
+
+	// Create a context which can be cancled
+	ctx, cancelFn := context.WithCancel(context.TODO())
+
 	//Run the provisioner till a shutdown signal is received.
-	pc.Run(stopCh)
+	go pc.Run(ctx)
+
+	<-stopCh
+	cancelFn()
 	klog.V(4).Info("Provisioner stopped")
 
 	return nil

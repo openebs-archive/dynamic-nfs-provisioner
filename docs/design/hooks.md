@@ -51,7 +51,7 @@ User will deploy nfs-provisioner with Configmap having information about hook in
       - name: openebs-provisioner-nfs
         image: openebs/provisioner-nfs:ci
         env:
-        - name: OPENEBS_IO_HOOK_CONFIG
+        - name: OPENEBS_IO_NFS_HOOK_CONFIGMAP
           value: "nfs-hook"
         livenessProbe:
           exec:
@@ -63,7 +63,7 @@ User will deploy nfs-provisioner with Configmap having information about hook in
           periodSeconds: 60
 ```
 
-User needs to provide Configmap name as a value of `OPENEBS_IO_HOOK_CONFIG` environment variable.
+User needs to provide Configmap name as a value of `OPENEBS_IO_NFS_HOOK_CONFIGMAP` environment variable.
 
 ### Low-Level Design
 #### Hook Definition
@@ -80,14 +80,14 @@ const (
 	HookActionRemove HookActionType = "Remove"
 )
 
-// ProvisionerEventType defines the type of events on which hook needs to be executed
-type ProvisionerEventType string
+// EventType defines the type of events on which hook needs to be executed
+type EventType string
 
 const (
-	// ProvisionerEventCreate represent create event
-	ProvisionerEventCreate ProvisionerEventType = "Create"
-	// ProvisionerEventDelete represent delete event
-	ProvisionerEventDelete ProvisionerEventType = "Delete"
+	// EventTypeCreateVolume represent volume create event
+	EventTypeCreateVolume EventType = "CreateVolume"
+	// EventTypeDeleteVolume represent volume delete event
+	EventTypeDeleteVolume EventType = "DeleteVolume"
 )
 
 // PVHook defines the field which will be updated for PV Hook Action
@@ -146,12 +146,12 @@ type HookConfig struct {
 	// NFSDeploymentConfig represent config for NFS Deployment resource
 	NFSDeploymentConfig *DeploymentHook `json:"nfsDeployment,omitempty"`
 
-	// Event defines provisioning event on which
+	// Event defines provisioning event type on which
 	// given hook action needs to be executed
-	Event ProvisionerEventType `json:"provisioningEvent"`
+	Event EventType `json:"eventType"`
 
 	// Action represent the type of hook action, i.e HookActionAdd or HookActionRemove
-	Action HookActionType `json:"hookAction"`
+	Action HookActionType `json:"actionType"`
 }
 
 // Hook stores HookConfig and its version
@@ -194,10 +194,10 @@ type Provisioner struct {
 	// nodeAffinity specifies requirements for scheduling NFS Server
 	nodeAffinity NodeAffinity
 
-  /* New Field */
-  // hooks which needs to be executed on provisioning events
-  // Note: nfshook -> github.com/openebs/dynamic-nfs-provisioner/pkg/hook
-  hook *nfshook.Hook
+	/* New Field */
+	// hooks which needs to be executed on provisioning events
+	// Note: nfshook -> github.com/openebs/dynamic-nfs-provisioner/pkg/hook
+	hook *nfshook.Hook
 }
 ```
 
@@ -238,7 +238,7 @@ data:
           test.io/owner: teamA
         finalizers:
         - test.io/tracking-protection
-      hookAction: Add
+      actionType: Add
       name: createHook
       nfsPV:
         annotations:
@@ -246,7 +246,7 @@ data:
           test.io/owner: teamA
         finalizers:
         - test.io/tracking-protection
-      provisioningEvent: Create
+      eventType: CreateVolume
     - nfsDeployment:
         finalizers:
         - test.io/tracking-protection
@@ -259,17 +259,17 @@ data:
       backendPVC:
         finalizers:
         - test.io/tracking-protection
-      hookAction: Remove
+      actionType: Remove
       name: deleteHook
       nfsPV:
         finalizers:
         - test.io/tracking-protection
-      provisioningEvent: Delete
+      eventType: DeleteVolume
     version: 1.0.0
 ```
 
 #### NFS Provisioner changes
-If NFS Provisioner is configured with environment variable **OPENEBS_IO_HOOK_CONFIG** set then Provisioner needs to lookup the provided Configmap in nfs-provisioner namespace. If Configmap exists then provisioner needs to initialize **Provisioner** with hook configuration provided in Configmap.
+If NFS Provisioner is configured with environment variable **OPENEBS_IO_NFS_HOOK_CONFIGMAP** set then Provisioner needs to lookup the provided Configmap in nfs-provisioner namespace. If Configmap exists then provisioner needs to initialize **Provisioner** with hook configuration provided in Configmap.
 NFS Provisioner executes two events, volume provisioning, and volume deletion. On these two events provisioner needs to execute all the hooks as per the given hook Action.
 
 #### Extending Hook
@@ -289,8 +289,9 @@ type DeploymentHook struct {
 	// Finalizers needs to be added/removed on/from the Deployment
 	Finalizers []string `json:"finalizers,omitempty"`
 
-  //ImagePullSecrets needs to be added/remove on/from the deployment /* NEW FIELD */
-  ImagePullSecrets []corev1.LocalObjectReference  /* NEW FIELD */
+	/* New Field */
+	//ImagePullSecrets needs to be added/remove on/from the deployment
+	ImagePullSecrets []corev1.LocalObjectReference
 }
 ```
 

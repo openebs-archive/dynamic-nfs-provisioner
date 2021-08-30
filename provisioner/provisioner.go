@@ -64,7 +64,7 @@ var (
 
 // NewProvisioner will create a new Provisioner object and initialize
 //  it with global information used across PV create and delete operations.
-func NewProvisioner(stopCh chan struct{}, kubeClient *clientset.Clientset) (*Provisioner, error) {
+func NewProvisioner(ctx context.Context, kubeClient *clientset.Clientset) (*Provisioner, error) {
 
 	namespace := getOpenEBSNamespace()
 	if len(strings.TrimSpace(namespace)) == 0 {
@@ -86,7 +86,7 @@ func NewProvisioner(stopCh chan struct{}, kubeClient *clientset.Clientset) (*Pro
 	pvTracker := NewProvisioningTracker()
 
 	p := &Provisioner{
-		stopCh: stopCh,
+		stopCh: ctx.Done(),
 
 		kubeClient:      kubeClient,
 		namespace:       namespace,
@@ -107,10 +107,10 @@ func NewProvisioner(stopCh chan struct{}, kubeClient *clientset.Clientset) (*Pro
 
 	// Running node informer will fetch node information from API Server
 	// and maintain it in cache
-	go k8sNodeInformer.Run(stopCh)
+	go k8sNodeInformer.Run(ctx.Done())
 
 	// Running garbage collector to perform cleanup for stale NFS resources
-	go RunGarbageCollector(kubeClient, pvTracker, nfsServerNs, stopCh)
+	go RunGarbageCollector(ctx, kubeClient, pvTracker, nfsServerNs)
 
 	return p, nil
 }

@@ -17,6 +17,7 @@ limitations under the License.
 package app
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"net/http"
@@ -93,5 +94,12 @@ func Start(cmd *cobra.Command) error {
 		}
 	}()
 
-	return provisioner.Start()
+	// Create a context which can be cancled
+	ctx, cancelFn := context.WithCancel(context.TODO())
+
+	// NOTE: CancelFunc will be called by RegisterShutdownChannel
+	// So not required to do same action here
+	provisioner.RegisterShutdownChannel(cancelFn)
+
+	return provisioner.Start(ctx)
 }

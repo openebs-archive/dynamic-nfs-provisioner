@@ -36,7 +36,7 @@ var (
 )
 
 // Start will initialize and run the dynamic provisioner daemon
-func Start() error {
+func Start(ctx context.Context) error {
 	klog.Infof("Starting Provisioner...")
 
 	// Dynamic Provisioner can run successfully if it can establish
@@ -50,24 +50,14 @@ func Start() error {
 		return errors.Wrap(err, "unable to get k8s client")
 	}
 
-	// serverVersion, err := kubeClient.Discovery().ServerVersion()
-	// if err != nil {
-	// 	return errors.Wrap(err, "Cannot start Provisioner: failed to get Kubernetes server version")
-	// }
-
 	err = performPreupgradeTasks(kubeClient)
 	if err != nil {
 		return errors.Wrap(err, "failure in preupgrade tasks")
 	}
 
-	//Create a channel to receive shutdown signal to help
-	// with graceful exit of the provisioner.
-	stopCh := make(chan struct{})
-	RegisterShutdownChannel(stopCh)
-
 	//Create an instance of ProvisionerHandler to handle PV
 	// create and delete events.
-	provisioner, err := NewProvisioner(stopCh, kubeClient)
+	provisioner, err := NewProvisioner(ctx, kubeClient)
 	if err != nil {
 		return err
 	}
@@ -83,14 +73,10 @@ func Start() error {
 	)
 	klog.V(4).Info("Provisioner started")
 
-	// Create a context which can be cancled
-	ctx, cancelFn := context.WithCancel(context.TODO())
-
 	//Run the provisioner till a shutdown signal is received.
 	go pc.Run(ctx)
 
-	<-stopCh
-	cancelFn()
+	<-ctx.Done()
 	klog.V(4).Info("Provisioner stopped")
 
 	return nil

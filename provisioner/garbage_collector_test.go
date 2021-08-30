@@ -92,11 +92,11 @@ func TestRunGarbageCollector(t *testing.T) {
 	assert.NoError(t, createDeployment(clientset, nfsDeployment), "on creating nfs-server deployment resource")
 	assert.NoError(t, createService(clientset, nfsService), "on creating nfs-server service resourec")
 
-	stopCh := make(chan struct{})
-	go RunGarbageCollector(clientset, pvTracker, nfsServerNs, stopCh)
+	ctx, cancelFn := context.WithCancel(context.TODO())
+	go RunGarbageCollector(ctx, clientset, pvTracker, nfsServerNs)
 
 	time.Sleep(GarbageCollectorInterval + 10*time.Second /* to ensure cleanUpStalePvc run */)
-	close(stopCh)
+	cancelFn()
 
 	exists, err := pvcExists(clientset, backendPvc.Namespace, backendPvc.Name)
 	assert.NoError(t, err, "checking backend PVC existence")
@@ -239,7 +239,7 @@ func TestCleanUpStalePvc(t *testing.T) {
 			assert.NoError(t, createDeployment(test.clientset, test.nfsDeployment), "on creating nfs-server deployment resource")
 			assert.NoError(t, createService(test.clientset, test.nfsService), "on creating nfs-server service resourec")
 
-			assert.NoError(t, cleanUpStalePvc(test.clientset, test.pvTracker, nfsServerNs))
+			assert.NoError(t, cleanUpStalePvc(context.TODO(), test.clientset, test.pvTracker, nfsServerNs))
 
 			if test.backendPvc != nil {
 				exists, err := pvcExists(test.clientset, test.backendPvc.Namespace, test.backendPvc.Name)

@@ -65,7 +65,7 @@ func getTestHookData() []byte {
 				},
 				Finalizers: []string{"test.io/tracking-protection"},
 			},
-			Event:  ProvisionerEventCreate,
+			Event:  EventTypeCreateVolume,
 			Action: HookActionAdd,
 		},
 	)

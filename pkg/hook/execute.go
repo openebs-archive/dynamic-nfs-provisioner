@@ -25,7 +25,7 @@ import (
 )
 
 // ExecuteHookOnNFSPV will execute the hook on the given PV and patch it
-func (h *Hook) ExecuteHookOnNFSPV(client kubernetes.Interface, pvName string, eventType ProvisionerEventType) error {
+func (h *Hook) ExecuteHookOnNFSPV(client kubernetes.Interface, pvName string, eventType EventType) error {
 	pvObjOrig, err := client.CoreV1().PersistentVolumes().Get(pvName, metav1.GetOptions{})
 	if err != nil {
 		return errors.Wrapf(err, "failed to fetch PV=%s", pvName)
@@ -52,7 +52,7 @@ func (h *Hook) ExecuteHookOnNFSPV(client kubernetes.Interface, pvName string, ev
 }
 
 // ExecuteHookOnBackendPV will execute the hook on the PV for given PVC and patch it
-func (h *Hook) ExecuteHookOnBackendPV(client kubernetes.Interface, ns, backendPvcName string, eventType ProvisionerEventType) error {
+func (h *Hook) ExecuteHookOnBackendPV(client kubernetes.Interface, ns, backendPvcName string, eventType EventType) error {
 	pvcObj, err := client.CoreV1().
 		PersistentVolumeClaims(ns).
 		Get(backendPvcName, metav1.GetOptions{})
@@ -85,7 +85,7 @@ func (h *Hook) ExecuteHookOnBackendPV(client kubernetes.Interface, ns, backendPv
 }
 
 // ExecuteHookOnBackendPV will execute the hook on the PV for given PVC and patch it
-func (h *Hook) ExecuteHookOnBackendPVC(client kubernetes.Interface, ns, backendPvcName string, eventType ProvisionerEventType) error {
+func (h *Hook) ExecuteHookOnBackendPVC(client kubernetes.Interface, ns, backendPvcName string, eventType EventType) error {
 	pvcObjOrig, err := client.CoreV1().
 		PersistentVolumeClaims(ns).
 		Get(backendPvcName, metav1.GetOptions{})
@@ -114,7 +114,7 @@ func (h *Hook) ExecuteHookOnBackendPVC(client kubernetes.Interface, ns, backendP
 }
 
 // ExecuteHookOnNFSService will execute the hook on the given service and patch it
-func (h *Hook) ExecuteHookOnNFSService(client kubernetes.Interface, ns, serviceName string, eventType ProvisionerEventType) error {
+func (h *Hook) ExecuteHookOnNFSService(client kubernetes.Interface, ns, serviceName string, eventType EventType) error {
 	svcObjOrig, err := client.CoreV1().
 		Services(ns).
 		Get(serviceName, metav1.GetOptions{})
@@ -143,7 +143,7 @@ func (h *Hook) ExecuteHookOnNFSService(client kubernetes.Interface, ns, serviceN
 }
 
 // ExecuteHookOnNFSDeployment will execute the hook on the given deployment and patch it
-func (h *Hook) ExecuteHookOnNFSDeployment(client kubernetes.Interface, ns, deployName string, eventType ProvisionerEventType) error {
+func (h *Hook) ExecuteHookOnNFSDeployment(client kubernetes.Interface, ns, deployName string, eventType EventType) error {
 	deployObjOrig, err := client.AppsV1().
 		Deployments(ns).
 		Get(deployName, metav1.GetOptions{})

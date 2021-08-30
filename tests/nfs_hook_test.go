@@ -77,7 +77,7 @@ func buildTestHook() *nfshook.Hook {
 				},
 				Finalizers: []string{"test.io/tracking-protection"},
 			},
-			Event:  nfshook.ProvisionerEventCreate,
+			Event:  nfshook.EventTypeCreateVolume,
 			Action: nfshook.HookActionAdd,
 		},
 	)
@@ -102,7 +102,7 @@ func buildTestHook() *nfshook.Hook {
 			NFSDeploymentConfig: &nfshook.DeploymentHook{
 				Finalizers: []string{"test.io/tracking-protection"},
 			},
-			Event:  nfshook.ProvisionerEventDelete,
+			Event:  nfshook.EventTypeDeleteVolume,
 			Action: nfshook.HookActionRemove,
 		},
 	)

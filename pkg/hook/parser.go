@@ -35,9 +35,9 @@ func ParseHooks(hookData []byte) (*Hook, error) {
 }
 
 func (h *Hook) updateAvailableActions() {
-	h.availableActions = make(map[ProvisionerEventType]map[int]struct{})
-	h.availableActions[ProvisionerEventCreate] = make(map[int]struct{})
-	h.availableActions[ProvisionerEventDelete] = make(map[int]struct{})
+	h.availableActions = make(map[EventType]map[int]struct{})
+	h.availableActions[EventTypeCreateVolume] = make(map[int]struct{})
+	h.availableActions[EventTypeDeleteVolume] = make(map[int]struct{})
 
 	for _, cfg := range h.Config {
 		if cfg.BackendPVCConfig != nil {

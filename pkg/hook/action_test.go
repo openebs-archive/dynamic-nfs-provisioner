@@ -103,7 +103,7 @@ func TestAction(t *testing.T) {
 		name          string
 		hook          *Hook
 		resourceType  int
-		eventType     ProvisionerEventType
+		eventType     EventType
 		obj           interface{}
 		expectedObj   interface{}
 		expectedError error
@@ -114,7 +114,7 @@ func TestAction(t *testing.T) {
 				Config: []HookConfig{
 					{
 						BackendPVCConfig: buildPVCHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            ProvisionerEventCreate,
+						Event:            EventTypeCreateVolume,
 						Action:           HookActionAdd,
 					},
 				},
@@ -122,7 +122,7 @@ func TestAction(t *testing.T) {
 			resourceType:  ResourceBackendPVC,
 			obj:           generateFakePvcObj("test", "pvc", nil, nil),
 			expectedObj:   generateFakePvcObj("test", "pvc", map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-			eventType:     ProvisionerEventCreate,
+			eventType:     EventTypeCreateVolume,
 			expectedError: nil,
 		},
 		{
@@ -131,7 +131,7 @@ func TestAction(t *testing.T) {
 				Config: []HookConfig{
 					{
 						BackendPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:           ProvisionerEventCreate,
+						Event:           EventTypeCreateVolume,
 						Action:          HookActionAdd,
 					},
 				},
@@ -139,7 +139,7 @@ func TestAction(t *testing.T) {
 			resourceType:  ResourceBackendPV,
 			obj:           generateFakePvObj("pv", nil, nil),
 			expectedObj:   generateFakePvObj("pv", map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-			eventType:     ProvisionerEventCreate,
+			eventType:     EventTypeCreateVolume,
 			expectedError: nil,
 		},
 		{
@@ -148,7 +148,7 @@ func TestAction(t *testing.T) {
 				Config: []HookConfig{
 					{
 						NFSServiceConfig: buildServiceHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            ProvisionerEventCreate,
+						Event:            EventTypeCreateVolume,
 						Action:           HookActionAdd,
 					},
 				},
@@ -156,7 +156,7 @@ func TestAction(t *testing.T) {
 			resourceType:  ResourceNFSService,
 			obj:           generateFakeServiceObj("test", "service", nil, nil),
 			expectedObj:   generateFakeServiceObj("test", "service", map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-			eventType:     ProvisionerEventCreate,
+			eventType:     EventTypeCreateVolume,
 			expectedError: nil,
 		},
 		{
@@ -165,7 +165,7 @@ func TestAction(t *testing.T) {
 				Config: []HookConfig{
 					{
 						NFSPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:       ProvisionerEventCreate,
+						Event:       EventTypeCreateVolume,
 						Action:      HookActionAdd,
 					},
 				},
@@ -173,7 +173,7 @@ func TestAction(t *testing.T) {
 			resourceType:  ResourceNFSPV,
 			obj:           generateFakePvObj("pv", nil, nil),
 			expectedObj:   generateFakePvObj("pv", map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-			eventType:     ProvisionerEventCreate,
+			eventType:     EventTypeCreateVolume,
 			expectedError: nil,
 		},
 		{
@@ -182,7 +182,7 @@ func TestAction(t *testing.T) {
 				Config: []HookConfig{
 					{
 						NFSDeploymentConfig: buildDeploymentHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:               ProvisionerEventCreate,
+						Event:               EventTypeCreateVolume,
 						Action:              HookActionAdd,
 					},
 				},
@@ -190,7 +190,7 @@ func TestAction(t *testing.T) {
 			resourceType:  ResourceNFSServerDeployment,
 			obj:           generateFakeDeploymentObj("test", "deployment", nil, nil),
 			expectedObj:   generateFakeDeploymentObj("test", "deployment", map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-			eventType:     ProvisionerEventCreate,
+			eventType:     EventTypeCreateVolume,
 			expectedError: nil,
 		},
 		{
@@ -199,7 +199,7 @@ func TestAction(t *testing.T) {
 				Config: []HookConfig{
 					{
 						BackendPVCConfig: buildPVCHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            ProvisionerEventCreate,
+						Event:            EventTypeCreateVolume,
 						Action:           HookActionAdd,
 					},
 				},
@@ -207,7 +207,7 @@ func TestAction(t *testing.T) {
 			resourceType:  ResourceBackendPVC,
 			obj:           generateFakePvObj("pv", nil, nil),
 			expectedObj:   generateFakePvObj("pv", nil, nil),
-			eventType:     ProvisionerEventCreate,
+			eventType:     EventTypeCreateVolume,
 			expectedError: errors.Errorf("*v1.PersistentVolume is not a PersistentVolumeClaim type"),
 		},
 		{
@@ -216,7 +216,7 @@ func TestAction(t *testing.T) {
 				Config: []HookConfig{
 					{
 						BackendPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:           ProvisionerEventCreate,
+						Event:           EventTypeCreateVolume,
 						Action:          HookActionAdd,
 					},
 				},
@@ -224,7 +224,7 @@ func TestAction(t *testing.T) {
 			resourceType:  ResourceBackendPV,
 			obj:           generateFakeServiceObj("test", "service", nil, nil),
 			expectedObj:   generateFakeServiceObj("test", "service", nil, nil),
-			eventType:     ProvisionerEventCreate,
+			eventType:     EventTypeCreateVolume,
 			expectedError: errors.Errorf("*v1.Service is not a PersistentVolume type"),
 		},
 		{
@@ -233,7 +233,7 @@ func TestAction(t *testing.T) {
 				Config: []HookConfig{
 					{
 						NFSServiceConfig: buildServiceHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            ProvisionerEventCreate,
+						Event:            EventTypeCreateVolume,
 						Action:           HookActionAdd,
 					},
 				},
@@ -241,7 +241,7 @@ func TestAction(t *testing.T) {
 			resourceType:  ResourceNFSService,
 			obj:           generateFakePvObj("pv", nil, nil),
 			expectedObj:   generateFakePvObj("pv", nil, nil),
-			eventType:     ProvisionerEventCreate,
+			eventType:     EventTypeCreateVolume,
 			expectedError: errors.Errorf("*v1.PersistentVolume is not a Service type"),
 		},
 		{
@@ -250,7 +250,7 @@ func TestAction(t *testing.T) {
 				Config: []HookConfig{
 					{
 						NFSPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:       ProvisionerEventCreate,
+						Event:       EventTypeCreateVolume,
 						Action:      HookActionAdd,
 					},
 				},
@@ -258,7 +258,7 @@ func TestAction(t *testing.T) {
 			resourceType:  ResourceNFSPV,
 			obj:           generateFakeServiceObj("test", "service", nil, nil),
 			expectedObj:   generateFakeServiceObj("test", "service", nil, nil),
-			eventType:     ProvisionerEventCreate,
+			eventType:     EventTypeCreateVolume,
 			expectedError: errors.Errorf("*v1.Service is not a PersistentVolume type"),
 		},
 		{
@@ -267,7 +267,7 @@ func TestAction(t *testing.T) {
 				Config: []HookConfig{
 					{
 						NFSDeploymentConfig: buildDeploymentHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:               ProvisionerEventCreate,
+						Event:               EventTypeCreateVolume,
 						Action:              HookActionAdd,
 					},
 				},
@@ -275,7 +275,7 @@ func TestAction(t *testing.T) {
 			resourceType:  ResourceNFSServerDeployment,
 			obj:           generateFakeServiceObj("test", "service", nil, nil),
 			expectedObj:   generateFakeServiceObj("test", "service", nil, nil),
-			eventType:     ProvisionerEventCreate,
+			eventType:     EventTypeCreateVolume,
 			expectedError: errors.Errorf("*v1.Service is not a Deployment type"),
 		},
 		{
@@ -284,7 +284,7 @@ func TestAction(t *testing.T) {
 				Config: []HookConfig{
 					{
 						NFSDeploymentConfig: buildDeploymentHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:               ProvisionerEventCreate,
+						Event:               EventTypeCreateVolume,
 						Action:              HookActionAdd,
 					},
 				},
@@ -292,7 +292,7 @@ func TestAction(t *testing.T) {
 			resourceType:  ResourceNFSServerDeployment,
 			obj:           generateFakeDeploymentObj("test", "deployment", nil, nil),
 			expectedObj:   generateFakeDeploymentObj("test", "deployment", nil, nil),
-			eventType:     ProvisionerEventDelete,
+			eventType:     EventTypeDeleteVolume,
 			expectedError: nil,
 		},
 	}
@@ -317,7 +317,7 @@ func TestActionExists(t *testing.T) {
 		name         string
 		hook         *Hook
 		resourceType int
-		eventType    ProvisionerEventType
+		eventType    EventType
 		shouldExists bool
 	}{
 		// Backend PVC hook test
@@ -327,12 +327,12 @@ func TestActionExists(t *testing.T) {
 				Config: []HookConfig{
 					{
 						BackendPVCConfig: buildPVCHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            ProvisionerEventCreate,
+						Event:            EventTypeCreateVolume,
 					},
 				},
 			},
 			resourceType: ResourceBackendPVC,
-			eventType:    ProvisionerEventCreate,
+			eventType:    EventTypeCreateVolume,
 			shouldExists: true,
 		},
 		{
@@ -341,12 +341,12 @@ func TestActionExists(t *testing.T) {
 				Config: []HookConfig{
 					{
 						BackendPVCConfig: buildPVCHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            ProvisionerEventDelete,
+						Event:            EventTypeDeleteVolume,
 					},
 				},
 			},
 			resourceType: ResourceBackendPVC,
-			eventType:    ProvisionerEventDelete,
+			eventType:    EventTypeDeleteVolume,
 			shouldExists: true,
 		},
 		{
@@ -355,12 +355,12 @@ func TestActionExists(t *testing.T) {
 				Config: []HookConfig{
 					{
 						BackendPVCConfig: buildPVCHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            ProvisionerEventCreate,
+						Event:            EventTypeCreateVolume,
 					},
 				},
 			},
 			resourceType: ResourceBackendPVC,
-			eventType:    ProvisionerEventDelete,
+			eventType:    EventTypeDeleteVolume,
 			shouldExists: false,
 		},
 		{
@@ -369,12 +369,12 @@ func TestActionExists(t *testing.T) {
 				Config: []HookConfig{
 					{
 						BackendPVCConfig: buildPVCHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            ProvisionerEventDelete,
+						Event:            EventTypeDeleteVolume,
 					},
 				},
 			},
 			resourceType: ResourceBackendPVC,
-			eventType:    ProvisionerEventCreate,
+			eventType:    EventTypeCreateVolume,
 			shouldExists: false,
 		},
 		{
@@ -383,12 +383,12 @@ func TestActionExists(t *testing.T) {
 				Config: []HookConfig{
 					{
 						BackendPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:           ProvisionerEventCreate,
+						Event:           EventTypeCreateVolume,
 					},
 				},
 			},
 			resourceType: ResourceBackendPVC,
-			eventType:    ProvisionerEventCreate,
+			eventType:    EventTypeCreateVolume,
 			shouldExists: false,
 		},
 		{
@@ -397,12 +397,12 @@ func TestActionExists(t *testing.T) {
 				Config: []HookConfig{
 					{
 						BackendPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:           ProvisionerEventCreate,
+						Event:           EventTypeCreateVolume,
 					},
 				},
 			},
 			resourceType: ResourceBackendPVC,
-			eventType:    ProvisionerEventDelete,
+			eventType:    EventTypeDeleteVolume,
 			shouldExists: false,
 		},
 
@@ -413,12 +413,12 @@ func TestActionExists(t *testing.T) {
 				Config: []HookConfig{
 					{
 						BackendPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:           ProvisionerEventCreate,
+						Event:           EventTypeCreateVolume,
 					},
 				},
 			},
 			resourceType: ResourceBackendPV,
-			eventType:    ProvisionerEventCreate,
+			eventType:    EventTypeCreateVolume,
 			shouldExists: true,
 		},
 		{
@@ -427,12 +427,12 @@ func TestActionExists(t *testing.T) {
 				Config: []HookConfig{
 					{
 						BackendPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:           ProvisionerEventDelete,
+						Event:           EventTypeDeleteVolume,
 					},
 				},
 			},
 			resourceType: ResourceBackendPV,
-			eventType:    ProvisionerEventDelete,
+			eventType:    EventTypeDeleteVolume,
 			shouldExists: true,
 		},
 		{
@@ -441,12 +441,12 @@ func TestActionExists(t *testing.T) {
 				Config: []HookConfig{
 					{
 						BackendPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:           ProvisionerEventCreate,
+						Event:           EventTypeCreateVolume,
 					},
 				},
 			},
 			resourceType: ResourceBackendPV,
-			eventType:    ProvisionerEventDelete,
+			eventType:    EventTypeDeleteVolume,
 			shouldExists: false,
 		},
 		{
@@ -455,12 +455,12 @@ func TestActionExists(t *testing.T) {
 				Config: []HookConfig{
 					{
 						BackendPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:           ProvisionerEventDelete,
+						Event:           EventTypeDeleteVolume,
 					},
 				},
 			},
 			resourceType: ResourceBackendPV,
-			eventType:    ProvisionerEventCreate,
+			eventType:    EventTypeCreateVolume,
 			shouldExists: false,
 		},
 		{
@@ -469,12 +469,12 @@ func TestActionExists(t *testing.T) {
 				Config: []HookConfig{
 					{
 						BackendPVCConfig: buildPVCHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            ProvisionerEventCreate,
+						Event:            EventTypeCreateVolume,
 					},
 				},
 			},
 			resourceType: ResourceBackendPV,
-			eventType:    ProvisionerEventCreate,
+			eventType:    EventTypeCreateVolume,
 			shouldExists: false,
 		},
 		{
@@ -483,12 +483,12 @@ func TestActionExists(t *testing.T) {
 				Config: []HookConfig{
 					{
 						BackendPVCConfig: buildPVCHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            ProvisionerEventCreate,
+						Event:            EventTypeCreateVolume,
 					},
 				},
 			},
 			resourceType: ResourceBackendPV,
-			eventType:    ProvisionerEventDelete,
+			eventType:    EventTypeDeleteVolume,
 			shouldExists: false,
 		},
 
@@ -499,12 +499,12 @@ func TestActionExists(t *testing.T) {
 				Config: []HookConfig{
 					{
 						NFSServiceConfig: buildServiceHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            ProvisionerEventCreate,
+						Event:            EventTypeCreateVolume,
 					},
 				},
 			},
 			resourceType: ResourceNFSService,
-			eventType:    ProvisionerEventCreate,
+			eventType:    EventTypeCreateVolume,
 			shouldExists: true,
 		},
 		{
@@ -513,12 +513,12 @@ func TestActionExists(t *testing.T) {
 				Config: []HookConfig{
 					{
 						NFSServiceConfig: buildServiceHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            ProvisionerEventDelete,
+						Event:            EventTypeDeleteVolume,
 					},
 				},
 			},
 			resourceType: ResourceNFSService,
-			eventType:    ProvisionerEventDelete,
+			eventType:    EventTypeDeleteVolume,
 			shouldExists: true,
 		},
 		{
@@ -527,12 +527,12 @@ func TestActionExists(t *testing.T) {
 				Config: []HookConfig{
 					{
 						NFSServiceConfig: buildServiceHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            ProvisionerEventCreate,
+						Event:            EventTypeCreateVolume,
 					},
 				},
 			},
 			resourceType: ResourceNFSService,
-			eventType:    ProvisionerEventDelete,
+			eventType:    EventTypeDeleteVolume,
 			shouldExists: false,
 		},
 		{
@@ -541,12 +541,12 @@ func TestActionExists(t *testing.T) {
 				Config: []HookConfig{
 					{
 						NFSServiceConfig: buildServiceHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            ProvisionerEventDelete,
+						Event:            EventTypeDeleteVolume,
 					},
 				},
 			},
 			resourceType: ResourceNFSService,
-			eventType:    ProvisionerEventCreate,
+			eventType:    EventTypeCreateVolume,
 			shouldExists: false,
 		},
 		{
@@ -555,12 +555,12 @@ func TestActionExists(t *testing.T) {
 				Config: []HookConfig{
 					{
 						BackendPVCConfig: buildPVCHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            ProvisionerEventCreate,
+						Event:            EventTypeCreateVolume,
 					},
 				},
 			},
 			resourceType: ResourceNFSService,
-			eventType:    ProvisionerEventCreate,
+			eventType:    EventTypeCreateVolume,
 			shouldExists: false,
 		},
 		{
@@ -569,12 +569,12 @@ func TestActionExists(t *testing.T) {
 				Config: []HookConfig{
 					{
 						BackendPVCConfig: buildPVCHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            ProvisionerEventCreate,
+						Event:            EventTypeCreateVolume,
 					},
 				},
 			},
 			resourceType: ResourceNFSService,
-			eventType:    ProvisionerEventDelete,
+			eventType:    EventTypeDeleteVolume,
 			shouldExists: false,
 		},
 
@@ -586,12 +586,12 @@ func TestActionExists(t *testing.T) {
 					{
 						BackendPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
 						NFSPVConfig:     buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:           ProvisionerEventCreate,
+						Event:           EventTypeCreateVolume,
 					},
 				},
 			},
 			resourceType: ResourceNFSPV,
-			eventType:    ProvisionerEventCreate,
+			eventType:    EventTypeCreateVolume,
 			shouldExists: true,
 		},
 		{
@@ -600,12 +600,12 @@ func TestActionExists(t *testing.T) {
 				Config: []HookConfig{
 					{
 						NFSPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:       ProvisionerEventDelete,
+						Event:       EventTypeDeleteVolume,
 					},
 				},
 			},
 			resourceType: ResourceNFSPV,
-			eventType:    ProvisionerEventDelete,
+			eventType:    EventTypeDeleteVolume,
 			shouldExists: true,
 		},
 		{
@@ -614,12 +614,12 @@ func TestActionExists(t *testing.T) {
 				Config: []HookConfig{
 					{
 						NFSPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:       ProvisionerEventCreate,
+						Event:       EventTypeCreateVolume,
 					},
 				},
 			},
 			resourceType: ResourceNFSPV,
-			eventType:    ProvisionerEventDelete,
+			eventType:    EventTypeDeleteVolume,
 			shouldExists: false,
 		},
 		{
@@ -628,12 +628,12 @@ func TestActionExists(t *testing.T) {
 				Config: []HookConfig{
 					{
 						NFSPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:       ProvisionerEventDelete,
+						Event:       EventTypeDeleteVolume,
 					},
 				},
 			},
 			resourceType: ResourceNFSPV,
-			eventType:    ProvisionerEventCreate,
+			eventType:    EventTypeCreateVolume,
 			shouldExists: false,
 		},
 		{
@@ -642,12 +642,12 @@ func TestActionExists(t *testing.T) {
 				Config: []HookConfig{
 					{
 						NFSDeploymentConfig: buildDeploymentHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:               ProvisionerEventCreate,
+						Event:               EventTypeCreateVolume,
 					},
 				},
 			},
 			resourceType: ResourceNFSPV,
-			eventType:    ProvisionerEventCreate,
+			eventType:    EventTypeCreateVolume,
 			shouldExists: false,
 		},
 		{
@@ -656,12 +656,12 @@ func TestActionExists(t *testing.T) {
 				Config: []HookConfig{
 					{
 						NFSDeploymentConfig: buildDeploymentHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:               ProvisionerEventCreate,
+						Event:               EventTypeCreateVolume,
 					},
 				},
 			},
 			resourceType: ResourceNFSPV,
-			eventType:    ProvisionerEventDelete,
+			eventType:    EventTypeDeleteVolume,
 			shouldExists: false,
 		},
 
@@ -672,12 +672,12 @@ func TestActionExists(t *testing.T) {
 				Config: []HookConfig{
 					{
 						NFSDeploymentConfig: buildDeploymentHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:               ProvisionerEventCreate,
+						Event:               EventTypeCreateVolume,
 					},
 				},
 			},
 			resourceType: ResourceNFSServerDeployment,
-			eventType:    ProvisionerEventCreate,
+			eventType:    EventTypeCreateVolume,
 			shouldExists: true,
 		},
 		{
@@ -686,12 +686,12 @@ func TestActionExists(t *testing.T) {
 				Config: []HookConfig{
 					{
 						NFSDeploymentConfig: buildDeploymentHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:               ProvisionerEventDelete,
+						Event:               EventTypeDeleteVolume,
 					},
 				},
 			},
 			resourceType: ResourceNFSServerDeployment,
-			eventType:    ProvisionerEventDelete,
+			eventType:    EventTypeDeleteVolume,
 			shouldExists: true,
 		},
 		{
@@ -700,12 +700,12 @@ func TestActionExists(t *testing.T) {
 				Config: []HookConfig{
 					{
 						NFSDeploymentConfig: buildDeploymentHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:               ProvisionerEventCreate,
+						Event:               EventTypeCreateVolume,
 					},
 				},
 			},
 			resourceType: ResourceNFSServerDeployment,
-			eventType:    ProvisionerEventDelete,
+			eventType:    EventTypeDeleteVolume,
 			shouldExists: false,
 		},
 		{
@@ -714,12 +714,12 @@ func TestActionExists(t *testing.T) {
 				Config: []HookConfig{
 					{
 						NFSDeploymentConfig: buildDeploymentHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:               ProvisionerEventDelete,
+						Event:               EventTypeDeleteVolume,
 					},
 				},
 			},
 			resourceType: ResourceNFSServerDeployment,
-			eventType:    ProvisionerEventCreate,
+			eventType:    EventTypeCreateVolume,
 			shouldExists: false,
 		},
 		{
@@ -728,12 +728,12 @@ func TestActionExists(t *testing.T) {
 				Config: []HookConfig{
 					{
 						NFSPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:       ProvisionerEventCreate,
+						Event:       EventTypeCreateVolume,
 					},
 				},
 			},
 			resourceType: ResourceNFSServerDeployment,
-			eventType:    ProvisionerEventCreate,
+			eventType:    EventTypeCreateVolume,
 			shouldExists: false,
 		},
 		{
@@ -742,12 +742,12 @@ func TestActionExists(t *testing.T) {
 				Config: []HookConfig{
 					{
 						NFSPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:       ProvisionerEventCreate,
+						Event:       EventTypeCreateVolume,
 					},
 				},
 			},
 			resourceType: ResourceNFSServerDeployment,
-			eventType:    ProvisionerEventDelete,
+			eventType:    EventTypeDeleteVolume,
 			shouldExists: false,
 		},
 	}

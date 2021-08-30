@@ -228,8 +228,8 @@ func (p *Provisioner) Delete(pv *v1.PersistentVolume) (err error) {
 
 		if nfsServerType == "kernel" {
 			if err = p.DeleteKernalNFSServer(pv); err == nil {
-				if p.hook != nil && p.hook.ActionExists(nfshook.ResourceNFSPV, nfshook.ProvisionerEventDelete) {
-					err = p.hook.ExecuteHookOnNFSPV(p.kubeClient, pv.Name, nfshook.ProvisionerEventDelete)
+				if p.hook != nil && p.hook.ActionExists(nfshook.ResourceNFSPV, nfshook.EventTypeDeleteVolume) {
+					err = p.hook.ExecuteHookOnNFSPV(p.kubeClient, pv.Name, nfshook.EventTypeDeleteVolume)
 				}
 			}
 		}

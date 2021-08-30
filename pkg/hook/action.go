@@ -18,7 +18,7 @@ package hook
 
 // Action run hooks for the given object type as per the event
 // Action will skip further hook execution if any error occurred
-func (h *Hook) Action(obj interface{}, resourceType int, eventType ProvisionerEventType) error {
+func (h *Hook) Action(obj interface{}, resourceType int, eventType EventType) error {
 	var err error
 	for _, cfg := range h.Config {
 		if cfg.Event != eventType {
@@ -57,7 +57,7 @@ func (h *Hook) Action(obj interface{}, resourceType int, eventType ProvisionerEv
 }
 
 // ActionExists will check if action exists for the give resource type and event type
-func (h *Hook) ActionExists(resourceType int, eventType ProvisionerEventType) bool {
+func (h *Hook) ActionExists(resourceType int, eventType EventType) bool {
 	_, actionExist := h.availableActions[eventType][resourceType]
 	return actionExist
 }

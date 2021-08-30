@@ -42,7 +42,7 @@ func TestExecuteHookOnNFSPV(t *testing.T) {
 				Config: []HookConfig{
 					{
 						NFSPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:       ProvisionerEventCreate,
+						Event:       EventTypeCreateVolume,
 					},
 				},
 			},
@@ -55,7 +55,7 @@ func TestExecuteHookOnNFSPV(t *testing.T) {
 				Config: []HookConfig{
 					{
 						NFSPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:       ProvisionerEventCreate,
+						Event:       EventTypeCreateVolume,
 						Action:      HookActionAdd,
 					},
 				},
@@ -71,7 +71,7 @@ func TestExecuteHookOnNFSPV(t *testing.T) {
 				Config: []HookConfig{
 					{
 						NFSPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:       ProvisionerEventCreate,
+						Event:       EventTypeCreateVolume,
 						Action:      HookActionRemove,
 					},
 				},
@@ -92,7 +92,7 @@ func TestExecuteHookOnNFSPV(t *testing.T) {
 				assert.Nil(t, err, "PV creation failed, err=%s", err)
 			}
 
-			err := test.hook.ExecuteHookOnNFSPV(clientset, test.PVName, ProvisionerEventCreate)
+			err := test.hook.ExecuteHookOnNFSPV(clientset, test.PVName, EventTypeCreateVolume)
 			if test.shouldErrored {
 				assert.NotNil(t, err, "ExecuteHookOnNFSPV should return error")
 			} else {
@@ -127,7 +127,7 @@ func TestExecuteHookOnBackendPVC(t *testing.T) {
 				Config: []HookConfig{
 					{
 						BackendPVCConfig: buildPVCHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            ProvisionerEventCreate,
+						Event:            EventTypeCreateVolume,
 					},
 				},
 			},
@@ -141,7 +141,7 @@ func TestExecuteHookOnBackendPVC(t *testing.T) {
 				Config: []HookConfig{
 					{
 						BackendPVCConfig: buildPVCHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            ProvisionerEventCreate,
+						Event:            EventTypeCreateVolume,
 						Action:           HookActionAdd,
 					},
 				},
@@ -158,7 +158,7 @@ func TestExecuteHookOnBackendPVC(t *testing.T) {
 				Config: []HookConfig{
 					{
 						BackendPVCConfig: buildPVCHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            ProvisionerEventCreate,
+						Event:            EventTypeCreateVolume,
 						Action:           HookActionRemove,
 					},
 				},
@@ -180,7 +180,7 @@ func TestExecuteHookOnBackendPVC(t *testing.T) {
 				assert.Nil(t, err, "PVC creation failed, err=%s", err)
 			}
 
-			err := test.hook.ExecuteHookOnBackendPVC(clientset, test.ns, test.pvcName, ProvisionerEventCreate)
+			err := test.hook.ExecuteHookOnBackendPVC(clientset, test.ns, test.pvcName, EventTypeCreateVolume)
 			if test.shouldErrored {
 				assert.NotNil(t, err, "ExecuteHookOnBackendPVC should return error")
 			} else {
@@ -215,7 +215,7 @@ func TestExecuteHookOnNFSService(t *testing.T) {
 				Config: []HookConfig{
 					{
 						NFSServiceConfig: buildServiceHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            ProvisionerEventCreate,
+						Event:            EventTypeCreateVolume,
 					},
 				},
 			},
@@ -229,7 +229,7 @@ func TestExecuteHookOnNFSService(t *testing.T) {
 				Config: []HookConfig{
 					{
 						NFSServiceConfig: buildServiceHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            ProvisionerEventCreate,
+						Event:            EventTypeCreateVolume,
 						Action:           HookActionAdd,
 					},
 				},
@@ -246,7 +246,7 @@ func TestExecuteHookOnNFSService(t *testing.T) {
 				Config: []HookConfig{
 					{
 						NFSServiceConfig: buildServiceHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            ProvisionerEventCreate,
+						Event:            EventTypeCreateVolume,
 						Action:           HookActionRemove,
 					},
 				},
@@ -268,7 +268,7 @@ func TestExecuteHookOnNFSService(t *testing.T) {
 				assert.Nil(t, err, "Service creation failed, err=%s", err)
 			}
 
-			err := test.hook.ExecuteHookOnNFSService(clientset, test.ns, test.svcName, ProvisionerEventCreate)
+			err := test.hook.ExecuteHookOnNFSService(clientset, test.ns, test.svcName, EventTypeCreateVolume)
 			if test.shouldErrored {
 				assert.NotNil(t, err, "ExecuteHookOnNFSService should return error")
 			} else {
@@ -303,7 +303,7 @@ func TestExecuteHookOnNFSDeployment(t *testing.T) {
 				Config: []HookConfig{
 					{
 						NFSDeploymentConfig: buildDeploymentHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:               ProvisionerEventCreate,
+						Event:               EventTypeCreateVolume,
 					},
 				},
 			},
@@ -317,7 +317,7 @@ func TestExecuteHookOnNFSDeployment(t *testing.T) {
 				Config: []HookConfig{
 					{
 						NFSDeploymentConfig: buildDeploymentHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:               ProvisionerEventCreate,
+						Event:               EventTypeCreateVolume,
 						Action:              HookActionAdd,
 					},
 				},
@@ -334,7 +334,7 @@ func TestExecuteHookOnNFSDeployment(t *testing.T) {
 				Config: []HookConfig{
 					{
 						NFSDeploymentConfig: buildDeploymentHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:               ProvisionerEventCreate,
+						Event:               EventTypeCreateVolume,
 						Action:              HookActionRemove,
 					},
 				},
@@ -356,7 +356,7 @@ func TestExecuteHookOnNFSDeployment(t *testing.T) {
 				assert.Nil(t, err, "Deployment creation failed, err=%s", err)
 			}
 
-			err := test.hook.ExecuteHookOnNFSDeployment(clientset, test.ns, test.deployName, ProvisionerEventCreate)
+			err := test.hook.ExecuteHookOnNFSDeployment(clientset, test.ns, test.deployName, EventTypeCreateVolume)
 			if test.shouldErrored {
 				assert.NotNil(t, err, "ExecuteHookOnNFSDeployment should return error")
 			} else {
@@ -404,7 +404,7 @@ func TestExecuteHookOnBackendPV(t *testing.T) {
 				Config: []HookConfig{
 					{
 						BackendPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:           ProvisionerEventCreate,
+						Event:           EventTypeCreateVolume,
 					},
 				},
 			},
@@ -418,7 +418,7 @@ func TestExecuteHookOnBackendPV(t *testing.T) {
 				Config: []HookConfig{
 					{
 						BackendPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:           ProvisionerEventCreate,
+						Event:           EventTypeCreateVolume,
 						Action:          HookActionAdd,
 					},
 				},
@@ -436,7 +436,7 @@ func TestExecuteHookOnBackendPV(t *testing.T) {
 				Config: []HookConfig{
 					{
 						BackendPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:           ProvisionerEventCreate,
+						Event:           EventTypeCreateVolume,
 						Action:          HookActionRemove,
 					},
 				},
@@ -464,7 +464,7 @@ func TestExecuteHookOnBackendPV(t *testing.T) {
 				assert.Nil(t, err, "PV creation failed, err=%s", err)
 			}
 
-			err := test.hook.ExecuteHookOnBackendPV(clientset, test.ns, test.pvcName, ProvisionerEventCreate)
+			err := test.hook.ExecuteHookOnBackendPV(clientset, test.ns, test.pvcName, EventTypeCreateVolume)
 			if test.shouldErrored {
 				assert.NotNil(t, err, "ExecuteHookOnBackendPV should return error")
 			} else {

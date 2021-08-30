@@ -35,14 +35,14 @@ const (
 	HookActionRemove HookActionType = "Remove"
 )
 
-// ProvisionerEventType defines the type of events on which hook needs to be executed
-type ProvisionerEventType string
+// EventType defines the type of events on which hook needs to be executed
+type EventType string
 
 const (
-	// ProvisionerEventCreate represent create event
-	ProvisionerEventCreate ProvisionerEventType = "Create"
-	// ProvisionerEventDelete represent delete event
-	ProvisionerEventDelete ProvisionerEventType = "Delete"
+	// EventTypeCreateVolume represent volume create event
+	EventTypeCreateVolume EventType = "CreateVolume"
+	// EventTypeDeleteVolume represent volume delete event
+	EventTypeDeleteVolume EventType = "DeleteVolume"
 )
 
 // PVHook defines the field which will be updated for PV Hook Action
@@ -101,12 +101,12 @@ type HookConfig struct {
 	// NFSDeploymentConfig represent config for NFS Deployment resource
 	NFSDeploymentConfig *DeploymentHook `json:"nfsDeployment,omitempty"`
 
-	// Event defines provisioning event on which
+	// Event defines provisioning event type on which
 	// given hook action needs to be executed
-	Event ProvisionerEventType `json:"provisioningEvent"`
+	Event EventType `json:"eventType"`
 
 	// Action represent the type of hook action, i.e HookActionAdd or HookActionRemove
-	Action HookActionType `json:"hookAction"`
+	Action HookActionType `json:"actionType"`
 }
 
 // Hook stores HookConfig and its version
@@ -121,5 +121,5 @@ type Hook struct {
 
 	// availableActions keep inventory of resources and events for which action is configured
 	// in Hook.Config
-	availableActions map[ProvisionerEventType]map[int]struct{}
+	availableActions map[EventType]map[int]struct{}
 }

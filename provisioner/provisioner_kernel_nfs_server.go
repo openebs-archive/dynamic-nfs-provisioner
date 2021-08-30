@@ -139,8 +139,8 @@ func (p *Provisioner) ProvisionKernalNFSServer(opts pvController.ProvisionOption
 		return nil, err
 	}
 
-	if p.hook != nil && p.hook.ActionExists(nfshook.ResourceNFSPV, nfshook.ProvisionerEventCreate) {
-		err = p.hook.Action(pvObj, nfshook.ResourceNFSPV, nfshook.ProvisionerEventCreate)
+	if p.hook != nil && p.hook.ActionExists(nfshook.ResourceNFSPV, nfshook.EventTypeCreateVolume) {
+		err = p.hook.Action(pvObj, nfshook.ResourceNFSPV, nfshook.EventTypeCreateVolume)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to execute hook on NFS PV=%s", pvObj.Name)
 		}

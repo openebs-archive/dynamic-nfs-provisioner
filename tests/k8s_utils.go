@@ -18,6 +18,7 @@ package tests
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -119,7 +120,7 @@ func initK8sClient(kubeConfigPath string) error {
 func (k *KubeClient) waitForPods(podNamespace, labelSelector string, expectedPhase corev1.PodPhase, expectedCount int) error {
 	dumpLog := 0
 	for {
-		podList, err := k.CoreV1().Pods(podNamespace).List(metav1.ListOptions{LabelSelector: labelSelector})
+		podList, err := k.CoreV1().Pods(podNamespace).List(context.TODO(), metav1.ListOptions{LabelSelector: labelSelector})
 		if err != nil {
 			return err
 		}
@@ -147,11 +148,11 @@ func (k *KubeClient) waitForPods(podNamespace, labelSelector string, expectedPha
 }
 
 func (k *KubeClient) listPods(podNamespace string, labelSelector string) (*corev1.PodList, error) {
-	return k.CoreV1().Pods(podNamespace).List(metav1.ListOptions{LabelSelector: labelSelector})
+	return k.CoreV1().Pods(podNamespace).List(context.TODO(), metav1.ListOptions{LabelSelector: labelSelector})
 }
 
 func (k *KubeClient) createNamespace(namespace string) error {
-	_, err := k.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
+	_, err := k.CoreV1().Namespaces().Get(context.TODO(), namespace, metav1.GetOptions{})
 	if err != nil {
 		if k8serrors.IsNotFound(err) {
 			o := &corev1.Namespace{
@@ -159,7 +160,7 @@ func (k *KubeClient) createNamespace(namespace string) error {
 					Name: namespace,
 				},
 			}
-			_, err = k.CoreV1().Namespaces().Create(o)
+			_, err = k.CoreV1().Namespaces().Create(context.TODO(), o, metav1.CreateOptions{})
 		}
 	}
 	return err
@@ -169,7 +170,7 @@ func (k *KubeClient) createNamespace(namespace string) error {
 func (k *KubeClient) WaitForNamespaceCleanup(ns string) error {
 	dumpLog := 0
 	for {
-		nsObj, err := k.CoreV1().Namespaces().Get(ns, metav1.GetOptions{})
+		nsObj, err := k.CoreV1().Namespaces().Get(context.TODO(), ns, metav1.GetOptions{})
 		if k8serrors.IsNotFound(err) {
 			return nil
 		}
@@ -190,7 +191,7 @@ func (k *KubeClient) WaitForNamespaceCleanup(ns string) error {
 }
 
 func (k *KubeClient) destroyNamespace(namespace string) error {
-	err := k.CoreV1().Namespaces().Delete(namespace, &metav1.DeleteOptions{})
+	err := k.CoreV1().Namespaces().Delete(context.TODO(), namespace, metav1.DeleteOptions{})
 	if err != nil {
 		if k8serrors.IsNotFound(err) {
 			return nil
@@ -204,7 +205,7 @@ func (k *KubeClient) waitForPVCBound(ns, pvcName string) (corev1.PersistentVolum
 	for {
 		o, err := k.CoreV1().
 			PersistentVolumeClaims(ns).
-			Get(pvcName, metav1.GetOptions{})
+			Get(context.TODO(), pvcName, metav1.GetOptions{})
 		if err != nil {
 			return "", err
 		}
@@ -222,7 +223,7 @@ func (k *KubeClient) waitForPVCBound(ns, pvcName string) (corev1.PersistentVolum
 
 // createPVC will create PVC and it will not wait for PVC to get bound
 func (k *KubeClient) createPVC(pvc *corev1.PersistentVolumeClaim) error {
-	_, err := k.CoreV1().PersistentVolumeClaims(pvc.Namespace).Create(pvc)
+	_, err := k.CoreV1().PersistentVolumeClaims(pvc.Namespace).Create(context.TODO(), pvc, metav1.CreateOptions{})
 	if err != nil {
 		if !k8serrors.IsAlreadyExists(err) {
 			return err
@@ -233,11 +234,11 @@ func (k *KubeClient) createPVC(pvc *corev1.PersistentVolumeClaim) error {
 }
 
 func (k *KubeClient) getPVC(pvcNamespace, pvcName string) (*corev1.PersistentVolumeClaim, error) {
-	return k.CoreV1().PersistentVolumeClaims(pvcNamespace).Get(pvcName, metav1.GetOptions{})
+	return k.CoreV1().PersistentVolumeClaims(pvcNamespace).Get(context.TODO(), pvcName, metav1.GetOptions{})
 }
 
 func (k *KubeClient) deletePVC(namespace, pvc string) error {
-	err := k.CoreV1().PersistentVolumeClaims(namespace).Delete(pvc, &metav1.DeleteOptions{})
+	err := k.CoreV1().PersistentVolumeClaims(namespace).Delete(context.TODO(), pvc, metav1.DeleteOptions{})
 	if err != nil {
 		if k8serrors.IsNotFound(err) {
 			err = nil
@@ -248,19 +249,19 @@ func (k *KubeClient) deletePVC(namespace, pvc string) error {
 }
 
 func (k *KubeClient) getPV(name string) (*corev1.PersistentVolume, error) {
-	return k.CoreV1().PersistentVolumes().Get(name, metav1.GetOptions{})
+	return k.CoreV1().PersistentVolumes().Get(context.TODO(), name, metav1.GetOptions{})
 }
 
 func (k *KubeClient) updatePV(pvObj *corev1.PersistentVolume) (*corev1.PersistentVolume, error) {
-	return k.CoreV1().PersistentVolumes().Update(pvObj)
+	return k.CoreV1().PersistentVolumes().Update(context.TODO(), pvObj, metav1.UpdateOptions{})
 }
 
 func (k *KubeClient) deletePV(pvName string) error {
-	return k.CoreV1().PersistentVolumes().Delete(pvName, &metav1.DeleteOptions{})
+	return k.CoreV1().PersistentVolumes().Delete(context.TODO(), pvName, metav1.DeleteOptions{})
 }
 
 func (k *KubeClient) createDeployment(deployment *appsv1.Deployment) error {
-	_, err := k.AppsV1().Deployments(deployment.Namespace).Create(deployment)
+	_, err := k.AppsV1().Deployments(deployment.Namespace).Create(context.TODO(), deployment, metav1.CreateOptions{})
 	if err != nil {
 		if k8serrors.IsAlreadyExists(err) {
 			return nil
@@ -274,10 +275,10 @@ func (k *KubeClient) applyDeployment(deployment *appsv1.Deployment) error {
 	// TODO: Use server side apply
 	currentDeployment, err := k.AppsV1().
 		Deployments(deployment.Namespace).
-		Get(deployment.Name, metav1.GetOptions{})
+		Get(context.TODO(), deployment.Name, metav1.GetOptions{})
 	if err != nil {
 		if k8serrors.IsNotFound(err) {
-			_, err := k.AppsV1().Deployments(deployment.Namespace).Create(deployment)
+			_, err := k.AppsV1().Deployments(deployment.Namespace).Create(context.TODO(), deployment, metav1.CreateOptions{})
 			if err != nil {
 				return errors.Errorf("Failed to create deployment %s/%s, err=%s", deployment.Namespace, deployment.Name, err)
 			}
@@ -293,9 +294,10 @@ func (k *KubeClient) applyDeployment(deployment *appsv1.Deployment) error {
 	// Patch the deployment
 	_, err = k.AppsV1().
 		Deployments(deployment.Namespace).
-		Patch(deployment.Name,
+		Patch(context.TODO(), deployment.Name,
 			types.StrategicMergePatchType,
 			data,
+			metav1.PatchOptions{},
 		)
 	if err != nil {
 		return err
@@ -305,19 +307,19 @@ func (k *KubeClient) applyDeployment(deployment *appsv1.Deployment) error {
 }
 
 func (k *KubeClient) deleteDeployment(namespace, deployment string) error {
-	return k.AppsV1().Deployments(namespace).Delete(deployment, &metav1.DeleteOptions{})
+	return k.AppsV1().Deployments(namespace).Delete(context.TODO(), deployment, metav1.DeleteOptions{})
 }
 
 func (k *KubeClient) getDeployment(namespace, deployment string) (*appsv1.Deployment, error) {
-	return k.AppsV1().Deployments(namespace).Get(deployment, metav1.GetOptions{})
+	return k.AppsV1().Deployments(namespace).Get(context.TODO(), deployment, metav1.GetOptions{})
 }
 
 func (k *KubeClient) updateDeployment(deployment *appsv1.Deployment) (*appsv1.Deployment, error) {
-	return k.AppsV1().Deployments(deployment.Namespace).Update(deployment)
+	return k.AppsV1().Deployments(deployment.Namespace).Update(context.TODO(), deployment, metav1.UpdateOptions{})
 }
 
 func (k *KubeClient) listDeployments(namespace, labelSelector string) (*appsv1.DeploymentList, error) {
-	return k.AppsV1().Deployments(namespace).List(metav1.ListOptions{LabelSelector: labelSelector})
+	return k.AppsV1().Deployments(namespace).List(context.TODO(), metav1.ListOptions{LabelSelector: labelSelector})
 }
 
 func dumpK8sObject(obj runtime.Object) {
@@ -332,7 +334,7 @@ func dumpK8sObject(obj runtime.Object) {
 }
 
 func (k *KubeClient) createStorageClass(sc *storagev1.StorageClass) error {
-	_, err := k.StorageV1().StorageClasses().Create(sc)
+	_, err := k.StorageV1().StorageClasses().Create(context.TODO(), sc, metav1.CreateOptions{})
 	if err != nil {
 		if !k8serrors.IsAlreadyExists(err) {
 			return err
@@ -342,25 +344,25 @@ func (k *KubeClient) createStorageClass(sc *storagev1.StorageClass) error {
 }
 
 func (k *KubeClient) deleteStorageClass(scName string) error {
-	return k.StorageV1().StorageClasses().Delete(scName, &metav1.DeleteOptions{})
+	return k.StorageV1().StorageClasses().Delete(context.TODO(), scName, metav1.DeleteOptions{})
 }
 
 // Add Kubernetes service related operations
 func (k *KubeClient) getService(namespace, name string) (*corev1.Service, error) {
-	return k.CoreV1().Services(namespace).Get(name, metav1.GetOptions{})
+	return k.CoreV1().Services(namespace).Get(context.TODO(), name, metav1.GetOptions{})
 }
 
 func (k *KubeClient) deleteService(namespace, name string) error {
-	return k.CoreV1().Services(namespace).Delete(name, &metav1.DeleteOptions{})
+	return k.CoreV1().Services(namespace).Delete(context.TODO(), name, metav1.DeleteOptions{})
 }
 
 // Add Node related operations
 func (k *KubeClient) listNodes(labelSelector string) (*corev1.NodeList, error) {
-	return k.CoreV1().Nodes().List(metav1.ListOptions{LabelSelector: labelSelector})
+	return k.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{LabelSelector: labelSelector})
 }
 
 func (k *KubeClient) updateNode(node *corev1.Node) (*corev1.Node, error) {
-	return k.CoreV1().Nodes().Update(node)
+	return k.CoreV1().Nodes().Update(context.TODO(), node, metav1.UpdateOptions{})
 }
 
 func (k *KubeClient) getEvents(objOrRef runtime.Object) (*corev1.EventList, error) {
@@ -385,7 +387,7 @@ func (k *KubeClient) getEvents(objOrRef runtime.Object) (*corev1.EventList, erro
 	eventList := &corev1.EventList{}
 	err = followContinue(&initialOpts,
 		func(options metav1.ListOptions) (runtime.Object, error) {
-			newEvents, err := e.List(options)
+			newEvents, err := e.List(context.TODO(), options)
 			if err != nil {
 				return nil, err
 			}
@@ -433,7 +435,7 @@ func getPatchData(oldObj, newObj interface{}) ([]byte, []byte, error) {
 
 func (k *KubeClient) waitForDeploymentRollout(ns, deployment string) error {
 	return wait.PollInfinite(2*time.Second, func() (bool, error) {
-		deploy, err := k.AppsV1().Deployments(ns).Get(deployment, metav1.GetOptions{})
+		deploy, err := k.AppsV1().Deployments(ns).Get(context.TODO(), deployment, metav1.GetOptions{})
 		if err != nil {
 			return true, err
 		}
@@ -482,5 +484,5 @@ func (k *KubeClient) waitForDeploymentRollout(ns, deployment string) error {
 }
 
 func (k *KubeClient) listEvents(namespace string) (*corev1.EventList, error) {
-	return k.CoreV1().Events(namespace).List(metav1.ListOptions{})
+	return k.CoreV1().Events(namespace).List(context.TODO(), metav1.ListOptions{})
 }

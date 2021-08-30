@@ -18,6 +18,7 @@ limitations under the License.
 package provisioner
 
 import (
+	"context"
 	"strconv"
 	"strings"
 
@@ -25,7 +26,7 @@ import (
 	mconfig "github.com/openebs/maya/pkg/apis/openebs.io/v1alpha1"
 	cast "github.com/openebs/maya/pkg/castemplate/v1alpha1"
 	"github.com/openebs/maya/pkg/util"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 
 	//"github.com/pkg/errors"
 	errors "github.com/pkg/errors"
@@ -83,7 +84,7 @@ func (p *Provisioner) GetVolumeConfig(pvName string, pvc *v1.PersistentVolumeCla
 
 	//Fetch the SC
 	scName := GetStorageClassNameFromPVC(pvc)
-	sc, err := p.kubeClient.StorageV1().StorageClasses().Get(*scName, metav1.GetOptions{})
+	sc, err := p.kubeClient.StorageV1().StorageClasses().Get(context.TODO(), *scName, metav1.GetOptions{})
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get storageclass: missing sc name {%v}", scName)
 	}

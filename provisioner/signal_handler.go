@@ -17,20 +17,21 @@ limitations under the License.
 package provisioner
 
 import (
+	"context"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 //RegisterShutdownChannel closes the channel when signaled for termination
-func RegisterShutdownChannel(done chan struct{}) {
+func RegisterShutdownChannel(cancelFn context.CancelFunc) {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		sig := <-sigs
 		klog.Infof("Receive %v to exit", sig)
-		close(done)
+		cancelFn()
 	}()
 }

@@ -17,6 +17,7 @@ limitations under the License.
 package provisioner
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -91,11 +92,11 @@ func TestRunGarbageCollector(t *testing.T) {
 	assert.NoError(t, createDeployment(clientset, nfsDeployment), "on creating nfs-server deployment resource")
 	assert.NoError(t, createService(clientset, nfsService), "on creating nfs-server service resourec")
 
-	stopCh := make(chan struct{})
-	go RunGarbageCollector(clientset, pvTracker, nfsServerNs, stopCh)
+	ctx, cancelFn := context.WithCancel(context.TODO())
+	go RunGarbageCollector(ctx, clientset, pvTracker, nfsServerNs)
 
 	time.Sleep(GarbageCollectorInterval + 10*time.Second /* to ensure cleanUpStalePvc run */)
-	close(stopCh)
+	cancelFn()
 
 	exists, err := pvcExists(clientset, backendPvc.Namespace, backendPvc.Name)
 	assert.NoError(t, err, "checking backend PVC existence")
@@ -238,7 +239,7 @@ func TestCleanUpStalePvc(t *testing.T) {
 			assert.NoError(t, createDeployment(test.clientset, test.nfsDeployment), "on creating nfs-server deployment resource")
 			assert.NoError(t, createService(test.clientset, test.nfsService), "on creating nfs-server service resourec")
 
-			assert.NoError(t, cleanUpStalePvc(test.clientset, test.pvTracker, nfsServerNs))
+			assert.NoError(t, cleanUpStalePvc(context.TODO(), test.clientset, test.pvTracker, nfsServerNs))
 
 			if test.backendPvc != nil {
 				exists, err := pvcExists(test.clientset, test.backendPvc.Namespace, test.backendPvc.Name)
@@ -271,7 +272,7 @@ func ternary(cond bool, varA, varB interface{}) interface{} {
 }
 
 func pvcExists(client *fake.Clientset, pvcNamespace, pvcName string) (bool, error) {
-	_, err := client.CoreV1().PersistentVolumeClaims(pvcNamespace).Get(pvcName, metav1.GetOptions{})
+	_, err := client.CoreV1().PersistentVolumeClaims(pvcNamespace).Get(context.TODO(), pvcName, metav1.GetOptions{})
 	if err == nil {
 		return true, nil
 	}
@@ -283,7 +284,7 @@ func pvcExists(client *fake.Clientset, pvcNamespace, pvcName string) (bool, erro
 }
 
 func deploymentExists(client *fake.Clientset, deploymentNs, deploymentName string) (bool, error) {
-	_, err := client.AppsV1().Deployments(deploymentNs).Get(deploymentName, metav1.GetOptions{})
+	_, err := client.AppsV1().Deployments(deploymentNs).Get(context.TODO(), deploymentName, metav1.GetOptions{})
 	if err == nil {
 		return true, nil
 	}
@@ -295,7 +296,7 @@ func deploymentExists(client *fake.Clientset, deploymentNs, deploymentName strin
 }
 
 func serviceExists(client *fake.Clientset, serviceNs, serviceName string) (bool, error) {
-	_, err := client.CoreV1().Services(serviceNs).Get(serviceName, metav1.GetOptions{})
+	_, err := client.CoreV1().Services(serviceNs).Get(context.TODO(), serviceName, metav1.GetOptions{})
 	if err == nil {
 		return true, nil
 	}
@@ -314,7 +315,7 @@ func createPvc(client *fake.Clientset, pvcObj *corev1.PersistentVolumeClaim) err
 		return nil
 	}
 
-	_, err := client.CoreV1().PersistentVolumeClaims(pvcObj.Namespace).Create(pvcObj)
+	_, err := client.CoreV1().PersistentVolumeClaims(pvcObj.Namespace).Create(context.TODO(), pvcObj, metav1.CreateOptions{})
 	return err
 }
 
@@ -326,7 +327,7 @@ func createDeployment(client *fake.Clientset, deployObj *appsv1.Deployment) erro
 		return nil
 	}
 
-	_, err := client.AppsV1().Deployments(deployObj.Namespace).Create(deployObj)
+	_, err := client.AppsV1().Deployments(deployObj.Namespace).Create(context.TODO(), deployObj, metav1.CreateOptions{})
 	return err
 }
 
@@ -338,7 +339,7 @@ func createService(client *fake.Clientset, serviceObj *corev1.Service) error {
 		return nil
 	}
 
-	_, err := client.CoreV1().Services(serviceObj.Namespace).Create(serviceObj)
+	_, err := client.CoreV1().Services(serviceObj.Namespace).Create(context.TODO(), serviceObj, metav1.CreateOptions{})
 	return err
 }
 
@@ -350,6 +351,6 @@ func createPv(client *fake.Clientset, pvObj *corev1.PersistentVolume) error {
 		return nil
 	}
 
-	_, err := client.CoreV1().PersistentVolumes().Create(pvObj)
+	_, err := client.CoreV1().PersistentVolumes().Create(context.TODO(), pvObj, metav1.CreateOptions{})
 	return err
 }

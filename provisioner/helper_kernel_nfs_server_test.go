@@ -17,6 +17,7 @@ limitations under the License.
 package provisioner
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -189,7 +190,7 @@ func TestCreateBackendPVC(t *testing.T) {
 			_, err := test.provisioner.kubeClient.
 				CoreV1().
 				PersistentVolumeClaims(test.preProvisionedPVC.Namespace).
-				Create(test.preProvisionedPVC)
+				Create(context.TODO(), test.preProvisionedPVC, metav1.CreateOptions{})
 			if err != nil {
 				t.Errorf("failed to pre-create PVC %s/%s error: %v", test.preProvisionedPVC.Namespace, test.preProvisionedPVC.Name, err)
 			}
@@ -207,7 +208,7 @@ func TestCreateBackendPVC(t *testing.T) {
 			nfsPVCObj, err := test.provisioner.kubeClient.
 				CoreV1().
 				PersistentVolumeClaims(test.provisioner.serverNamespace).
-				Get(test.expectedPVCName, metav1.GetOptions{})
+				Get(context.TODO(), test.expectedPVCName, metav1.GetOptions{})
 			if err != nil {
 				t.Errorf("failed to get PVC %s/%s error: %v", test.provisioner.serverNamespace, test.expectedPVCName, err)
 			} else {
@@ -262,7 +263,7 @@ func TestDeleteBackendPVC(t *testing.T) {
 				_, err := test.provisioner.kubeClient.
 					CoreV1().
 					PersistentVolumeClaims(test.existingPVC.Namespace).
-					Create(test.existingPVC)
+					Create(context.TODO(), test.existingPVC, metav1.CreateOptions{})
 				if err != nil {
 					t.Errorf("failed to create existing PVC %s/%s error: %v", test.existingPVC.Namespace, test.existingPVC.Name, err)
 				}
@@ -279,7 +280,7 @@ func TestDeleteBackendPVC(t *testing.T) {
 			if !test.isErrExpected {
 				_, err = test.provisioner.kubeClient.CoreV1().
 					PersistentVolumeClaims(test.provisioner.serverNamespace).
-					Get("nfs-"+test.options.pvName, metav1.GetOptions{})
+					Get(context.TODO(), "nfs-"+test.options.pvName, metav1.GetOptions{})
 				if !k8serrors.IsNotFound(err) {
 					t.Errorf("%q test failed expected PVC %s/%s not to exist after deleting but got err: %v", name, test.provisioner.serverNamespace, test.options.pvName, err)
 				}
@@ -383,7 +384,7 @@ func TestCreateDeployment(t *testing.T) {
 				_, err := test.provisioner.kubeClient.
 					AppsV1().
 					Deployments(test.preProvisionedDeployment.Namespace).
-					Create(test.preProvisionedDeployment)
+					Create(context.TODO(), test.preProvisionedDeployment, metav1.CreateOptions{})
 				if err != nil {
 					t.Errorf("failed to pre-create deployment %s/%s error: %v", test.preProvisionedDeployment.Namespace, test.preProvisionedDeployment.Name, err)
 				}
@@ -402,7 +403,7 @@ func TestCreateDeployment(t *testing.T) {
 				nfsDeployObj, err := test.provisioner.kubeClient.
 					AppsV1().
 					Deployments(test.provisioner.serverNamespace).
-					Get(deployName, metav1.GetOptions{})
+					Get(context.TODO(), deployName, metav1.GetOptions{})
 				if err != nil {
 					t.Errorf("failed to get deployment %s/%s error: %v", test.provisioner.serverNamespace, deployName, err)
 				} else {
@@ -460,7 +461,7 @@ func TestDeleteDeployment(t *testing.T) {
 				_, err := test.provisioner.kubeClient.
 					AppsV1().
 					Deployments(test.existingDeployment.Namespace).
-					Create(test.existingDeployment)
+					Create(context.TODO(), test.existingDeployment, metav1.CreateOptions{})
 				if err != nil {
 					t.Errorf("failed to create existing deployment %s/%s error: %v", test.existingDeployment.Namespace, test.existingDeployment.Name, err)
 				}
@@ -478,7 +479,7 @@ func TestDeleteDeployment(t *testing.T) {
 				_, err := test.provisioner.kubeClient.
 					AppsV1().
 					Deployments(test.provisioner.serverNamespace).
-					Get("nfs-"+test.options.pvName, metav1.GetOptions{})
+					Get(context.TODO(), "nfs-"+test.options.pvName, metav1.GetOptions{})
 				if !k8serrors.IsNotFound(err) {
 					t.Errorf("%q test failed expected deployment not to exist but got error %v", name, err)
 				}
@@ -540,7 +541,7 @@ func TestCreateService(t *testing.T) {
 			if test.preProvisionedService != nil {
 				_, err := test.provisioner.kubeClient.CoreV1().
 					Services(test.preProvisionedService.Namespace).
-					Create(test.preProvisionedService)
+					Create(context.TODO(), test.preProvisionedService, metav1.CreateOptions{})
 				if err != nil {
 					t.Errorf("failed to pre-create service %s/%s error: %v", test.preProvisionedService.Namespace, test.preProvisionedService.Name, err)
 				}
@@ -558,7 +559,7 @@ func TestCreateService(t *testing.T) {
 				svcObj, err := test.provisioner.kubeClient.
 					CoreV1().
 					Services(test.provisioner.serverNamespace).
-					Get(test.expectedServiceName, metav1.GetOptions{})
+					Get(context.TODO(), test.expectedServiceName, metav1.GetOptions{})
 				if err != nil {
 					t.Errorf("failed to get service %s/%s error: %v", test.provisioner.serverNamespace, test.expectedServiceName, err)
 				} else {
@@ -612,7 +613,7 @@ func TestDeleteService(t *testing.T) {
 				_, err := test.provisioner.kubeClient.
 					CoreV1().
 					Services(test.existingService.Namespace).
-					Create(test.existingService)
+					Create(context.TODO(), test.existingService, metav1.CreateOptions{})
 				if err != nil {
 					t.Errorf("failed to create existing deployment %s/%s error: %v", test.existingService.Namespace, test.existingService.Name, err)
 				}
@@ -630,7 +631,7 @@ func TestDeleteService(t *testing.T) {
 				_, err := test.provisioner.kubeClient.
 					CoreV1().
 					Services(test.provisioner.serverNamespace).
-					Get("nfs-"+test.options.pvName, metav1.GetOptions{})
+					Get(context.TODO(), "nfs-"+test.options.pvName, metav1.GetOptions{})
 				if !k8serrors.IsNotFound(err) {
 					t.Errorf("%q test failed expected service not to exist but got error %v", name, err)
 				}
@@ -772,7 +773,7 @@ func boundPvc(client kubernetes.Interface, obj interface{}) {
 
 	pvc.Status.Phase = corev1.ClaimBound
 
-	_, err := client.CoreV1().PersistentVolumeClaims(pvc.Namespace).Update(pvc)
+	_, err := client.CoreV1().PersistentVolumeClaims(pvc.Namespace).Update(context.TODO(), pvc, metav1.UpdateOptions{})
 	if err != nil {
 		fmt.Printf("failed to update PVC object err=%+v\n", err)
 	}

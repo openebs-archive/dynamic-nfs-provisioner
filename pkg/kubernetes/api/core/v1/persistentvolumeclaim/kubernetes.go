@@ -15,6 +15,7 @@
 package persistentvolumeclaim
 
 import (
+	"context"
 	"strings"
 
 	errors "github.com/pkg/errors"
@@ -51,11 +52,11 @@ type deleteCollectionFn func(cli *kubernetes.Clientset, namespace string, listOp
 
 // createFn is a typed function that abstracts
 // creation of pvc
-type createFn func(cli *kubernetes.Clientset, namespace string, pvc *corev1.PersistentVolumeClaim) (*corev1.PersistentVolumeClaim, error)
+type createFn func(cli *kubernetes.Clientset, namespace string, pvc *corev1.PersistentVolumeClaim, createOpts metav1.CreateOptions) (*corev1.PersistentVolumeClaim, error)
 
 // updateFn is a typed function that abstracts
 // updation of pvc
-type updateFn func(cli *kubernetes.Clientset, namespace string, pvc *corev1.PersistentVolumeClaim) (*corev1.PersistentVolumeClaim, error)
+type updateFn func(cli *kubernetes.Clientset, namespace string, pvc *corev1.PersistentVolumeClaim, updateOpts metav1.UpdateOptions) (*corev1.PersistentVolumeClaim, error)
 
 // Kubeclient enables kubernetes API operations
 // on pvc instance
@@ -104,37 +105,37 @@ func (k *Kubeclient) withDefaults() {
 
 	if k.get == nil {
 		k.get = func(cli *kubernetes.Clientset, name string, namespace string, opts metav1.GetOptions) (*corev1.PersistentVolumeClaim, error) {
-			return cli.CoreV1().PersistentVolumeClaims(namespace).Get(name, opts)
+			return cli.CoreV1().PersistentVolumeClaims(namespace).Get(context.TODO(), name, opts)
 		}
 	}
 
 	if k.list == nil {
 		k.list = func(cli *kubernetes.Clientset, namespace string, opts metav1.ListOptions) (*corev1.PersistentVolumeClaimList, error) {
-			return cli.CoreV1().PersistentVolumeClaims(namespace).List(opts)
+			return cli.CoreV1().PersistentVolumeClaims(namespace).List(context.TODO(), opts)
 		}
 	}
 
 	if k.del == nil {
 		k.del = func(cli *kubernetes.Clientset, namespace string, name string, deleteOpts *metav1.DeleteOptions) error {
-			return cli.CoreV1().PersistentVolumeClaims(namespace).Delete(name, deleteOpts)
+			return cli.CoreV1().PersistentVolumeClaims(namespace).Delete(context.TODO(), name, *deleteOpts)
 		}
 	}
 
 	if k.delCollection == nil {
 		k.delCollection = func(cli *kubernetes.Clientset, namespace string, listOpts metav1.ListOptions, deleteOpts *metav1.DeleteOptions) error {
-			return cli.CoreV1().PersistentVolumeClaims(namespace).DeleteCollection(deleteOpts, listOpts)
+			return cli.CoreV1().PersistentVolumeClaims(namespace).DeleteCollection(context.TODO(), *deleteOpts, listOpts)
 		}
 	}
 
 	if k.create == nil {
-		k.create = func(cli *kubernetes.Clientset, namespace string, pvc *corev1.PersistentVolumeClaim) (*corev1.PersistentVolumeClaim, error) {
-			return cli.CoreV1().PersistentVolumeClaims(namespace).Create(pvc)
+		k.create = func(cli *kubernetes.Clientset, namespace string, pvc *corev1.PersistentVolumeClaim, createOpts metav1.CreateOptions) (*corev1.PersistentVolumeClaim, error) {
+			return cli.CoreV1().PersistentVolumeClaims(namespace).Create(context.TODO(), pvc, createOpts)
 		}
 	}
 
 	if k.update == nil {
-		k.update = func(cli *kubernetes.Clientset, namespace string, pvc *corev1.PersistentVolumeClaim) (*corev1.PersistentVolumeClaim, error) {
-			return cli.CoreV1().PersistentVolumeClaims(namespace).Update(pvc)
+		k.update = func(cli *kubernetes.Clientset, namespace string, pvc *corev1.PersistentVolumeClaim, updateOpts metav1.UpdateOptions) (*corev1.PersistentVolumeClaim, error) {
+			return cli.CoreV1().PersistentVolumeClaims(namespace).Update(context.TODO(), pvc, updateOpts)
 		}
 	}
 }
@@ -240,7 +241,7 @@ func (k *Kubeclient) Create(pvc *corev1.PersistentVolumeClaim) (*corev1.Persiste
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to create pvc {%s} in namespace {%s}", pvc.Name, pvc.Namespace)
 	}
-	return k.create(cli, k.namespace, pvc)
+	return k.create(cli, k.namespace, pvc, metav1.CreateOptions{})
 }
 
 // Update updates a pvc in specified namespace in kubernetes cluster
@@ -252,7 +253,7 @@ func (k *Kubeclient) Update(pvc *corev1.PersistentVolumeClaim) (*corev1.Persiste
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update pvc {%s} in namespace {%s}", pvc.Name, pvc.Namespace)
 	}
-	return k.update(cli, k.namespace, pvc)
+	return k.update(cli, k.namespace, pvc, metav1.UpdateOptions{})
 }
 
 // CreateCollection creates a list of pvcs

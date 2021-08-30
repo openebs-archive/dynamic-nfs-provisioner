@@ -15,6 +15,7 @@
 package namespace
 
 import (
+	"context"
 	"strings"
 
 	client "github.com/openebs/dynamic-nfs-provisioner/pkg/kubernetes/client"
@@ -38,7 +39,7 @@ type getFn func(cli *kubernetes.Clientset, name string, opts metav1.GetOptions) 
 
 // createFn is a typed function that abstracts
 // creation of namespace
-type createFn func(cli *kubernetes.Clientset, namespace *corev1.Namespace) (*corev1.Namespace, error)
+type createFn func(cli *kubernetes.Clientset, namespace *corev1.Namespace, opts metav1.CreateOptions) (*corev1.Namespace, error)
 
 // deleteFn is a typed function that abstracts
 // deletion of namespaces
@@ -82,17 +83,17 @@ func (k *Kubeclient) withDefaults() {
 	}
 	if k.get == nil {
 		k.get = func(cli *kubernetes.Clientset, name string, opts metav1.GetOptions) (*corev1.Namespace, error) {
-			return cli.CoreV1().Namespaces().Get(name, opts)
+			return cli.CoreV1().Namespaces().Get(context.TODO(), name, opts)
 		}
 	}
 	if k.del == nil {
 		k.del = func(cli *kubernetes.Clientset, name string, deleteOpts *metav1.DeleteOptions) error {
-			return cli.CoreV1().Namespaces().Delete(name, deleteOpts)
+			return cli.CoreV1().Namespaces().Delete(context.TODO(), name, *deleteOpts)
 		}
 	}
 	if k.create == nil {
-		k.create = func(cli *kubernetes.Clientset, namespace *corev1.Namespace) (*corev1.Namespace, error) {
-			return cli.CoreV1().Namespaces().Create(namespace)
+		k.create = func(cli *kubernetes.Clientset, namespace *corev1.Namespace, createOpts metav1.CreateOptions) (*corev1.Namespace, error) {
+			return cli.CoreV1().Namespaces().Create(context.TODO(), namespace, createOpts)
 		}
 	}
 }
@@ -181,5 +182,5 @@ func (k *Kubeclient) Create(namespace *corev1.Namespace) (*corev1.Namespace, err
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to create namespace {%s}", namespace.Name)
 	}
-	return k.create(cli, namespace)
+	return k.create(cli, namespace, metav1.CreateOptions{})
 }

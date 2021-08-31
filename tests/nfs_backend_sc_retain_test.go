@@ -154,6 +154,7 @@ var _ = Describe("TEST BACKEND PV EXISTENCE WITH BACKEND SC HAVING RETAIN POLICY
 
 	When(fmt.Sprintf("pvc with storageclass %s is deleted", scName), func() {
 		It("should delete the pvc", func() {
+			var pvcObj *corev1.PersistentVolumeClaim
 			By(fmt.Sprintf("pvc with storageclass %s is deleted", scName))
 			err := Client.deletePVC(applicationNamespace, pvcName)
 			Expect(err).To(BeNil(), "while deleting pvc %s/%s", applicationNamespace, pvcName)
@@ -161,12 +162,15 @@ var _ = Describe("TEST BACKEND PV EXISTENCE WITH BACKEND SC HAVING RETAIN POLICY
 			maxRetryCount := 10
 			isPvcDeleted := false
 			for retries := 0; retries < maxRetryCount; retries++ {
-				_, err := Client.getPVC(applicationNamespace, pvcName)
+				pvcObj, err = Client.getPVC(applicationNamespace, pvcName)
 				if err != nil && k8serrors.IsNotFound(err) {
 					isPvcDeleted = true
 					break
 				}
 				time.Sleep(time.Second * 5)
+			}
+			if !isPvcDeleted {
+				dumpK8sObject(pvcObj)
 			}
 			Expect(isPvcDeleted).To(BeTrue(), "pvc should be deleted")
 
@@ -178,6 +182,9 @@ var _ = Describe("TEST BACKEND PV EXISTENCE WITH BACKEND SC HAVING RETAIN POLICY
 					break
 				}
 				time.Sleep(time.Second * 5)
+			}
+			if !isPvcDeleted {
+				dumpK8sObject(pvcObj)
 			}
 			Expect(isBackendPvcDeleted).To(BeTrue(), "backend pvc should be deleted")
 		})

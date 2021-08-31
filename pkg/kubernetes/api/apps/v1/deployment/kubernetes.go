@@ -17,6 +17,7 @@ limitations under the License.
 package deployment
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 
@@ -61,6 +62,7 @@ type createFn func(
 	cli *kubernetes.Clientset,
 	namespace string,
 	deploy *appsv1.Deployment,
+	createOpts metav1.CreateOptions,
 ) (*appsv1.Deployment, error)
 
 // updateFn is a typed function that abstracts
@@ -69,6 +71,7 @@ type updateFn func(
 	cli *kubernetes.Clientset,
 	namespace string,
 	deploy *appsv1.Deployment,
+	updateOpts metav1.UpdateOptions,
 ) (*appsv1.Deployment, error)
 
 // deleteFn is a typed function that abstracts
@@ -87,6 +90,7 @@ type patchFn func(
 	name, namespace string,
 	pt types.PatchType,
 	data []byte,
+	opts metav1.PatchOptions,
 	subresources ...string,
 ) (*appsv1.Deployment, error)
 
@@ -122,7 +126,7 @@ func defaultGet(
 	opts *metav1.GetOptions,
 ) (*appsv1.Deployment, error) {
 
-	return cli.AppsV1().Deployments(namespace).Get(name, *opts)
+	return cli.AppsV1().Deployments(namespace).Get(context.TODO(), name, *opts)
 }
 
 // defaultList is the default implementation to list
@@ -133,7 +137,7 @@ func defaultList(
 	opts *metav1.ListOptions,
 ) (*appsv1.DeploymentList, error) {
 
-	return cli.AppsV1().Deployments(namespace).List(*opts)
+	return cli.AppsV1().Deployments(namespace).List(context.TODO(), *opts)
 }
 
 // defaultCreate is the default implementation to create
@@ -142,9 +146,10 @@ func defaultCreate(
 	cli *kubernetes.Clientset,
 	namespace string,
 	deploy *appsv1.Deployment,
+	createOpts metav1.CreateOptions,
 ) (*appsv1.Deployment, error) {
 
-	return cli.AppsV1().Deployments(namespace).Create(deploy)
+	return cli.AppsV1().Deployments(namespace).Create(context.TODO(), deploy, createOpts)
 }
 
 // defaultUpdate is the default implementation to update
@@ -153,9 +158,10 @@ func defaultUpdate(
 	cli *kubernetes.Clientset,
 	namespace string,
 	deploy *appsv1.Deployment,
+	updateOpts metav1.UpdateOptions,
 ) (*appsv1.Deployment, error) {
 
-	return cli.AppsV1().Deployments(namespace).Update(deploy)
+	return cli.AppsV1().Deployments(namespace).Update(context.TODO(), deploy, updateOpts)
 }
 
 // defaultDel is the default implementation to delete a
@@ -167,7 +173,7 @@ func defaultDel(
 	opts *metav1.DeleteOptions,
 ) error {
 
-	return cli.AppsV1().Deployments(namespace).Delete(name, opts)
+	return cli.AppsV1().Deployments(namespace).Delete(context.TODO(), name, *opts)
 }
 
 func defaultPatch(
@@ -175,9 +181,10 @@ func defaultPatch(
 	name, namespace string,
 	pt types.PatchType,
 	data []byte,
+	patchOpts metav1.PatchOptions,
 	subresources ...string,
 ) (*appsv1.Deployment, error) {
-	return cli.AppsV1().Deployments(namespace).Patch(name, pt, data, subresources...)
+	return cli.AppsV1().Deployments(namespace).Patch(context.TODO(), name, pt, data, patchOpts, subresources...)
 }
 
 // defaultRolloutStatus is the default implementation to
@@ -350,6 +357,7 @@ func (k *Kubeclient) Patch(
 	name string,
 	pt types.PatchType,
 	data []byte,
+	patchOpts metav1.PatchOptions,
 	subresources ...string,
 ) (*appsv1.Deployment, error) {
 	cli, err := k.getClientOrCached()
@@ -357,7 +365,7 @@ func (k *Kubeclient) Patch(
 		return nil, err
 	}
 
-	return k.patch(cli, name, k.namespace, pt, data, subresources...)
+	return k.patch(cli, name, k.namespace, pt, data, patchOpts, subresources...)
 }
 
 // GetRaw returns deployment object for given name
@@ -416,7 +424,7 @@ func (k *Kubeclient) Create(deployment *appsv1.Deployment) (*appsv1.Deployment, 
 		)
 	}
 
-	return k.create(cli, k.namespace, deployment)
+	return k.create(cli, k.namespace, deployment, metav1.CreateOptions{})
 }
 
 // Update updates a deployment in specified namespace in kubernetes cluster
@@ -440,7 +448,7 @@ func (k *Kubeclient) Update(deployment *appsv1.Deployment) (*appsv1.Deployment, 
 		)
 	}
 
-	return k.update(cli, k.namespace, deployment)
+	return k.update(cli, k.namespace, deployment, metav1.UpdateOptions{})
 }
 
 // RolloutStatusf returns deployment's rollout status for given name

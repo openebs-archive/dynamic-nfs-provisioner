@@ -17,6 +17,7 @@ limitations under the License.
 package hook
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -88,11 +89,11 @@ func TestExecuteHookOnNFSPV(t *testing.T) {
 			clientset := fake.NewSimpleClientset()
 
 			if test.obj != nil {
-				_, err := clientset.CoreV1().PersistentVolumes().Create(test.obj)
+				_, err := clientset.CoreV1().PersistentVolumes().Create(context.TODO(), test.obj, metav1.CreateOptions{})
 				assert.Nil(t, err, "PV creation failed, err=%s", err)
 			}
 
-			err := test.hook.ExecuteHookOnNFSPV(clientset, test.PVName, EventTypeCreateVolume)
+			err := test.hook.ExecuteHookOnNFSPV(clientset, context.TODO(), test.PVName, EventTypeCreateVolume)
 			if test.shouldErrored {
 				assert.NotNil(t, err, "ExecuteHookOnNFSPV should return error")
 			} else {
@@ -103,7 +104,7 @@ func TestExecuteHookOnNFSPV(t *testing.T) {
 				return
 			}
 
-			pvObj, err := clientset.CoreV1().PersistentVolumes().Get(test.PVName, metav1.GetOptions{})
+			pvObj, err := clientset.CoreV1().PersistentVolumes().Get(context.TODO(), test.PVName, metav1.GetOptions{})
 			assert.Nil(t, err, "failed to get PV=%s", test.PVName)
 			assert.Equal(t, test.expectedObj, pvObj, "PV object should match")
 		})
@@ -176,11 +177,11 @@ func TestExecuteHookOnBackendPVC(t *testing.T) {
 			clientset := fake.NewSimpleClientset()
 
 			if test.obj != nil {
-				_, err := clientset.CoreV1().PersistentVolumeClaims(test.ns).Create(test.obj)
+				_, err := clientset.CoreV1().PersistentVolumeClaims(test.ns).Create(context.TODO(), test.obj, metav1.CreateOptions{})
 				assert.Nil(t, err, "PVC creation failed, err=%s", err)
 			}
 
-			err := test.hook.ExecuteHookOnBackendPVC(clientset, test.ns, test.pvcName, EventTypeCreateVolume)
+			err := test.hook.ExecuteHookOnBackendPVC(clientset, context.TODO(), test.ns, test.pvcName, EventTypeCreateVolume)
 			if test.shouldErrored {
 				assert.NotNil(t, err, "ExecuteHookOnBackendPVC should return error")
 			} else {
@@ -191,7 +192,7 @@ func TestExecuteHookOnBackendPVC(t *testing.T) {
 				return
 			}
 
-			pvcObj, err := clientset.CoreV1().PersistentVolumeClaims(test.ns).Get(test.pvcName, metav1.GetOptions{})
+			pvcObj, err := clientset.CoreV1().PersistentVolumeClaims(test.ns).Get(context.TODO(), test.pvcName, metav1.GetOptions{})
 			assert.Nil(t, err, "failed to get PVC=%s/%s", test.ns, test.pvcName)
 			assert.Equal(t, test.expectedObj, pvcObj, "PVC object should match")
 		})
@@ -264,11 +265,11 @@ func TestExecuteHookOnNFSService(t *testing.T) {
 			clientset := fake.NewSimpleClientset()
 
 			if test.obj != nil {
-				_, err := clientset.CoreV1().Services(test.ns).Create(test.obj)
+				_, err := clientset.CoreV1().Services(test.ns).Create(context.TODO(), test.obj, metav1.CreateOptions{})
 				assert.Nil(t, err, "Service creation failed, err=%s", err)
 			}
 
-			err := test.hook.ExecuteHookOnNFSService(clientset, test.ns, test.svcName, EventTypeCreateVolume)
+			err := test.hook.ExecuteHookOnNFSService(clientset, context.TODO(), test.ns, test.svcName, EventTypeCreateVolume)
 			if test.shouldErrored {
 				assert.NotNil(t, err, "ExecuteHookOnNFSService should return error")
 			} else {
@@ -279,7 +280,7 @@ func TestExecuteHookOnNFSService(t *testing.T) {
 				return
 			}
 
-			svcObj, err := clientset.CoreV1().Services(test.ns).Get(test.svcName, metav1.GetOptions{})
+			svcObj, err := clientset.CoreV1().Services(test.ns).Get(context.TODO(), test.svcName, metav1.GetOptions{})
 			assert.Nil(t, err, "failed to get Service=%s/%s", test.ns, test.svcName)
 			assert.Equal(t, test.expectedObj, svcObj, "Service object should match")
 		})
@@ -352,11 +353,11 @@ func TestExecuteHookOnNFSDeployment(t *testing.T) {
 			clientset := fake.NewSimpleClientset()
 
 			if test.obj != nil {
-				_, err := clientset.AppsV1().Deployments(test.ns).Create(test.obj)
+				_, err := clientset.AppsV1().Deployments(test.ns).Create(context.TODO(), test.obj, metav1.CreateOptions{})
 				assert.Nil(t, err, "Deployment creation failed, err=%s", err)
 			}
 
-			err := test.hook.ExecuteHookOnNFSDeployment(clientset, test.ns, test.deployName, EventTypeCreateVolume)
+			err := test.hook.ExecuteHookOnNFSDeployment(clientset, context.TODO(), test.ns, test.deployName, EventTypeCreateVolume)
 			if test.shouldErrored {
 				assert.NotNil(t, err, "ExecuteHookOnNFSDeployment should return error")
 			} else {
@@ -367,7 +368,7 @@ func TestExecuteHookOnNFSDeployment(t *testing.T) {
 				return
 			}
 
-			deployObj, err := clientset.AppsV1().Deployments(test.ns).Get(test.deployName, metav1.GetOptions{})
+			deployObj, err := clientset.AppsV1().Deployments(test.ns).Get(context.TODO(), test.deployName, metav1.GetOptions{})
 			assert.Nil(t, err, "failed to get Deployment=%s/%s", test.ns, test.deployName)
 			assert.Equal(t, test.expectedObj, deployObj, "Deployment object should match")
 		})
@@ -455,16 +456,16 @@ func TestExecuteHookOnBackendPV(t *testing.T) {
 			clientset := fake.NewSimpleClientset()
 
 			if test.pvcObj != nil {
-				_, err := clientset.CoreV1().PersistentVolumeClaims(test.ns).Create(test.pvcObj)
+				_, err := clientset.CoreV1().PersistentVolumeClaims(test.ns).Create(context.TODO(), test.pvcObj, metav1.CreateOptions{})
 				assert.Nil(t, err, "PVC creation failed, err=%s", err)
 			}
 
 			if test.obj != nil {
-				_, err := clientset.CoreV1().PersistentVolumes().Create(test.obj)
+				_, err := clientset.CoreV1().PersistentVolumes().Create(context.TODO(), test.obj, metav1.CreateOptions{})
 				assert.Nil(t, err, "PV creation failed, err=%s", err)
 			}
 
-			err := test.hook.ExecuteHookOnBackendPV(clientset, test.ns, test.pvcName, EventTypeCreateVolume)
+			err := test.hook.ExecuteHookOnBackendPV(clientset, context.TODO(), test.ns, test.pvcName, EventTypeCreateVolume)
 			if test.shouldErrored {
 				assert.NotNil(t, err, "ExecuteHookOnBackendPV should return error")
 			} else {
@@ -475,7 +476,7 @@ func TestExecuteHookOnBackendPV(t *testing.T) {
 				return
 			}
 
-			pvObj, err := clientset.CoreV1().PersistentVolumes().Get(test.obj.Name, metav1.GetOptions{})
+			pvObj, err := clientset.CoreV1().PersistentVolumes().Get(context.TODO(), test.obj.Name, metav1.GetOptions{})
 			assert.Nil(t, err, "failed to get PV=%s", test.pvcName)
 			assert.Equal(t, test.expectedObj, pvObj, "PV object should match")
 		})

@@ -73,11 +73,11 @@ func fakeGetClientSetErr() (clientset *kubernetes.Clientset, err error) {
 
 func fakeClientSet(k *Kubeclient) {}
 
-func fakeCreateFnOk(cli *kubernetes.Clientset, namespace *corev1.Namespace) (*corev1.Namespace, error) {
+func fakeCreateFnOk(cli *kubernetes.Clientset, namespace *corev1.Namespace, opts metav1.CreateOptions) (*corev1.Namespace, error) {
 	return &corev1.Namespace{}, nil
 }
 
-func fakeCreateFnErr(cli *kubernetes.Clientset, namespace *corev1.Namespace) (*corev1.Namespace, error) {
+func fakeCreateFnErr(cli *kubernetes.Clientset, namespace *corev1.Namespace, opts metav1.CreateOptions) (*corev1.Namespace, error) {
 	return nil, errors.New("failed to create Namespace")
 }
 

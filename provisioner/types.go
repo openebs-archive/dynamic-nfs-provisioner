@@ -30,7 +30,7 @@ import (
 //Provisioner struct has the configuration and utilities required
 // across the different work-flows.
 type Provisioner struct {
-	stopCh chan struct{}
+	stopCh <-chan struct{}
 
 	kubeClient clientset.Interface
 

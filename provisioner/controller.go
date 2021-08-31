@@ -17,14 +17,15 @@ limitations under the License.
 package provisioner
 
 import (
+	"context"
 	"os"
 	"strings"
 
 	"github.com/pkg/errors"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 
 	mKube "github.com/openebs/dynamic-nfs-provisioner/pkg/kubernetes/client"
-	pvController "sigs.k8s.io/sig-storage-lib-external-provisioner/controller"
+	pvController "sigs.k8s.io/sig-storage-lib-external-provisioner/v7/controller"
 )
 
 var (
@@ -35,7 +36,7 @@ var (
 )
 
 // Start will initialize and run the dynamic provisioner daemon
-func Start() error {
+func Start(ctx context.Context) error {
 	klog.Infof("Starting Provisioner...")
 
 	// Dynamic Provisioner can run successfully if it can establish
@@ -49,24 +50,14 @@ func Start() error {
 		return errors.Wrap(err, "unable to get k8s client")
 	}
 
-	serverVersion, err := kubeClient.Discovery().ServerVersion()
-	if err != nil {
-		return errors.Wrap(err, "Cannot start Provisioner: failed to get Kubernetes server version")
-	}
-
 	err = performPreupgradeTasks(kubeClient)
 	if err != nil {
 		return errors.Wrap(err, "failure in preupgrade tasks")
 	}
 
-	//Create a channel to receive shutdown signal to help
-	// with graceful exit of the provisioner.
-	stopCh := make(chan struct{})
-	RegisterShutdownChannel(stopCh)
-
 	//Create an instance of ProvisionerHandler to handle PV
 	// create and delete events.
-	provisioner, err := NewProvisioner(stopCh, kubeClient)
+	provisioner, err := NewProvisioner(ctx, kubeClient)
 	if err != nil {
 		return err
 	}
@@ -78,12 +69,14 @@ func Start() error {
 		kubeClient,
 		provisionerName,
 		provisioner,
-		serverVersion.GitVersion,
 		pvController.LeaderElection(isLeaderElectionEnabled()),
 	)
 	klog.V(4).Info("Provisioner started")
+
 	//Run the provisioner till a shutdown signal is received.
-	pc.Run(stopCh)
+	go pc.Run(ctx)
+
+	<-ctx.Done()
 	klog.V(4).Info("Provisioner stopped")
 
 	return nil

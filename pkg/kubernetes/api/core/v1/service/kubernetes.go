@@ -17,6 +17,7 @@ limitations under the License.
 package service
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/openebs/dynamic-nfs-provisioner/pkg/kubernetes/client"
@@ -63,6 +64,7 @@ type createFn func(
 	cli *kubernetes.Clientset,
 	service *corev1.Service,
 	namespace string,
+	opts metav1.CreateOptions,
 ) (*corev1.Service, error)
 
 // updateFn is a typed function that abstracts delete of service instances
@@ -70,6 +72,7 @@ type updateFn func(
 	cli *kubernetes.Clientset,
 	service *corev1.Service,
 	namespace string,
+	opts metav1.UpdateOptions,
 ) (*corev1.Service, error)
 
 // patchFn is a typed function that abstracts patch of service instances
@@ -78,6 +81,7 @@ type patchFn func(
 	name, namespace string,
 	pt types.PatchType,
 	data []byte,
+	opts metav1.PatchOptions,
 	subresources ...string,
 ) (*corev1.Service, error)
 
@@ -134,7 +138,7 @@ func defaultGet(
 ) (r *corev1.Service, err error) {
 	r, err = cli.CoreV1().
 		Services(namespace).
-		Get(name, opts)
+		Get(context.TODO(), name, opts)
 	return
 }
 
@@ -147,7 +151,7 @@ func defaultList(
 ) (rl *corev1.ServiceList, err error) {
 	rl, err = cli.CoreV1().
 		Services(namespace).
-		List(opts)
+		List(context.TODO(), opts)
 	return
 }
 
@@ -162,7 +166,7 @@ func defaultDel(
 	opts.PropagationPolicy = &deletePropagation
 	err = cli.CoreV1().
 		Services(namespace).
-		Delete(name, opts)
+		Delete(context.TODO(), name, *opts)
 	return
 }
 
@@ -172,10 +176,11 @@ func defaultCreate(
 	cli *kubernetes.Clientset,
 	service *corev1.Service,
 	namespace string,
+	opts metav1.CreateOptions,
 ) (*corev1.Service, error) {
 	return cli.CoreV1().
 		Services(namespace).
-		Create(service)
+		Create(context.TODO(), service, opts)
 }
 
 // defaultUpdate is the default implementation to update
@@ -184,10 +189,11 @@ func defaultUpdate(
 	cli *kubernetes.Clientset,
 	service *corev1.Service,
 	namespace string,
+	opts metav1.UpdateOptions,
 ) (*corev1.Service, error) {
 	return cli.CoreV1().
 		Services(namespace).
-		Update(service)
+		Update(context.TODO(), service, opts)
 }
 
 // defaultPatch is the default implementation to patch
@@ -197,11 +203,12 @@ func defaultPatch(
 	name, namespace string,
 	pt types.PatchType,
 	data []byte,
+	opts metav1.PatchOptions,
 	subresources ...string,
 ) (*corev1.Service, error) {
 	return cli.CoreV1().
 		Services(namespace).
-		Patch(name, pt, data, subresources...)
+		Patch(context.TODO(), name, pt, data, opts, subresources...)
 }
 
 // withDefaults sets the default options of kubeclient instance
@@ -356,7 +363,7 @@ func (k *Kubeclient) Create(service *corev1.Service) (*corev1.Service, error) {
 			service.Namespace,
 		)
 	}
-	return k.create(cli, service, k.namespace)
+	return k.create(cli, service, k.namespace, metav1.CreateOptions{})
 }
 
 // Update updates a service in specified namespace in kubernetes cluster
@@ -373,7 +380,7 @@ func (k *Kubeclient) Update(service *corev1.Service) (*corev1.Service, error) {
 			service.Namespace,
 		)
 	}
-	return k.update(cli, service, k.namespace)
+	return k.update(cli, service, k.namespace, metav1.UpdateOptions{})
 }
 
 // Patch patches service object for given name
@@ -388,5 +395,5 @@ func (k *Kubeclient) Patch(
 		return nil, err
 	}
 
-	return k.patch(cli, name, k.namespace, pt, data, subresources...)
+	return k.patch(cli, name, k.namespace, pt, data, metav1.PatchOptions{}, subresources...)
 }

@@ -82,11 +82,11 @@ func fakeGetClientSetErr() (clientset *kubernetes.Clientset, err error) {
 
 func fakeClientSet(k *Kubeclient) {}
 
-func fakeCreateFnOk(cli *kubernetes.Clientset, namespace string, pvc *corev1.PersistentVolumeClaim) (*corev1.PersistentVolumeClaim, error) {
+func fakeCreateFnOk(cli *kubernetes.Clientset, namespace string, pvc *corev1.PersistentVolumeClaim, opts metav1.CreateOptions) (*corev1.PersistentVolumeClaim, error) {
 	return &corev1.PersistentVolumeClaim{}, nil
 }
 
-func fakeCreateFnErr(cli *kubernetes.Clientset, namespace string, pvc *corev1.PersistentVolumeClaim) (*corev1.PersistentVolumeClaim, error) {
+func fakeCreateFnErr(cli *kubernetes.Clientset, namespace string, pvc *corev1.PersistentVolumeClaim, opts metav1.CreateOptions) (*corev1.PersistentVolumeClaim, error) {
 	return nil, errors.New("failed to create PVC")
 }
 

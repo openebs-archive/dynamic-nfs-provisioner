@@ -17,6 +17,8 @@ limitations under the License.
 package hook
 
 import (
+	"context"
+
 	"github.com/openebs/dynamic-nfs-provisioner/pkg/helper"
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -25,8 +27,8 @@ import (
 )
 
 // ExecuteHookOnNFSPV will execute the hook on the given PV and patch it
-func (h *Hook) ExecuteHookOnNFSPV(client kubernetes.Interface, pvName string, eventType EventType) error {
-	pvObjOrig, err := client.CoreV1().PersistentVolumes().Get(pvName, metav1.GetOptions{})
+func (h *Hook) ExecuteHookOnNFSPV(client kubernetes.Interface, ctx context.Context, pvName string, eventType EventType) error {
+	pvObjOrig, err := client.CoreV1().PersistentVolumes().Get(ctx, pvName, metav1.GetOptions{})
 	if err != nil {
 		return errors.Wrapf(err, "failed to fetch PV=%s", pvName)
 	}
@@ -43,7 +45,7 @@ func (h *Hook) ExecuteHookOnNFSPV(client kubernetes.Interface, pvName string, ev
 		return err
 	}
 
-	_, err = client.CoreV1().PersistentVolumes().Patch(pvName, types.StrategicMergePatchType, data)
+	_, err = client.CoreV1().PersistentVolumes().Patch(ctx, pvName, types.StrategicMergePatchType, data, metav1.PatchOptions{})
 	if err != nil {
 		return errors.Wrapf(err, "failed to patch PV=%s", pvObj.Name)
 	}
@@ -52,15 +54,15 @@ func (h *Hook) ExecuteHookOnNFSPV(client kubernetes.Interface, pvName string, ev
 }
 
 // ExecuteHookOnBackendPV will execute the hook on the PV for given PVC and patch it
-func (h *Hook) ExecuteHookOnBackendPV(client kubernetes.Interface, ns, backendPvcName string, eventType EventType) error {
+func (h *Hook) ExecuteHookOnBackendPV(client kubernetes.Interface, ctx context.Context, ns, backendPvcName string, eventType EventType) error {
 	pvcObj, err := client.CoreV1().
 		PersistentVolumeClaims(ns).
-		Get(backendPvcName, metav1.GetOptions{})
+		Get(ctx, backendPvcName, metav1.GetOptions{})
 	if err != nil {
 		return errors.Wrapf(err, "failed to fetch PVC=%s/%s", ns, backendPvcName)
 	}
 
-	pvObjOrig, err := client.CoreV1().PersistentVolumes().Get(pvcObj.Spec.VolumeName, metav1.GetOptions{})
+	pvObjOrig, err := client.CoreV1().PersistentVolumes().Get(ctx, pvcObj.Spec.VolumeName, metav1.GetOptions{})
 	if err != nil {
 		return errors.Wrapf(err, "failed to fetch PV=%s", pvcObj.Spec.VolumeName)
 	}
@@ -76,7 +78,7 @@ func (h *Hook) ExecuteHookOnBackendPV(client kubernetes.Interface, ns, backendPv
 		return err
 	}
 
-	_, err = client.CoreV1().PersistentVolumes().Patch(pvObj.Name, types.StrategicMergePatchType, data)
+	_, err = client.CoreV1().PersistentVolumes().Patch(ctx, pvObj.Name, types.StrategicMergePatchType, data, metav1.PatchOptions{})
 	if err != nil {
 		return errors.Wrapf(err, "failed to patch PV=%s", pvObj.Name)
 	}
@@ -85,10 +87,10 @@ func (h *Hook) ExecuteHookOnBackendPV(client kubernetes.Interface, ns, backendPv
 }
 
 // ExecuteHookOnBackendPV will execute the hook on the PV for given PVC and patch it
-func (h *Hook) ExecuteHookOnBackendPVC(client kubernetes.Interface, ns, backendPvcName string, eventType EventType) error {
+func (h *Hook) ExecuteHookOnBackendPVC(client kubernetes.Interface, ctx context.Context, ns, backendPvcName string, eventType EventType) error {
 	pvcObjOrig, err := client.CoreV1().
 		PersistentVolumeClaims(ns).
-		Get(backendPvcName, metav1.GetOptions{})
+		Get(ctx, backendPvcName, metav1.GetOptions{})
 	if err != nil {
 		return errors.Wrapf(err, "failed to fetch PVC=%s/%s", ns, backendPvcName)
 	}
@@ -105,7 +107,7 @@ func (h *Hook) ExecuteHookOnBackendPVC(client kubernetes.Interface, ns, backendP
 		return err
 	}
 
-	_, err = client.CoreV1().PersistentVolumeClaims(ns).Patch(pvcObj.Name, types.StrategicMergePatchType, data)
+	_, err = client.CoreV1().PersistentVolumeClaims(ns).Patch(ctx, pvcObj.Name, types.StrategicMergePatchType, data, metav1.PatchOptions{})
 	if err != nil {
 		return errors.Wrapf(err, "failed to patch PVC=%s/%s", ns, backendPvcName)
 	}
@@ -114,10 +116,10 @@ func (h *Hook) ExecuteHookOnBackendPVC(client kubernetes.Interface, ns, backendP
 }
 
 // ExecuteHookOnNFSService will execute the hook on the given service and patch it
-func (h *Hook) ExecuteHookOnNFSService(client kubernetes.Interface, ns, serviceName string, eventType EventType) error {
+func (h *Hook) ExecuteHookOnNFSService(client kubernetes.Interface, ctx context.Context, ns, serviceName string, eventType EventType) error {
 	svcObjOrig, err := client.CoreV1().
 		Services(ns).
-		Get(serviceName, metav1.GetOptions{})
+		Get(ctx, serviceName, metav1.GetOptions{})
 	if err != nil {
 		return errors.Wrapf(err, "failed to fetch service=%s/%s", ns, serviceName)
 	}
@@ -134,7 +136,7 @@ func (h *Hook) ExecuteHookOnNFSService(client kubernetes.Interface, ns, serviceN
 		return err
 	}
 
-	_, err = client.CoreV1().Services(ns).Patch(svcObj.Name, types.StrategicMergePatchType, data)
+	_, err = client.CoreV1().Services(ns).Patch(ctx, svcObj.Name, types.StrategicMergePatchType, data, metav1.PatchOptions{})
 	if err != nil {
 		return errors.Wrapf(err, "failed to patch service=%s/%s", ns, serviceName)
 	}
@@ -143,10 +145,10 @@ func (h *Hook) ExecuteHookOnNFSService(client kubernetes.Interface, ns, serviceN
 }
 
 // ExecuteHookOnNFSDeployment will execute the hook on the given deployment and patch it
-func (h *Hook) ExecuteHookOnNFSDeployment(client kubernetes.Interface, ns, deployName string, eventType EventType) error {
+func (h *Hook) ExecuteHookOnNFSDeployment(client kubernetes.Interface, ctx context.Context, ns, deployName string, eventType EventType) error {
 	deployObjOrig, err := client.AppsV1().
 		Deployments(ns).
-		Get(deployName, metav1.GetOptions{})
+		Get(ctx, deployName, metav1.GetOptions{})
 	if err != nil {
 		return errors.Wrapf(err, "failed to fetch deployment=%s/%s", ns, deployName)
 	}
@@ -163,7 +165,7 @@ func (h *Hook) ExecuteHookOnNFSDeployment(client kubernetes.Interface, ns, deplo
 		return err
 	}
 
-	_, err = client.AppsV1().Deployments(ns).Patch(deployObj.Name, types.StrategicMergePatchType, data)
+	_, err = client.AppsV1().Deployments(ns).Patch(ctx, deployObj.Name, types.StrategicMergePatchType, data, metav1.PatchOptions{})
 	if err != nil {
 		return errors.Wrapf(err, "failed to patch deployment=%s/%s", ns, deployName)
 	}

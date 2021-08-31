@@ -17,6 +17,7 @@ limitations under the License.
 package provisioner
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -26,7 +27,7 @@ import (
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 var (
@@ -34,39 +35,39 @@ var (
 	GarbageCollectorInterval = 5 * time.Minute
 )
 
-func RunGarbageCollector(client kubernetes.Interface, pvTracker ProvisioningTracker, ns string, stopCh <-chan struct{}) {
+func RunGarbageCollector(ctx context.Context, client kubernetes.Interface, pvTracker ProvisioningTracker, ns string) {
 	// NewTicker sends tick only after mentioned interval.
 	// So to ensure that the garbage collector gets executed at the beginning,
 	// we are running it here.
 	klog.V(4).Infof("Running garbage collector for stale NFS resources")
-	err := cleanUpStalePvc(client, pvTracker, ns)
+	err := cleanUpStalePvc(ctx, client, pvTracker, ns)
 	klog.V(4).Infof("Garbage collection completed for stale NFS resources with error=%v", err)
 
 	ticker := time.NewTicker(GarbageCollectorInterval)
 
 	for {
 		select {
-		case <-stopCh:
+		case <-ctx.Done():
 			ticker.Stop()
 			return
 		case <-ticker.C:
 			klog.V(4).Infof("Running garbage collector for stale NFS resources")
-			err = cleanUpStalePvc(client, pvTracker, ns)
+			err = cleanUpStalePvc(ctx, client, pvTracker, ns)
 			klog.V(4).Infof("Garbage collection completed for stale NFS resources with error=%v", err)
 		}
 	}
 }
 
-func cleanUpStalePvc(client kubernetes.Interface, pvTracker ProvisioningTracker, ns string) error {
+func cleanUpStalePvc(ctx context.Context, client kubernetes.Interface, pvTracker ProvisioningTracker, ns string) error {
 	backendPvcLabel := fmt.Sprintf("%s=%s", mayav1alpha1.CASTypeKey, "nfs-kernel")
-	pvcList, err := client.CoreV1().PersistentVolumeClaims(ns).List(metav1.ListOptions{LabelSelector: backendPvcLabel})
+	pvcList, err := client.CoreV1().PersistentVolumeClaims(ns).List(ctx, metav1.ListOptions{LabelSelector: backendPvcLabel})
 	if err != nil {
 		klog.Errorf("Failed to list PVC, err=%s", err)
 		return err
 	}
 
 	for _, pvc := range pvcList.Items {
-		pvcExists, err := nfsPvcExists(client, pvc)
+		pvcExists, err := nfsPvcExists(ctx, client, pvc)
 		if err != nil {
 			// failed to check NFS PVC existence,
 			// will check in next retry
@@ -91,7 +92,7 @@ func cleanUpStalePvc(client kubernetes.Interface, pvTracker ProvisioningTracker,
 			continue
 		}
 
-		pvExists, err := pvExists(client, nfsPvName)
+		pvExists, err := pvExists(ctx, client, nfsPvName)
 		if err != nil {
 			// failed to check pv existence, will check in next retry
 			klog.Errorf("Failed to check NFS PV for backendPVC=%s/%s, err=%v", ns, pvc.Name, err)
@@ -104,7 +105,7 @@ func cleanUpStalePvc(client kubernetes.Interface, pvTracker ProvisioningTracker,
 		}
 
 		// perform cleanup for stale NFS resource for this backend PVC
-		err = deleteBackendStaleResources(client, pvc.Namespace, nfsPvName)
+		err = deleteBackendStaleResources(ctx, client, pvc.Namespace, nfsPvName)
 		if err != nil {
 			klog.Errorf("Failed to delete NFS resources for backendPVC=%s/%s, err=%v", ns, pvc.Name, err)
 		}
@@ -113,7 +114,7 @@ func cleanUpStalePvc(client kubernetes.Interface, pvTracker ProvisioningTracker,
 	return nil
 }
 
-func deleteBackendStaleResources(client kubernetes.Interface, nfsServerNs, nfsPvName string) error {
+func deleteBackendStaleResources(ctx context.Context, client kubernetes.Interface, nfsServerNs, nfsPvName string) error {
 	klog.Infof("Deleting stale resources for PV=%s", nfsPvName)
 
 	p := &Provisioner{
@@ -123,12 +124,13 @@ func deleteBackendStaleResources(client kubernetes.Interface, nfsServerNs, nfsPv
 
 	nfsServerOpts := &KernelNFSServerOptions{
 		pvName: nfsPvName,
+		ctx:    ctx,
 	}
 
 	return p.deleteNFSServer(nfsServerOpts)
 }
 
-func nfsPvcExists(client kubernetes.Interface, backendPvcObj corev1.PersistentVolumeClaim) (bool, error) {
+func nfsPvcExists(ctx context.Context, client kubernetes.Interface, backendPvcObj corev1.PersistentVolumeClaim) (bool, error) {
 	nfsPvcName, nameExists := backendPvcObj.Labels[nfsPvcNameLabelKey]
 	nfsPvcNs, nsExists := backendPvcObj.Labels[nfsPvcNsLabelKey]
 	nfsPvcUID, uidExists := backendPvcObj.Labels[nfsPvcUIDLabelKey]
@@ -137,7 +139,7 @@ func nfsPvcExists(client kubernetes.Interface, backendPvcObj corev1.PersistentVo
 		return false, errors.New("backend PVC doesn't have sufficient information of nfs pvc")
 	}
 
-	pvcObj, err := client.CoreV1().PersistentVolumeClaims(nfsPvcNs).Get(nfsPvcName, metav1.GetOptions{})
+	pvcObj, err := client.CoreV1().PersistentVolumeClaims(nfsPvcNs).Get(ctx, nfsPvcName, metav1.GetOptions{})
 	if err != nil {
 		if !k8serrors.IsNotFound(err) {
 			// couldn't get the nfs pvc information due to network error or
@@ -157,8 +159,8 @@ func nfsPvcExists(client kubernetes.Interface, backendPvcObj corev1.PersistentVo
 	return true, nil
 }
 
-func pvExists(client kubernetes.Interface, pvName string) (bool, error) {
-	_, err := client.CoreV1().PersistentVolumes().Get(pvName, metav1.GetOptions{})
+func pvExists(ctx context.Context, client kubernetes.Interface, pvName string) (bool, error) {
+	_, err := client.CoreV1().PersistentVolumes().Get(ctx, pvName, metav1.GetOptions{})
 	if err == nil {
 		return true, nil
 	}

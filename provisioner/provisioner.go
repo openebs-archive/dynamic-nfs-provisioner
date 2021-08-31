@@ -32,6 +32,7 @@ The handler that are madatory to be implemented:
 package provisioner
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
@@ -40,8 +41,8 @@ import (
 	"github.com/openebs/maya/pkg/alertlog"
 
 	"github.com/pkg/errors"
-	"k8s.io/klog"
-	pvController "sigs.k8s.io/sig-storage-lib-external-provisioner/controller"
+	"k8s.io/klog/v2"
+	pvController "sigs.k8s.io/sig-storage-lib-external-provisioner/v7/controller"
 
 	"github.com/openebs/dynamic-nfs-provisioner/pkg/metrics"
 	mconfig "github.com/openebs/maya/pkg/apis/openebs.io/v1alpha1"
@@ -68,7 +69,8 @@ var (
 
 // NewProvisioner will create a new Provisioner object and initialize
 //  it with global information used across PV create and delete operations.
-func NewProvisioner(stopCh chan struct{}, kubeClient *clientset.Clientset) (*Provisioner, error) {
+func NewProvisioner(ctx context.Context, kubeClient *clientset.Clientset) (*Provisioner, error) {
+
 	namespace := getOpenEBSNamespace()
 	if len(strings.TrimSpace(namespace)) == 0 {
 		return nil, fmt.Errorf("Cannot start Provisioner: failed to get namespace")
@@ -89,7 +91,7 @@ func NewProvisioner(stopCh chan struct{}, kubeClient *clientset.Clientset) (*Pro
 	var hook *nfshook.Hook
 	hookCmap := getHookConfigMapName()
 	if hookCmap != "" {
-		err := initializeHook(kubeClient, namespace, hookCmap, &hook)
+		err := initializeHook(kubeClient, ctx, namespace, hookCmap, &hook)
 		if err != nil {
 			return nil, errors.Errorf("failed to initialize hooks, err={%s}", err)
 		}
@@ -98,7 +100,7 @@ func NewProvisioner(stopCh chan struct{}, kubeClient *clientset.Clientset) (*Pro
 	pvTracker := NewProvisioningTracker()
 
 	p := &Provisioner{
-		stopCh: stopCh,
+		stopCh: ctx.Done(),
 
 		kubeClient:      kubeClient,
 		namespace:       namespace,
@@ -120,10 +122,10 @@ func NewProvisioner(stopCh chan struct{}, kubeClient *clientset.Clientset) (*Pro
 
 	// Running node informer will fetch node information from API Server
 	// and maintain it in cache
-	go k8sNodeInformer.Run(stopCh)
+	go k8sNodeInformer.Run(ctx.Done())
 
 	// Running garbage collector to perform cleanup for stale NFS resources
-	go RunGarbageCollector(kubeClient, pvTracker, nfsServerNs, stopCh)
+	go RunGarbageCollector(ctx, kubeClient, pvTracker, nfsServerNs)
 
 	return p, nil
 }
@@ -136,7 +138,7 @@ func (p *Provisioner) SupportsBlock() bool {
 
 // Provision is invoked by the PVC controller which expect the PV
 //  to be provisioned and a valid PV spec returned.
-func (p *Provisioner) Provision(opts pvController.ProvisionOptions) (*v1.PersistentVolume, error) {
+func (p *Provisioner) Provision(ctx context.Context, opts pvController.ProvisionOptions) (*v1.PersistentVolume, pvController.ProvisioningState, error) {
 	pvc := opts.PVC
 
 	p.pvTracker.Add(opts.PVName)
@@ -155,7 +157,7 @@ func (p *Provisioner) Provision(opts pvController.ProvisionOptions) (*v1.Persist
 	// via PVC and the associated StorageClass
 	pvCASConfig, err := p.getVolumeConfig(name, pvc)
 	if err != nil {
-		return nil, err
+		return nil, pvController.ProvisioningNoChange, err
 	}
 
 	// Validate nodeAffinity rules for scheduling
@@ -163,7 +165,7 @@ func (p *Provisioner) Provision(opts pvController.ProvisionOptions) (*v1.Persist
 	// NFS Provisioner
 	err = p.validateNodeAffinityRules()
 	if err != nil {
-		return nil, err
+		return nil, pvController.ProvisioningNoChange, err
 	}
 
 	nfsServerType := pvCASConfig.GetNFSServerTypeFromConfig()
@@ -177,13 +179,13 @@ func (p *Provisioner) Provision(opts pvController.ProvisionOptions) (*v1.Persist
 	sendEventOrIgnore(pvc.Name, name, size.String(), nfsServerType, analytics.VolumeProvision)
 
 	if nfsServerType == "kernel" {
-		pv, err := p.ProvisionKernalNFSServer(opts, pvCASConfig)
+		pv, err := p.ProvisionKernalNFSServer(ctx, opts, pvCASConfig)
 		if err != nil {
 			metrics.PersistentVolumeCreateFailedTotal.WithLabelValues(metrics.ProvisionerRequestCreate).Inc()
-			return nil, err
+			return nil, pvController.ProvisioningNoChange, err
 		}
 		metrics.PersistentVolumeCreateTotal.WithLabelValues(metrics.ProvisionerRequestCreate).Inc()
-		return pv, nil
+		return pv, pvController.ProvisioningFinished, nil
 	}
 
 	alertlog.Logger.Errorw("",
@@ -193,14 +195,14 @@ func (p *Provisioner) Provision(opts pvController.ProvisionOptions) (*v1.Persist
 		"reason", "NFSServerType not supported",
 		"storagetype", nfsServerType,
 	)
-	return nil, fmt.Errorf("PV with NFS Server of type(%v) is not supported", nfsServerType)
+	return nil, pvController.ProvisioningNoChange, fmt.Errorf("PV with NFS Server of type(%v) is not supported", nfsServerType)
 }
 
 // Delete is invoked by the PVC controller to perform clean-up
 //  activities before deleteing the PV object. If reclaim policy is
 //  set to not-retain, then this function will create a helper pod
 //  to delete the host path from the node.
-func (p *Provisioner) Delete(pv *v1.PersistentVolume) (err error) {
+func (p *Provisioner) Delete(ctx context.Context, pv *v1.PersistentVolume) (err error) {
 	p.pvTracker.Add(pv.Name)
 	defer p.pvTracker.Delete(pv.Name)
 
@@ -227,9 +229,9 @@ func (p *Provisioner) Delete(pv *v1.PersistentVolume) (err error) {
 		sendEventOrIgnore(pvcName, pv.Name, size.String(), pvType, analytics.VolumeDeprovision)
 
 		if nfsServerType == "kernel" {
-			if err = p.DeleteKernalNFSServer(pv); err == nil {
+			if err = p.DeleteKernalNFSServer(ctx, pv); err == nil {
 				if p.hook != nil && p.hook.ActionExists(nfshook.ResourceNFSPV, nfshook.EventTypeDeleteVolume) {
-					err = p.hook.ExecuteHookOnNFSPV(p.kubeClient, pv.Name, nfshook.EventTypeDeleteVolume)
+					err = p.hook.ExecuteHookOnNFSPV(p.kubeClient, ctx, pv.Name, nfshook.EventTypeDeleteVolume)
 				}
 			}
 		}
@@ -301,8 +303,8 @@ func sendEventOrIgnore(pvcName, pvName, capacity, stgType, method string) {
 		SetVolumeCapacity(capacity).Send()
 }
 
-func initializeHook(kubeClient kubernetes.Interface, namespace, hookCmap string, hook **nfshook.Hook) error {
-	cmapObj, err := kubeClient.CoreV1().ConfigMaps(namespace).Get(hookCmap, metav1.GetOptions{})
+func initializeHook(kubeClient kubernetes.Interface, ctx context.Context, namespace, hookCmap string, hook **nfshook.Hook) error {
+	cmapObj, err := kubeClient.CoreV1().ConfigMaps(namespace).Get(ctx, hookCmap, metav1.GetOptions{})
 	if err != nil {
 		return errors.Wrapf(err, "failed to fetch hook configmap=%s", hookCmap)
 	}

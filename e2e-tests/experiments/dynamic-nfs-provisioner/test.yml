@@ -1,0 +1,132 @@
+# Apply openebs operation.
+
+- hosts: localhost
+  connection: local
+  gather_facts: False
+
+  vars_files:
+    - test_vars.yml
+
+  tasks:
+
+    - block:
+
+         ## GENERATING THE TEST NAME
+        - include_tasks: /e2e-tests/utils/create_testname.yml
+
+         ##  RECORD START-OF-TEST IN e2e RESULT CR
+        - include_tasks: "/e2e-tests/utils/update_e2e_result_resource.yml"
+          vars:
+            status: 'SOT'
+
+        - include_tasks: "/e2e-tests/experiments/dynamic-nfs-provisioner/charts_operator_provision.yml"
+          when: image_type == "charts"
+
+        - include_tasks: "/e2e-tests/experiments/dynamic-nfs-provisioner/release_tag_provision.yml"
+          when: image_type == "commit_id"
+
+        - include_tasks: "/e2e-tests/experiments/dynamic-nfs-provisioner/master_operator_provision.yml"
+          when: image_type == "master"
+
+        - name: Generate yaml files to create storage class for cspc-csi
+          template:
+            src: "nfs-sc.j2"
+            dest: "nfs-sc.yml"
+        
+        - block:
+
+            - name: Check if the OpenEBS-NFS-Provisioner is running
+              shell: >
+                kubectl get pods -n {{ namespace }}
+                -o jsonpath='{.items[?(@.metadata.labels.openebs\.io\/component-name=="openebs-nfs-provisioner")].status.phase}'
+              register: nfs_provisioner
+              until: "'Running' in nfs_provisioner.stdout"
+              delay: 5
+              retries: 60
+
+
+            - name: Check if the bacend storage class is available
+              shell: >
+                 kubectl get sc "{{ backend_sc_name }}"
+              args:
+                executable: /bin/bash
+              register: backend_sc
+              failed_when: "backend_sc.rc != 0"
+
+            - name: Create storage classes with specific storage policies for cspc-csi
+              shell: kubectl apply -f {{ item }}
+              args:
+                executable: /bin/bash
+              register: sc
+              with_items:
+                 - "{{ nfs_storage_policies }}"
+
+            - name: Confirm that the storage classes are created
+              shell: kubectl get storageclass
+              args:
+                executable: /bin/bash
+              register: result_sc
+              until: '"{{ item }}" in result_sc.stdout'
+              delay: 15
+              retries: 5
+              with_items:
+                 - "{{ nfs_sc_name }}"             
+
+          when: lookup('env','ACTION') == "provision"
+
+        - block:
+           
+            - name: Confirm pods has been deleted
+              shell: kubectl get pods -n {{ namespace }}
+              args:
+                executable: /bin/bash
+              register: result
+              until: ' item not in result.stdout'
+              with_items:
+                - "openebs-ndm-operator"
+                - "openebs-dynamic-nfs-provisioner"
+                - "openebs-ndm"
+              delay: 30
+              retries: 10
+
+            - name: Confirm that namespace has been deleted
+              shell: 'kubectl get namespaces'
+              args:
+                executable: /bin/bash
+              register: result
+              until: 'namespace not in result.stdout'
+              delay: 30
+              retries: 100
+
+            - name: Create storage classes with specific storage policies for cspc-csi
+              shell: kubectl delete -f {{ item }}
+              args:
+                executable: /bin/bash
+              register: sc
+              with_items:
+                 - "{{ nfs_storage_policies }}"
+
+            - name: Confirm that the storage classes are removed
+              shell: kubectl get storageclass
+              args:
+                executable: /bin/bash
+              register: result_sc
+              until: '"{{ item }}" not in result_sc.stdout'
+              delay: 15
+              retries: 5
+              with_items:
+                 - "{{ nfs_sc_name }}"
+
+          when: lookup('env','ACTION') == "deprovision"
+
+        - set_fact:
+            flag: "Pass"
+      rescue:
+        - set_fact:
+            flag: "Fail"
+
+      always:
+        ## RECORD END-OF-TEST IN e2e RESULT CR
+        - include_tasks: /e2e-tests/utils/update_e2e_result_resource.yml
+          vars:
+            status: 'EOT'

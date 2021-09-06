@@ -1,0 +1,22 @@
+- name: Downloading openebs operator yaml for rc tag
+  get_url:
+    url: "{{ ci_nfs_provisioner_link }}"
+    dest: "{{ playbook_dir }}/{{ ci_nfs_operator }}"
+    force: yes
+  register: ci_operator
+
+- block:
+    - name: Applying openebs operator
+      shell: kubectl apply -f "{{ ci_nfs_operator }}"
+      args:
+        executable: /bin/bash
+  when: lookup('env','ACTION') == "provision"
+
+- block:
+
+    - name: Applying openebs operator
+      shell: kubectl delete -f "{{ ci_nfs_operator }}"
+      args:
+        executable: /bin/bash
+      ignore_errors: true        
+  when: lookup('env','ACTION') == "deprovision"

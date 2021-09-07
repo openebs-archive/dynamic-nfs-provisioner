@@ -159,7 +159,7 @@ var _ = Describe("TEST BACKEND PV EXISTENCE WITH BACKEND SC HAVING RETAIN POLICY
 			err := Client.deletePVC(applicationNamespace, pvcName)
 			Expect(err).To(BeNil(), "while deleting pvc %s/%s", applicationNamespace, pvcName)
 
-			maxRetryCount := 10
+			maxRetryCount := 20
 			isPvcDeleted := false
 			for retries := 0; retries < maxRetryCount; retries++ {
 				pvcObj, err = Client.getPVC(applicationNamespace, pvcName)
@@ -176,14 +176,14 @@ var _ = Describe("TEST BACKEND PV EXISTENCE WITH BACKEND SC HAVING RETAIN POLICY
 
 			isBackendPvcDeleted := false
 			for retries := 0; retries < maxRetryCount; retries++ {
-				_, err := Client.getPVC(openebsNamespace, backendPvcName)
+				pvcObj, err = Client.getPVC(openebsNamespace, backendPvcName)
 				if err != nil && k8serrors.IsNotFound(err) {
 					isBackendPvcDeleted = true
 					break
 				}
 				time.Sleep(time.Second * 5)
 			}
-			if !isPvcDeleted {
+			if !isBackendPvcDeleted {
 				dumpK8sObject(pvcObj)
 			}
 			Expect(isBackendPvcDeleted).To(BeTrue(), "backend pvc should be deleted")

@@ -176,7 +176,7 @@ var _ = Describe("TEST BACKEND PV EXISTENCE WITH BACKEND SC HAVING RETAIN POLICY
 
 			isBackendPvcDeleted := false
 			for retries := 0; retries < maxRetryCount; retries++ {
-				pvcObj, err := Client.getPVC(openebsNamespace, backendPvcName)
+				pvcObj, err = Client.getPVC(openebsNamespace, backendPvcName)
 				if err != nil && k8serrors.IsNotFound(err) {
 					isBackendPvcDeleted = true
 					break

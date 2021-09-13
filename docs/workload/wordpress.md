@@ -33,25 +33,26 @@ helm install my-release -n wordpress --create-namespace \
        --set persistence.accessModes={ReadWriteMany} \
        --set volumePermissions.enabled=true \
        --set autoscaling.enabled=true \
-       --set autoscaling.minReplicas=1 \
+       --set autoscaling.minReplicas=2 \
        --set autoscaling.maxReplicas=6 \
        --set autoscaling.targetCPU=80 \
         bitnami/wordpress
 ```
 
-The above will create one WordPress application pod with RWX persistent volume. We are using `my-release` as a release name for the WordPress installation. You can replace `my-release` with a different name also.
+The above will create two WordPress application pods with RWX persistent volume. We are using `my-release` as a release name for the WordPress installation. You can replace `my-release` with a different name also.
 
 You can check the generated pods using the command `kubectl get pods -n wordpress`.
 ```
 $ kubectl get pods -n wordpress
 NAME                                   READY   STATUS    RESTARTS   AGE
-my-release-mariadb-0                   1/1     Running   0          2m37s
-my-release-wordpress-79969f558-fdhjj   1/1     Running   0          2m37s
+my-release-mariadb-0                   1/1     Running   0          3m14s
+my-release-wordpress-79969f558-lqs56   1/1     Running   0          2m59s
+my-release-wordpress-79969f558-qjblc   1/1     Running   0          3m14s
 ```
 
 You can scale the WordPress deployment using a `kubectl scale` command as mentioned below:
 ```
-$ kubectl scale --replicas=2 deployment/my-release-wordpress -n wordpress
+$ kubectl scale --replicas=3 deployment/my-release-wordpress -n wordpress
 deployment.apps/my-release-wordpress scaled
 ```
 
@@ -59,8 +60,8 @@ To check PVC/PV created for WordPress pods,
 ```
 $ kubectl get pvc -n wordpress
 NAME                        STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS       AGE
-data-my-release-mariadb-0   Bound    pvc-8aac7c30-9862-4a36-8f10-88aa16310efb   8Gi        RWO            openebs-hostpath   7m45s
-my-release-wordpress        Bound    pvc-a8235417-86b8-458c-993a-1fc5622b4739   10Gi       RWX            openebs-rwx        7m45s
+data-my-release-mariadb-0   Bound    pvc-9dfec460-fc8a-4033-b26c-a28637dcaa3e   8Gi        RWO            openebs-hostpath   3m33s
+my-release-wordpress        Bound    pvc-0234ee9c-befc-4824-8230-3dd6779214cb   10Gi       RWX            openebs-rwx        3m33s
 ```
 
 You can see PVC `my-release-wordpress` is using Storageclass `openebs-rwx` which is having `RWX` access mode.

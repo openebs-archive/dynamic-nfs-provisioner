@@ -42,6 +42,10 @@ For expanding NFS volume, you must ensure the following items(prerequisites) are
   ```sh
   kubectl patch pv <nfs-pv-name> -p '{"spec": {"capacity": {"storage": "2Gi"}}}'
   ```
+- Update the NFS PVC capacity
+  ```sh
+  kubectl patch pvc <nfs-pvc-name> -n <nfs-pvc-namespace> -p '{"spec": {"resources": {"requests": {"storage": "10Gi"}}}}'
+  ```
 
 ### Example
 

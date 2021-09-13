@@ -14,9 +14,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+on_exit() {
+
+    ## Changing back to original value
+    sed -i '/OPENEBS_IO_ENABLE_ANALYTICS/!b;n;c\          value: "true"' deploy/kubectl/openebs-nfs-provisioner.yaml
+}
+
+trap 'on_exit' EXIT
+
 sed -i 's/#- name: BackendStorageClass/- name: BackendStorageClass/' deploy/kubectl/openebs-nfs-provisioner.yaml
 sed -i 's/#  value: "openebs-hostpath"/  value: "openebs-hostpath"/' deploy/kubectl/openebs-nfs-provisioner.yaml
-
+## !b negates the previous address and breaks out of any processing, end the sed commands,
+## n prints the current line and reads the next line into pattern space,
+## c changes the current line to the string following command
+sed -i '/OPENEBS_IO_ENABLE_ANALYTICS/!b;n;c\          value: "false"' deploy/kubectl/openebs-nfs-provisioner.yaml
 kubectl  apply -f deploy/kubectl/openebs-nfs-provisioner.yaml
 
 function waitForDeployment() {

@@ -8,7 +8,7 @@
 [![Slack](https://img.shields.io/badge/chat!!!-slack-ff1493.svg?style=flat-square)](https://kubernetes.slack.com/messages/openebs)
 [![BCH compliance](https://bettercodehub.com/edge/badge/openebs/dynamic-nfs-provisioner?branch=develop)](https://bettercodehub.com/results/openebs/dynamic-nfs-provisioner)
 
-<img width="300" align="right" alt="OpenEBS Logo" src="https://raw.githubusercontent.com/cncf/artwork/master/projects/openebs/stacked/color/openebs-stacked-color.png" xmlns="http://www.w3.org/1999/html">
+<img width="300" align="right" alt="OpenEBS Logo" src="https://raw.githubusercontent.com/cncf/artwork/HEAD/projects/openebs/stacked/color/openebs-stacked-color.png" xmlns="http://www.w3.org/1999/html">
 
 <p align="justify">
 <strong>OpenEBS Dynamic NFS PV provisioner</strong> can be used to dynamically provision 
@@ -95,7 +95,7 @@ OpenEBS welcomes your feedback and contributions in any form possible.
 
 ## Community, discussion, and support
 
-Learn how to engage with the OpenEBS community on the [community page](https://github.com/openebs/openebs/tree/master/community).
+Learn how to engage with the OpenEBS community on the [community page](https://github.com/openebs/openebs/tree/HEAD/community).
 
 You can reach the maintainers of this project at:
 

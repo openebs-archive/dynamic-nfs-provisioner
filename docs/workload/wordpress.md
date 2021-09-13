@@ -50,12 +50,6 @@ my-release-wordpress-79969f558-lqs56   1/1     Running   0          2m59s
 my-release-wordpress-79969f558-qjblc   1/1     Running   0          3m14s
 ```
 
-You can scale the WordPress deployment using a `kubectl scale` command as mentioned below:
-```
-$ kubectl scale --replicas=3 deployment/my-release-wordpress -n wordpress
-deployment.apps/my-release-wordpress scaled
-```
-
 To check PVC/PV created for WordPress pods,
 ```
 $ kubectl get pvc -n wordpress

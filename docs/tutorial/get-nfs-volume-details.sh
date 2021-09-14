@@ -1,6 +1,6 @@
 #! /bin/bash
 
-# Copyright 2018-2020 The OpenEBS Authors. All rights reserved.
+# Copyright 2021 The OpenEBS Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 
 if [ $# -ne 2 ]; then
     echo "Please specify NFS PVC name and namespace"
-    echo "$0 <nfs_pvc_name> <nfs_pv_name>"
+    echo "$0 <nfs_pvc_name> <nfs_pvc_namespace>"
     exit 1
 fi
 nfs_pvc_name=$1

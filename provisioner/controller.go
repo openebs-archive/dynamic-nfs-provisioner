@@ -25,6 +25,8 @@ import (
 	"k8s.io/klog/v2"
 
 	mKube "github.com/openebs/dynamic-nfs-provisioner/pkg/kubernetes/client"
+	menv "github.com/openebs/maya/pkg/env/v1alpha1"
+	analytics "github.com/openebs/maya/pkg/usage"
 	pvController "sigs.k8s.io/sig-storage-lib-external-provisioner/v7/controller"
 )
 
@@ -75,6 +77,11 @@ func Start(ctx context.Context) error {
 
 	//Run the provisioner till a shutdown signal is received.
 	go pc.Run(ctx)
+
+	if menv.Truthy(menv.OpenEBSEnableAnalytics) {
+		analytics.New().Build().InstallBuilder(true).Send()
+		go analytics.PingCheck()
+	}
 
 	<-ctx.Done()
 	klog.V(4).Info("Provisioner stopped")

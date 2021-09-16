@@ -74,7 +74,7 @@ spec:
             - name: OPENEBS_IO_NFS_SERVER_USE_CLUSTERIP
               value: "{{ .Values.nfsServer.useClusterIP }}"
             - name: OPENEBS_IO_INSTALLER_TYPE
-              value: "charts-helm"
+              value: "nfs-helm"
             # OPENEBS_IO_NFS_SERVER_IMG defines the nfs-server-alpine image name to be used
             # while creating nfs volume
             - name: OPENEBS_IO_NFS_SERVER_IMG

@@ -250,6 +250,7 @@ func (p *Provisioner) createDeployment(nfsServerOpts *KernelNFSServerOptions) er
 					FSGroup: nfsServerOpts.fsGroup,
 				}).
 				WithNodeAffinityMatchExpressions(p.nodeAffinity.MatchExpressions).
+				WithImagePullSecret(getNfsServerImagePullSecret()).
 				WithContainerBuildersNew(
 					container.NewBuilder().
 						WithName("nfs-server").

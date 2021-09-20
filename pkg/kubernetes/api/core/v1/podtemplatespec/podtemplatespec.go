@@ -254,6 +254,20 @@ func (b *Builder) WithServiceAccountName(serviceAccountnNme string) *Builder {
 	return b
 }
 
+// WithImagePullSecret adds a new secret to the ImagePullSecrets field of podtemplatespec
+func (b *Builder) WithImagePullSecret(imagePullSecretName string) *Builder {
+	if len(imagePullSecretName) != 0 {
+		b.podtemplatespec.Object.Spec.ImagePullSecrets = append(
+			b.podtemplatespec.Object.Spec.ImagePullSecrets,
+			corev1.LocalObjectReference{
+				Name: imagePullSecretName,
+			},
+		)
+	}
+
+	return b
+}
+
 // WithAffinity sets the affinity field of podtemplatespec
 func (b *Builder) WithAffinity(affinity *corev1.Affinity) *Builder {
 	if affinity == nil {

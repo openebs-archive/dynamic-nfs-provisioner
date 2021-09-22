@@ -138,6 +138,7 @@ helm install openebs-nfs openebs-nfs/nfs-provisioner --namespace openebs --creat
 | `nfsStorageClass.nfsServerResources`       | Resource requests and limits of NFS Server      | `""`                     |
 | `rbac.create`                         | Enable RBAC Resources                          | `true`                         |
 | `rbac.pspEnabled`                     | Create pod security policy resources           | `false`                        |
+| `nfsServer.imagePullSecret`           | Image pull secret name to be used by NFS Server pods | `""`                     |
 
 
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`.

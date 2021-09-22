@@ -70,24 +70,21 @@ User needs to provide Configmap name as a value of `OPENEBS_IO_NFS_HOOK_CONFIGMA
 NFS Provisioner uses `Provisioner` to provision NFS PV. The existing `Provisioner` definition needs to be extended to use the following hooks definition.
 
 ```go
-// HookActionType defines type of action for annotation and finalizer
-type HookActionType string
+// ActionType defines type of action for the hook entry
+type ActionType string
 
 const (
-	// HookActionAdd represent add action
-	HookActionAdd HookActionType = "Add"
-	// HookActionAdd represent remove action
-	HookActionRemove HookActionType = "Remove"
-)
+	// ActionAddOnCreateVolumeEvent represent add action on volume create Event
+	ActionAddOnCreateVolumeEvent ActionType = "addOrUpdateEntriesOnCreateVolumeEvent"
 
-// EventType defines the type of events on which hook needs to be executed
-type EventType string
+	// ActionRemoveOnCreateVolumeEvent represent remove action on volume create Event
+	ActionRemoveOnCreateVolumeEvent ActionType = "removeEntriesOnCreateVolumeEvent"
 
-const (
-	// EventTypeCreateVolume represent volume create event
-	EventTypeCreateVolume EventType = "CreateVolume"
-	// EventTypeDeleteVolume represent volume delete event
-	EventTypeDeleteVolume EventType = "DeleteVolume"
+	// ActionAddOnDeleteVolumeEvent represent add action on volume delete Event
+	ActionAddOnDeleteVolumeEvent ActionType = "addOrUpdateEntriesOnDeleteVolumeEvent"
+
+	// ActionRemoveOnDeleteVolumeEvent represent remove action on volume delete Event
+	ActionRemoveOnDeleteVolumeEvent ActionType = "removeEntriesOnDeleteVolumeEvent"
 )
 
 // PVHook defines the field which will be updated for PV Hook Action
@@ -157,7 +154,7 @@ type HookConfig struct {
 // Hook stores HookConfig and its version
 type Hook struct {
 	//Config represent the list of HookConfig
-	Config []HookConfig `json:"hooks"`
+	Config [ActionType]HookConfig `json:"hooks"`
 
 	// Version represent HookConfig format version; includes major, minor and patch version
 	Version string `json:"version"`
@@ -214,63 +211,84 @@ metadata:
 data:
   config: |
     hooks:
-    - nfsDeployment:
-        annotations:
-          example.io/track: "true"
-          test.io/owner: teamA
-        finalizers:
-        - test.io/tracking-protection
-      nfsService:
-        annotations:
-          example.io/track: "true"
-          test.io/owner: teamA
-        finalizers:
-        - test.io/tracking-protection
-      backendPV:
-        annotations:
-          example.io/track: "true"
-          test.io/owner: teamA
-        finalizers:
-        - test.io/tracking-protection
-      backendPVC:
-        annotations:
-          example.io/track: "true"
-          test.io/owner: teamA
-        finalizers:
-        - test.io/tracking-protection
-      actionType: Add
-      name: createHook
-      nfsPV:
-        annotations:
-          example.io/track: "true"
-          test.io/owner: teamA
-        finalizers:
-        - test.io/tracking-protection
-      eventType: CreateVolume
-    - nfsDeployment:
-        finalizers:
-        - test.io/tracking-protection
-      nfsService:
-        finalizers:
-        - test.io/tracking-protection
-      backendPV:
-        finalizers:
-        - test.io/tracking-protection
-      backendPVC:
-        finalizers:
-        - test.io/tracking-protection
-      actionType: Remove
-      name: deleteHook
-      nfsPV:
-        finalizers:
-        - test.io/tracking-protection
-      eventType: DeleteVolume
+      addOrUpdateEntriesOnCreateVolumeEvent:
+        backendPV:
+          annotations:
+            example.io/track: "true"
+            test.io/owner: teamA
+          finalizers:
+          - test.io/tracking-protection
+        backendPVC:
+          annotations:
+            example.io/track: "true"
+            test.io/owner: teamA
+          finalizers:
+          - test.io/tracking-protection
+        name: createHook
+        nfsDeployment:
+          annotations:
+            example.io/track: "true"
+            test.io/owner: teamA
+          finalizers:
+          - test.io/tracking-protection
+        nfsPV:
+          annotations:
+            example.io/track: "true"
+            test.io/owner: teamA
+          finalizers:
+          - test.io/tracking-protection
+        nfsService:
+          annotations:
+            example.io/track: "true"
+            test.io/owner: teamA
+          finalizers:
+          - test.io/tracking-protection
+      removeEntriesOnDeleteVolumeEvent:
+        backendPV:
+          finalizers:
+          - test.io/tracking-protection
+        backendPVC:
+          finalizers:
+          - test.io/tracking-protection
+        name: deleteHook
+        nfsDeployment:
+          finalizers:
+          - test.io/tracking-protection
+        nfsPV:
+          finalizers:
+          - test.io/tracking-protection
+        nfsService:
+          finalizers:
+          - test.io/tracking-protection
     version: 1.0.0
 ```
+
+User can also configure annotation or label value using template variable.
+Below is snippet from Hook configuration with template variable.
+
+```yaml
+      addOrUpdateEntriesOnCreateVolumeEvent:
+        backendPV:
+          annotations:
+            example.io/track: "true"
+            test.io/owner: teamA
+            test.io/tracking-create-time: $current-time
+```
+For initial development, following template variables will be supported:
+```go
+- $current-time // use current timestamp as value
+```
+
 
 #### NFS Provisioner changes
 If NFS Provisioner is configured with environment variable **OPENEBS_IO_NFS_HOOK_CONFIGMAP** set then Provisioner needs to lookup the provided Configmap in nfs-provisioner namespace. If Configmap exists then provisioner needs to initialize **Provisioner** with hook configuration provided in Configmap.
 NFS Provisioner executes two events, volume provisioning, and volume deletion. On these two events provisioner needs to execute all the hooks as per the given hook Action.
+
+NFS Provisioner will initialize the hook on startup. If Hook configuration is invalid then NFS Provisioner will throw the error and exit.
+
+While executing the hook, NFS Provisioner will execute the valid action only. If any invalid value or action is mentioned in the Hook then Provisioner will skip that specific entry.
+
+Provisioner will verify the hook version mentioned in configmap with the provisioner's hook version. If the hook version is supported by the provisioner then it will process the hook (if the upgrade is required then it will update the configmap with an upgraded version). If hook version is not supported by the provisioner then it will not initialize the hook and return the error which will kill the pod eventually.
 
 #### Extending Hook
 As of now, This document covers design to add/remove only Annotation and Finalizer of the NFS resources. If required, Hook for relevant resource can be extended to modify the other field also. Since hook takes configuration in YAML format, new field definition should be added according to kubernetes definition only.
@@ -300,3 +318,5 @@ type DeploymentHook struct {
 No specific action is required to upgrade the older version to use hooks.
 
 HookConfig supports version tracking which includes major,minor and patch version. If any changes are added in future, this version number should be updated accordingly.
+
+Initial hook development will be versioned 1.0.0.

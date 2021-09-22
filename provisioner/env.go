@@ -57,6 +57,9 @@ const (
 
 	// NFSBackendPvcTimeout defines env name to store BackendPvcBoundTimeout value
 	NFSBackendPvcTimeout menv.ENVKey = "OPENEBS_IO_NFS_SERVER_BACKEND_PVC_TIMEOUT"
+
+	// NFSServerImagePullSecret defines the env name to store the name of the image pull secret
+	NFSServerImagePullSecret menv.ENVKey = "OPENEBS_IO_NFS_SERVER_IMAGE_PULL_SECRET"
 )
 
 var (
@@ -100,4 +103,8 @@ func getNfsServerNodeAffinity() string {
 
 func getBackendPvcTimeout() string {
 	return menv.Get(NFSBackendPvcTimeout)
+}
+
+func getNfsServerImagePullSecret() string {
+	return menv.GetOrDefault(NFSServerImagePullSecret, "")
 }

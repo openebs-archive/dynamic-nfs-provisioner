@@ -1,6 +1,6 @@
 # OpenEBS Dynamic NFS Volume Provisioner
 
-You can see the full list of organizations/users using OpenEBS [here](https://github.com/openebs/openebs/blob/master/ADOPTERS.md).
+You can see the full list of organizations/users using OpenEBS [here](https://github.com/openebs/openebs/blob/HEAD/ADOPTERS.md).
 
 If you are using Dynamic NFS, and would like yourself to be listed in this page, please raise an [issue](https://github.com/openebs/dynamic-nfs-provisioner/issues/new?assignees=&labels=&template=become-an-adopter.md&title=%5BADOPTER%5D) with the following details:
 

@@ -419,3 +419,38 @@ func TestBuilderWithTolerationsNew(t *testing.T) {
 		})
 	}
 }
+
+func TestBuildWithImagePullSecret(t *testing.T) {
+	tests := map[string]struct {
+		imagePullSecret string
+		builder         *Builder
+		expectErr       bool
+	}{
+		"Test Builder with image pull secret": {
+			imagePullSecret: "mysecret",
+			builder: &Builder{podtemplatespec: &PodTemplateSpec{
+				Object: &corev1.PodTemplateSpec{},
+			}},
+			expectErr: false,
+		},
+		"Test Builder without image pull secret": {
+			imagePullSecret: "",
+			builder: &Builder{podtemplatespec: &PodTemplateSpec{
+				Object: &corev1.PodTemplateSpec{},
+			}},
+			expectErr: false,
+		},
+	}
+	for name, mock := range tests {
+		name, mock := name, mock
+		t.Run(name, func(t *testing.T) {
+			b := mock.builder.WithImagePullSecret(mock.imagePullSecret)
+			if mock.expectErr && len(b.errs) == 0 {
+				t.Fatalf("Test %q failed: expected error not to be nil", name)
+			}
+			if !mock.expectErr && len(b.errs) > 0 {
+				t.Fatalf("Test %q failed: expected error to be nil", name)
+			}
+		})
+	}
+}

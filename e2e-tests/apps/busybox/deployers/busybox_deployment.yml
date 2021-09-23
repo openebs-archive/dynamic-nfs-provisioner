@@ -1,0 +1,41 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: testclaim
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: testclass
+  resources:
+    requests:
+      storage: teststorage
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: busybox
+spec:
+  selector:
+    matchLabels:
+      lkey: lvalue
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        lkey: lvalue
+    spec:
+      volumes:
+        - name: nfs-volume
+          persistentVolumeClaim:
+            claimName: testclaim
+      containers:
+        - name: busybox
+          image: gcr.io/google-containers/busybox
+          command:
+            - sh
+            - -c
+            - 'while true; do touch /mnt/data/index.html; date >> /mnt/data/index.html; hostname >> /mnt/data/index.html; sleep $(($RANDOM % 5 + 5)); tail -1 /mnt/data/index.html; done'
+          volumeMounts:
+            - name: nfs-volume
+              mountPath: /mnt/data

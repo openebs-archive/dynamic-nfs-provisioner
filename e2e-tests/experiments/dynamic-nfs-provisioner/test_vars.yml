@@ -1,0 +1,15 @@
+ci_nfs_provisioner_link: "https://raw.githubusercontent.com/openebs/dynamic-nfs-provisioner/develop/deploy/kubectl/openebs-nfs-provisioner.yaml"
+charts_nfs_provisioner: "https://raw.githubusercontent.com/openebs/charts/gh-pages/versioned/{{ lookup('env','RELEASE_VERSION') }}/nfs-operator.yaml"
+rc_nfs_link: "https://raw.githubusercontent.com/openebs/charts/{{ lookup('env','COMMIT_ID') }}/versioned/{{ lookup('env','RELEASE_VERSION') }}/nfs-operator.yaml"
+localpv_version: "{{ lookup('env','LOCALPV_PROVISIONER_IMAGE') }}"
+release_version: "{{ lookup('env','RELEASE_VERSION') }}"
+image_type: "{{ lookup('env','IMAGE_TYPE') }}"
+ci_nfs_operator: openebs-nfs-provisioner.yaml
+release_nfs_operator: nfs-operator.yaml
+rc_nfs_operator: nfs-operator.yaml
+test_name: "nfs-provisioner-{{ lookup('env','ACTION') }}"
+namespace: "{{ lookup('env','OPERATOR_NS') }}"
+backend_sc_name: "{{ lookup('env','BACKEND_SC_NAME') }}"
+nfs_sc_name: "{{ lookup('env','NFS_SC_NAME') }}"
+nfs_storage_policies:
+  - nfs-sc.yml

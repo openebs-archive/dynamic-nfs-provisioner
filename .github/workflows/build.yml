@@ -89,6 +89,7 @@ jobs:
           images: |
             ${{ env.IMAGE_ORG }}/provisioner-nfs
             quay.io/${{ env.IMAGE_ORG }}/provisioner-nfs
+            ghcr.io/${{ env.IMAGE_ORG }}/provisioner-nfs
           tag-latest: false
           tag-custom-only: true
           tag-custom: |
@@ -121,6 +122,13 @@ jobs:
           registry: quay.io
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
+
+      - name: Login to GHCR
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and Push Image
         uses: docker/build-push-action@v2
@@ -166,6 +174,7 @@ jobs:
           images: |
             ${{ env.IMAGE_ORG }}/nfs-server-alpine
             quay.io/${{ env.IMAGE_ORG }}/nfs-server-alpine
+            ghcr.io/${{ env.IMAGE_ORG }}/nfs-server-alpine
           tag-latest: false
           tag-custom-only: true
           tag-custom: |
@@ -198,6 +207,13 @@ jobs:
           registry: quay.io
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
+
+      - name: Login to GHCR
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and Push Image
         uses: docker/build-push-action@v2
@@ -241,3 +257,30 @@ jobs:
 
       - name: Running sanity tests
         run: make sanity-test
+
+  nfs-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set Image Org
+        # sets the default IMAGE_ORG to openebs
+        run: |
+          [ -z "${{ secrets.IMAGE_ORG }}" ] && IMAGE_ORG=openebs || IMAGE_ORG=${{ secrets.IMAGE_ORG}}
+          echo "IMAGE_ORG=${IMAGE_ORG}" >> $GITHUB_ENV
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push the nfs-e2e image
+        uses: docker/build-push-action@v2
+        with:
+          file: ./e2e-tests/Dockerfile
+          push: true
+          load: false
+          platforms: linux/amd64
+          tags: |
+            ${{ env.IMAGE_ORG }}/nfs-e2e:ci           

@@ -142,13 +142,6 @@ type HookConfig struct {
 
 	// NFSDeploymentConfig represent config for NFS Deployment resource
 	NFSDeploymentConfig *DeploymentHook `json:"nfsDeployment,omitempty"`
-
-	// Event defines provisioning event type on which
-	// given hook action needs to be executed
-	Event EventType `json:"eventType"`
-
-	// Action represent the type of hook action, i.e HookActionAdd or HookActionRemove
-	Action HookActionType `json:"actionType"`
 }
 
 // Hook stores HookConfig and its version

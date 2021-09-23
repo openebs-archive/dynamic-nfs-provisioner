@@ -32,80 +32,73 @@ import (
 
 func buildTestHook() *nfshook.Hook {
 	var hook nfshook.Hook
-	hook.Config = append(hook.Config,
-		nfshook.HookConfig{
-			Name: "createHook",
-			BackendPVConfig: &nfshook.PVHook{
-				Annotations: map[string]string{
-					"example.io/track": "true",
-					"example.io/res":   "backend-pvc",
-					"test.io/owner":    "teamA",
-				},
-				Finalizers: []string{"test.io/tracking-protection"},
+	hook.Config = make(map[nfshook.ActionType]nfshook.HookConfig)
+	hook.Config[nfshook.ActionAddOnCreateVolumeEvent] = nfshook.HookConfig{
+		Name: "createHook",
+		BackendPVConfig: &nfshook.PVHook{
+			Annotations: map[string]string{
+				"example.io/track": "true",
+				"example.io/res":   "backend-pvc",
+				"test.io/owner":    "teamA",
 			},
-			NFSPVConfig: &nfshook.PVHook{
-				Annotations: map[string]string{
-					"example.io/track": "true",
-					"example.io/res":   "nfs-pv",
-					"test.io/owner":    "teamA",
-				},
-				Finalizers: []string{"test.io/tracking-protection"},
-			},
-
-			BackendPVCConfig: &nfshook.PVCHook{
-				Annotations: map[string]string{
-					"example.io/track": "true",
-					"example.io/res":   "backend-pvc",
-					"test.io/owner":    "teamA",
-				},
-				Finalizers: []string{"test.io/tracking-protection"},
-			},
-
-			NFSServiceConfig: &nfshook.ServiceHook{
-				Annotations: map[string]string{
-					"example.io/track": "true",
-					"example.io/res":   "nfs-svc",
-					"test.io/owner":    "teamA",
-				},
-				Finalizers: []string{"test.io/tracking-protection"},
-			},
-			NFSDeploymentConfig: &nfshook.DeploymentHook{
-				Annotations: map[string]string{
-					"example.io/track": "true",
-					"example.io/res":   "nfs-deployment",
-					"test.io/owner":    "teamA",
-				},
-				Finalizers: []string{"test.io/tracking-protection"},
-			},
-			Event:  nfshook.EventTypeCreateVolume,
-			Action: nfshook.HookActionAdd,
+			Finalizers: []string{"test.io/tracking-protection"},
 		},
-	)
-
-	hook.Config = append(hook.Config,
-		nfshook.HookConfig{
-			Name: "deleteHook",
-			BackendPVConfig: &nfshook.PVHook{
-				Finalizers: []string{"test.io/tracking-protection"},
+		NFSPVConfig: &nfshook.PVHook{
+			Annotations: map[string]string{
+				"example.io/track": "true",
+				"example.io/res":   "nfs-pv",
+				"test.io/owner":    "teamA",
 			},
-			NFSPVConfig: &nfshook.PVHook{
-				Finalizers: []string{"test.io/tracking-protection"},
-			},
-
-			BackendPVCConfig: &nfshook.PVCHook{
-				Finalizers: []string{"test.io/tracking-protection"},
-			},
-
-			NFSServiceConfig: &nfshook.ServiceHook{
-				Finalizers: []string{"test.io/tracking-protection"},
-			},
-			NFSDeploymentConfig: &nfshook.DeploymentHook{
-				Finalizers: []string{"test.io/tracking-protection"},
-			},
-			Event:  nfshook.EventTypeDeleteVolume,
-			Action: nfshook.HookActionRemove,
+			Finalizers: []string{"test.io/tracking-protection"},
 		},
-	)
+
+		BackendPVCConfig: &nfshook.PVCHook{
+			Annotations: map[string]string{
+				"example.io/track": "true",
+				"example.io/res":   "backend-pvc",
+				"test.io/owner":    "teamA",
+			},
+			Finalizers: []string{"test.io/tracking-protection"},
+		},
+
+		NFSServiceConfig: &nfshook.ServiceHook{
+			Annotations: map[string]string{
+				"example.io/track": "true",
+				"example.io/res":   "nfs-svc",
+				"test.io/owner":    "teamA",
+			},
+			Finalizers: []string{"test.io/tracking-protection"},
+		},
+		NFSDeploymentConfig: &nfshook.DeploymentHook{
+			Annotations: map[string]string{
+				"example.io/track": "true",
+				"example.io/res":   "nfs-deployment",
+				"test.io/owner":    "teamA",
+			},
+			Finalizers: []string{"test.io/tracking-protection"},
+		},
+	}
+
+	hook.Config[nfshook.ActionRemoveOnDeleteVolumeEvent] = nfshook.HookConfig{
+		Name: "deleteHook",
+		BackendPVConfig: &nfshook.PVHook{
+			Finalizers: []string{"test.io/tracking-protection"},
+		},
+		NFSPVConfig: &nfshook.PVHook{
+			Finalizers: []string{"test.io/tracking-protection"},
+		},
+
+		BackendPVCConfig: &nfshook.PVCHook{
+			Finalizers: []string{"test.io/tracking-protection"},
+		},
+
+		NFSServiceConfig: &nfshook.ServiceHook{
+			Finalizers: []string{"test.io/tracking-protection"},
+		},
+		NFSDeploymentConfig: &nfshook.DeploymentHook{
+			Finalizers: []string{"test.io/tracking-protection"},
+		},
+	}
 
 	return &hook
 }
@@ -219,36 +212,36 @@ var _ = Describe("TEST NFS HOOK", func() {
 			By("verifying backend PVC")
 			backendPVCObj, err := Client.getPVC(openebsNamespace, "nfs-"+pvcObj.Spec.VolumeName)
 			Expect(err).To(BeNil(), "while fetching backend pvc")
-			Expect(annotationExist(&backendPVCObj.ObjectMeta, hook.Config[0].BackendPVCConfig.Annotations)).
+			Expect(annotationExist(&backendPVCObj.ObjectMeta, hook.Config[nfshook.ActionAddOnCreateVolumeEvent].BackendPVCConfig.Annotations)).
 				To(BeTrue(), "Backend PVC=%s/%s should be annotated", openebsNamespace, "nfs-"+pvcObj.Spec.VolumeName)
-			Expect(finalizerExist(&backendPVCObj.ObjectMeta, hook.Config[0].BackendPVCConfig.Finalizers)).
+			Expect(finalizerExist(&backendPVCObj.ObjectMeta, hook.Config[nfshook.ActionAddOnCreateVolumeEvent].BackendPVCConfig.Finalizers)).
 				To(BeTrue(), "Backend PVC=%s/%s should be updated with finalizers", openebsNamespace, "nfs-"+pvcObj.Spec.VolumeName)
 
 			By("verifying backend PV")
 			backendPVName = backendPVCObj.Spec.VolumeName
 			backendPV, err := Client.getPV(backendPVName)
 			Expect(err).To(BeNil(), "while fetching backend PV")
-			Expect(annotationExist(&backendPV.ObjectMeta, hook.Config[0].BackendPVConfig.Annotations)).
+			Expect(annotationExist(&backendPV.ObjectMeta, hook.Config[nfshook.ActionAddOnCreateVolumeEvent].BackendPVConfig.Annotations)).
 				To(BeTrue(), "Backend PV=%s should be annotated", backendPVName)
-			Expect(finalizerExist(&backendPV.ObjectMeta, hook.Config[0].BackendPVConfig.Finalizers)).
+			Expect(finalizerExist(&backendPV.ObjectMeta, hook.Config[nfshook.ActionAddOnCreateVolumeEvent].BackendPVConfig.Finalizers)).
 				To(BeTrue(), "Backend PV=%s should be updated with finalizers", backendPVName)
 
 			By("verifying NFS Service")
 			svcObj, err := Client.getService(openebsNamespace, "nfs-"+pvcObj.Spec.VolumeName)
 			Expect(err).To(BeNil(), "while fetching NFS Service")
-			Expect(annotationExist(&svcObj.ObjectMeta, hook.Config[0].NFSServiceConfig.Annotations)).
+			Expect(annotationExist(&svcObj.ObjectMeta, hook.Config[nfshook.ActionAddOnCreateVolumeEvent].NFSServiceConfig.Annotations)).
 				To(BeTrue(), "NFS Service=%s/%s should be annotated", openebsNamespace, svcObj.Name)
-			Expect(finalizerExist(&svcObj.ObjectMeta, hook.Config[0].NFSServiceConfig.Finalizers)).
+			Expect(finalizerExist(&svcObj.ObjectMeta, hook.Config[nfshook.ActionAddOnCreateVolumeEvent].NFSServiceConfig.Finalizers)).
 				To(BeTrue(), "NFS Service=%s/%s should be updated with finalizers", openebsNamespace, svcObj.Name)
 
 			By("verifying NFS Server Deployment")
 			deployObj, err := Client.getDeployment(openebsNamespace, "nfs-"+pvcObj.Spec.VolumeName)
 			Expect(err).To(BeNil(), "while fetching NFS Deployment")
-			Expect(annotationExist(&deployObj.ObjectMeta, hook.Config[0].NFSDeploymentConfig.Annotations)).To(
+			Expect(annotationExist(&deployObj.ObjectMeta, hook.Config[nfshook.ActionAddOnCreateVolumeEvent].NFSDeploymentConfig.Annotations)).To(
 				BeTrue(),
 				"NFS Deployment=%s/%s should be annotated", openebsNamespace, deployObj.Name,
 			)
-			Expect(finalizerExist(&deployObj.ObjectMeta, hook.Config[0].NFSDeploymentConfig.Finalizers)).To(
+			Expect(finalizerExist(&deployObj.ObjectMeta, hook.Config[nfshook.ActionAddOnCreateVolumeEvent].NFSDeploymentConfig.Finalizers)).To(
 				BeTrue(),
 				"NFS Deployment=%s/%s should be updated with finalizers", openebsNamespace, deployObj.Name,
 			)
@@ -256,9 +249,9 @@ var _ = Describe("TEST NFS HOOK", func() {
 			By("verifying NFSPV")
 			nfsPVObj, err := Client.getPV(pvcObj.Spec.VolumeName)
 			Expect(err).To(BeNil(), "while fetching backend PV")
-			Expect(annotationExist(&nfsPVObj.ObjectMeta, hook.Config[0].NFSPVConfig.Annotations)).
+			Expect(annotationExist(&nfsPVObj.ObjectMeta, hook.Config[nfshook.ActionAddOnCreateVolumeEvent].NFSPVConfig.Annotations)).
 				To(BeTrue(), "NFS PV=%s should be annotated", pvcObj.Spec.VolumeName)
-			Expect(finalizerExist(&nfsPVObj.ObjectMeta, hook.Config[0].NFSPVConfig.Finalizers)).
+			Expect(finalizerExist(&nfsPVObj.ObjectMeta, hook.Config[nfshook.ActionAddOnCreateVolumeEvent].NFSPVConfig.Finalizers)).
 				To(BeTrue(), "NFS PV=%s should be updated with finalizers", pvcObj.Spec.VolumeName)
 		})
 	})

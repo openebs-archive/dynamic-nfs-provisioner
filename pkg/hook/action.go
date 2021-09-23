@@ -20,34 +20,39 @@ package hook
 // Action will skip further hook execution if any error occurred
 func (h *Hook) Action(obj interface{}, resourceType int, eventType EventType) error {
 	var err error
-	for _, cfg := range h.Config {
-		if cfg.Event != eventType {
+	for actionType, cfg := range h.Config {
+		actionEvent, ok := ActionForEventMap[actionType]
+		if !ok {
+			continue
+		}
+
+		if actionEvent.evType != eventType {
 			continue
 		}
 
 		switch resourceType {
 		case ResourceBackendPVC:
-			err = pvc_hook_action(cfg.BackendPVCConfig, cfg.Action, obj)
+			err = pvc_hook_action(cfg.BackendPVCConfig, actionEvent.actOp, obj)
 			if err != nil {
 				return err
 			}
 		case ResourceBackendPV:
-			err = pv_hook_action(cfg.BackendPVConfig, cfg.Action, obj)
+			err = pv_hook_action(cfg.BackendPVConfig, actionEvent.actOp, obj)
 			if err != nil {
 				return err
 			}
 		case ResourceNFSService:
-			err = service_hook_action(cfg.NFSServiceConfig, cfg.Action, obj)
+			err = service_hook_action(cfg.NFSServiceConfig, actionEvent.actOp, obj)
 			if err != nil {
 				return err
 			}
 		case ResourceNFSPV:
-			err = pv_hook_action(cfg.NFSPVConfig, cfg.Action, obj)
+			err = pv_hook_action(cfg.NFSPVConfig, actionEvent.actOp, obj)
 			if err != nil {
 				return err
 			}
 		case ResourceNFSServerDeployment:
-			err = deployment_hook_action(cfg.NFSDeploymentConfig, cfg.Action, obj)
+			err = deployment_hook_action(cfg.NFSDeploymentConfig, actionEvent.actOp, obj)
 			if err != nil {
 				return err
 			}

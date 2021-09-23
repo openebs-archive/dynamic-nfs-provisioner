@@ -24,7 +24,7 @@ import (
 )
 
 // deployment_hook_action will execute the given hook config on the object for the given action
-func deployment_hook_action(hookCfg *DeploymentHook, action HookActionType, obj interface{}) error {
+func deployment_hook_action(hookCfg *DeploymentHook, action ActionOp, obj interface{}) error {
 	if hookCfg == nil {
 		return nil
 	}
@@ -35,9 +35,9 @@ func deployment_hook_action(hookCfg *DeploymentHook, action HookActionType, obj 
 	}
 
 	switch action {
-	case HookActionAdd:
+	case ActionOpAddOrUpdate:
 		deployment_hook_action_add(dObj, *hookCfg)
-	case HookActionRemove:
+	case ActionOpRemove:
 		deployment_hook_action_remove(dObj, *hookCfg)
 	}
 
@@ -47,7 +47,7 @@ func deployment_hook_action(hookCfg *DeploymentHook, action HookActionType, obj 
 // deployment_hook_action_add will add the given hook config to the given object
 func deployment_hook_action_add(obj *appsv1.Deployment, hookCfg DeploymentHook) {
 	if len(hookCfg.Annotations) != 0 {
-		helper.AddAnnotations(&obj.ObjectMeta, hookCfg.Annotations)
+		AddAnnotations(&obj.ObjectMeta, hookCfg.Annotations)
 	}
 
 	if len(hookCfg.Finalizers) != 0 {

@@ -40,10 +40,9 @@ func TestExecuteHookOnNFSPV(t *testing.T) {
 		{
 			name: "when NFSPV hook is configured to add metadata but PV doesn't exist",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						NFSPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:       EventTypeCreateVolume,
 					},
 				},
 			},
@@ -53,11 +52,9 @@ func TestExecuteHookOnNFSPV(t *testing.T) {
 		{
 			name: "when NFSPV hook is configured to add metadata, object should be modified",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						NFSPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:       EventTypeCreateVolume,
-						Action:      HookActionAdd,
 					},
 				},
 			},
@@ -69,11 +66,9 @@ func TestExecuteHookOnNFSPV(t *testing.T) {
 		{
 			name: "when NFSPV hook is configured to remove metadata, object should be modified",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionRemoveOnCreateVolumeEvent: HookConfig{
 						NFSPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:       EventTypeCreateVolume,
-						Action:      HookActionRemove,
 					},
 				},
 			},
@@ -125,10 +120,9 @@ func TestExecuteHookOnBackendPVC(t *testing.T) {
 		{
 			name: "when BackendPVC hook is configured to add metadata but PVC doesn't exist",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						BackendPVCConfig: buildPVCHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            EventTypeCreateVolume,
 					},
 				},
 			},
@@ -139,11 +133,9 @@ func TestExecuteHookOnBackendPVC(t *testing.T) {
 		{
 			name: "when BackendPVC hook is configured to add metadata, object should be modified",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						BackendPVCConfig: buildPVCHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            EventTypeCreateVolume,
-						Action:           HookActionAdd,
 					},
 				},
 			},
@@ -156,11 +148,9 @@ func TestExecuteHookOnBackendPVC(t *testing.T) {
 		{
 			name: "when BackendPVC hook is configured to remove metadata, object should be modified",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionRemoveOnCreateVolumeEvent: HookConfig{
 						BackendPVCConfig: buildPVCHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            EventTypeCreateVolume,
-						Action:           HookActionRemove,
 					},
 				},
 			},
@@ -213,10 +203,9 @@ func TestExecuteHookOnNFSService(t *testing.T) {
 		{
 			name: "when Service hook is configured to add metadata but PVC doesn't exist",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						NFSServiceConfig: buildServiceHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            EventTypeCreateVolume,
 					},
 				},
 			},
@@ -227,11 +216,9 @@ func TestExecuteHookOnNFSService(t *testing.T) {
 		{
 			name: "when Service hook is configured to add metadata, object should be modified",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						NFSServiceConfig: buildServiceHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            EventTypeCreateVolume,
-						Action:           HookActionAdd,
 					},
 				},
 			},
@@ -244,11 +231,9 @@ func TestExecuteHookOnNFSService(t *testing.T) {
 		{
 			name: "when Service hook is configured to remove metadata, object should be modified",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionRemoveOnCreateVolumeEvent: HookConfig{
 						NFSServiceConfig: buildServiceHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            EventTypeCreateVolume,
-						Action:           HookActionRemove,
 					},
 				},
 			},
@@ -301,10 +286,9 @@ func TestExecuteHookOnNFSDeployment(t *testing.T) {
 		{
 			name: "when Deployment hook is configured to add metadata but PVC doesn't exist",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						NFSDeploymentConfig: buildDeploymentHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:               EventTypeCreateVolume,
 					},
 				},
 			},
@@ -315,11 +299,9 @@ func TestExecuteHookOnNFSDeployment(t *testing.T) {
 		{
 			name: "when Deployment hook is configured to add metadata, object should be modified",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						NFSDeploymentConfig: buildDeploymentHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:               EventTypeCreateVolume,
-						Action:              HookActionAdd,
 					},
 				},
 			},
@@ -332,11 +314,9 @@ func TestExecuteHookOnNFSDeployment(t *testing.T) {
 		{
 			name: "when Deployment hook is configured to remove metadata, object should be modified",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionRemoveOnCreateVolumeEvent: HookConfig{
 						NFSDeploymentConfig: buildDeploymentHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:               EventTypeCreateVolume,
-						Action:              HookActionRemove,
 					},
 				},
 			},
@@ -402,10 +382,9 @@ func TestExecuteHookOnBackendPV(t *testing.T) {
 		{
 			name: "when BackendPV hook is configured to add metadata but PVC doesn't exist",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						BackendPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:           EventTypeCreateVolume,
 					},
 				},
 			},
@@ -416,11 +395,9 @@ func TestExecuteHookOnBackendPV(t *testing.T) {
 		{
 			name: "when BackendPV hook is configured to add metadata, object should be modified",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						BackendPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:           EventTypeCreateVolume,
-						Action:          HookActionAdd,
 					},
 				},
 			},
@@ -434,11 +411,9 @@ func TestExecuteHookOnBackendPV(t *testing.T) {
 		{
 			name: "when BackendPV hook is configured to remove metadata, object should be modified",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionRemoveOnCreateVolumeEvent: HookConfig{
 						BackendPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:           EventTypeCreateVolume,
-						Action:          HookActionRemove,
 					},
 				},
 			},

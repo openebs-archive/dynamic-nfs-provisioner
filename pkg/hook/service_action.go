@@ -17,13 +17,14 @@ limitations under the License.
 package hook
 
 import (
-	"github.com/openebs/dynamic-nfs-provisioner/pkg/helper"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
+
+	"github.com/openebs/dynamic-nfs-provisioner/pkg/helper"
 )
 
 // service_hook_action will execute the given hook config on the object for the given action
-func service_hook_action(hookCfg *ServiceHook, action HookActionType, obj interface{}) error {
+func service_hook_action(hookCfg *ServiceHook, action ActionOp, obj interface{}) error {
 	if hookCfg == nil {
 		return nil
 	}
@@ -34,9 +35,9 @@ func service_hook_action(hookCfg *ServiceHook, action HookActionType, obj interf
 	}
 
 	switch action {
-	case HookActionAdd:
+	case ActionOpAddOrUpdate:
 		service_hook_action_add(sObj, *hookCfg)
-	case HookActionRemove:
+	case ActionOpRemove:
 		service_hook_action_remove(sObj, *hookCfg)
 	}
 
@@ -46,7 +47,7 @@ func service_hook_action(hookCfg *ServiceHook, action HookActionType, obj interf
 // service_hook_action_add will add the given hook config to the given object
 func service_hook_action_add(obj *corev1.Service, hookCfg ServiceHook) {
 	if len(hookCfg.Annotations) != 0 {
-		helper.AddAnnotations(&obj.ObjectMeta, hookCfg.Annotations)
+		AddAnnotations(&obj.ObjectMeta, hookCfg.Annotations)
 	}
 
 	if len(hookCfg.Finalizers) != 0 {

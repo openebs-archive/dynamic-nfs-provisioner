@@ -29,6 +29,10 @@ func ParseHooks(hookData []byte) (*Hook, error) {
 		return nil, errors.Wrapf(err, "error Unmarshalling hookData")
 	}
 
+	if hook.Version != HookVersion {
+		return nil, errors.Errorf("Hook Version=%s not supported", hook.Version)
+	}
+
 	h := &hook
 	h.updateAvailableActions()
 	return h, nil
@@ -39,25 +43,30 @@ func (h *Hook) updateAvailableActions() {
 	h.availableActions[EventTypeCreateVolume] = make(map[int]struct{})
 	h.availableActions[EventTypeDeleteVolume] = make(map[int]struct{})
 
-	for _, cfg := range h.Config {
+	for actionType, cfg := range h.Config {
+		actionEvent, ok := ActionForEventMap[actionType]
+		if !ok {
+			continue
+		}
+
 		if cfg.BackendPVCConfig != nil {
-			h.availableActions[cfg.Event][ResourceBackendPVC] = struct{}{}
+			h.availableActions[actionEvent.evType][ResourceBackendPVC] = struct{}{}
 		}
 
 		if cfg.BackendPVConfig != nil {
-			h.availableActions[cfg.Event][ResourceBackendPV] = struct{}{}
+			h.availableActions[actionEvent.evType][ResourceBackendPV] = struct{}{}
 		}
 
 		if cfg.NFSServiceConfig != nil {
-			h.availableActions[cfg.Event][ResourceNFSService] = struct{}{}
+			h.availableActions[actionEvent.evType][ResourceNFSService] = struct{}{}
 		}
 
 		if cfg.NFSPVConfig != nil {
-			h.availableActions[cfg.Event][ResourceNFSPV] = struct{}{}
+			h.availableActions[actionEvent.evType][ResourceNFSPV] = struct{}{}
 		}
 
 		if cfg.NFSDeploymentConfig != nil {
-			h.availableActions[cfg.Event][ResourceNFSServerDeployment] = struct{}{}
+			h.availableActions[actionEvent.evType][ResourceNFSServerDeployment] = struct{}{}
 		}
 	}
 	return

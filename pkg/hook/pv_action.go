@@ -23,7 +23,7 @@ import (
 )
 
 // pv_hook_action will execute the given hook config on the object for the given action
-func pv_hook_action(hookCfg *PVHook, action HookActionType, obj interface{}) error {
+func pv_hook_action(hookCfg *PVHook, action ActionOp, obj interface{}) error {
 	if hookCfg == nil {
 		return nil
 	}
@@ -34,9 +34,9 @@ func pv_hook_action(hookCfg *PVHook, action HookActionType, obj interface{}) err
 	}
 
 	switch action {
-	case HookActionAdd:
+	case ActionOpAddOrUpdate:
 		pv_hook_action_add(pvObj, *hookCfg)
-	case HookActionRemove:
+	case ActionOpRemove:
 		pv_hook_action_remove(pvObj, *hookCfg)
 	}
 
@@ -46,7 +46,7 @@ func pv_hook_action(hookCfg *PVHook, action HookActionType, obj interface{}) err
 // pv_hook_action_add will add the given hook config to the given object
 func pv_hook_action_add(obj *corev1.PersistentVolume, hookCfg PVHook) {
 	if len(hookCfg.Annotations) != 0 {
-		helper.AddAnnotations(&obj.ObjectMeta, hookCfg.Annotations)
+		AddAnnotations(&obj.ObjectMeta, hookCfg.Annotations)
 	}
 
 	if len(hookCfg.Finalizers) != 0 {

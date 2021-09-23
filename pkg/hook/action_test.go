@@ -111,11 +111,9 @@ func TestAction(t *testing.T) {
 		{
 			name: "when backendPVC hook is configured then PVC obj should be modified",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						BackendPVCConfig: buildPVCHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            EventTypeCreateVolume,
-						Action:           HookActionAdd,
 					},
 				},
 			},
@@ -128,11 +126,9 @@ func TestAction(t *testing.T) {
 		{
 			name: "when backendPV hook is configured then PV obj should be modified",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						BackendPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:           EventTypeCreateVolume,
-						Action:          HookActionAdd,
 					},
 				},
 			},
@@ -145,11 +141,9 @@ func TestAction(t *testing.T) {
 		{
 			name: "when NFSService hook is configured then Service obj should be modified",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						NFSServiceConfig: buildServiceHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            EventTypeCreateVolume,
-						Action:           HookActionAdd,
 					},
 				},
 			},
@@ -162,11 +156,9 @@ func TestAction(t *testing.T) {
 		{
 			name: "when NFSPV hook is configured then PV obj should be modified",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						NFSPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:       EventTypeCreateVolume,
-						Action:      HookActionAdd,
 					},
 				},
 			},
@@ -179,11 +171,9 @@ func TestAction(t *testing.T) {
 		{
 			name: "when NFSDeployment hook is configured then Deployment obj should be modified",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						NFSDeploymentConfig: buildDeploymentHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:               EventTypeCreateVolume,
-						Action:              HookActionAdd,
 					},
 				},
 			},
@@ -194,13 +184,26 @@ func TestAction(t *testing.T) {
 			expectedError: nil,
 		},
 		{
+			name: "when backendPVC hook is configured with invalid actionEvent, object should not be modified",
+			hook: &Hook{
+				Config: map[ActionType]HookConfig{
+					"invalidActionEvent": HookConfig{
+						BackendPVCConfig: buildPVCHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
+					},
+				},
+			},
+			resourceType:  ResourceBackendPVC,
+			obj:           generateFakePvObj("pv", nil, nil),
+			expectedObj:   generateFakePvObj("pv", nil, nil),
+			eventType:     EventTypeCreateVolume,
+			expectedError: nil,
+		},
+		{
 			name: "when backendPVC hook is configured and PV object is passed then object should not be modified and error should be returned",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						BackendPVCConfig: buildPVCHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            EventTypeCreateVolume,
-						Action:           HookActionAdd,
 					},
 				},
 			},
@@ -213,11 +216,9 @@ func TestAction(t *testing.T) {
 		{
 			name: "when backendPV hook is configured and Service object is passed then object should not be modified and error should be returned",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						BackendPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:           EventTypeCreateVolume,
-						Action:          HookActionAdd,
 					},
 				},
 			},
@@ -230,11 +231,9 @@ func TestAction(t *testing.T) {
 		{
 			name: "when NFSService hook is configured and PV object is passed then object should not be modified and error should be returned",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						NFSServiceConfig: buildServiceHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            EventTypeCreateVolume,
-						Action:           HookActionAdd,
 					},
 				},
 			},
@@ -247,11 +246,9 @@ func TestAction(t *testing.T) {
 		{
 			name: "when NFSPV hook is configured and Service object is passed then object should not be modified and error should be returned",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						NFSPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:       EventTypeCreateVolume,
-						Action:      HookActionAdd,
 					},
 				},
 			},
@@ -264,13 +261,13 @@ func TestAction(t *testing.T) {
 		{
 			name: "when NFSDeployment hook is configured and Service object is passed then object should not be modified and error should be returned",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
+
 						NFSDeploymentConfig: buildDeploymentHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:               EventTypeCreateVolume,
-						Action:              HookActionAdd,
 					},
 				},
+				Version: HookVersion,
 			},
 			resourceType:  ResourceNFSServerDeployment,
 			obj:           generateFakeServiceObj("test", "service", nil, nil),
@@ -281,13 +278,12 @@ func TestAction(t *testing.T) {
 		{
 			name: "when NFSDeployment hook is configured with different eventType, object shouldn't be modified",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						NFSDeploymentConfig: buildDeploymentHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:               EventTypeCreateVolume,
-						Action:              HookActionAdd,
 					},
 				},
+				Version: HookVersion,
 			},
 			resourceType:  ResourceNFSServerDeployment,
 			obj:           generateFakeDeploymentObj("test", "deployment", nil, nil),
@@ -324,12 +320,12 @@ func TestActionExists(t *testing.T) {
 		{
 			name: "when backendPVC Hook is added with event Create and checking for event Create",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						BackendPVCConfig: buildPVCHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            EventTypeCreateVolume,
 					},
 				},
+				Version: HookVersion,
 			},
 			resourceType: ResourceBackendPVC,
 			eventType:    EventTypeCreateVolume,
@@ -338,12 +334,12 @@ func TestActionExists(t *testing.T) {
 		{
 			name: "when backendPVC Hook is added with event Delete and checking for event Delete",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnDeleteVolumeEvent: HookConfig{
 						BackendPVCConfig: buildPVCHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            EventTypeDeleteVolume,
 					},
 				},
+				Version: HookVersion,
 			},
 			resourceType: ResourceBackendPVC,
 			eventType:    EventTypeDeleteVolume,
@@ -352,12 +348,12 @@ func TestActionExists(t *testing.T) {
 		{
 			name: "when backendPVC Hook is added with event Create and checking for event Delete",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						BackendPVCConfig: buildPVCHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            EventTypeCreateVolume,
 					},
 				},
+				Version: HookVersion,
 			},
 			resourceType: ResourceBackendPVC,
 			eventType:    EventTypeDeleteVolume,
@@ -366,12 +362,12 @@ func TestActionExists(t *testing.T) {
 		{
 			name: "when backendPVC Hook is added with event Delete and checking for event Create",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnDeleteVolumeEvent: HookConfig{
 						BackendPVCConfig: buildPVCHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            EventTypeDeleteVolume,
 					},
 				},
+				Version: HookVersion,
 			},
 			resourceType: ResourceBackendPVC,
 			eventType:    EventTypeCreateVolume,
@@ -380,12 +376,12 @@ func TestActionExists(t *testing.T) {
 		{
 			name: "when backendPVC Hook is not added and checking for event Create",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						BackendPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:           EventTypeCreateVolume,
 					},
 				},
+				Version: HookVersion,
 			},
 			resourceType: ResourceBackendPVC,
 			eventType:    EventTypeCreateVolume,
@@ -394,12 +390,12 @@ func TestActionExists(t *testing.T) {
 		{
 			name: "when backendPVC Hook is not added and checking for event Delete",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						BackendPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:           EventTypeCreateVolume,
 					},
 				},
+				Version: HookVersion,
 			},
 			resourceType: ResourceBackendPVC,
 			eventType:    EventTypeDeleteVolume,
@@ -410,12 +406,12 @@ func TestActionExists(t *testing.T) {
 		{
 			name: "when backendPV Hook is added with event Create and checking for event Create",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						BackendPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:           EventTypeCreateVolume,
 					},
 				},
+				Version: HookVersion,
 			},
 			resourceType: ResourceBackendPV,
 			eventType:    EventTypeCreateVolume,
@@ -424,12 +420,12 @@ func TestActionExists(t *testing.T) {
 		{
 			name: "when backendPV Hook is added with event Delete and checking for event Delete",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnDeleteVolumeEvent: HookConfig{
 						BackendPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:           EventTypeDeleteVolume,
 					},
 				},
+				Version: HookVersion,
 			},
 			resourceType: ResourceBackendPV,
 			eventType:    EventTypeDeleteVolume,
@@ -438,12 +434,12 @@ func TestActionExists(t *testing.T) {
 		{
 			name: "when backendPV Hook is added with event Create and checking for event Delete",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						BackendPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:           EventTypeCreateVolume,
 					},
 				},
+				Version: HookVersion,
 			},
 			resourceType: ResourceBackendPV,
 			eventType:    EventTypeDeleteVolume,
@@ -452,12 +448,12 @@ func TestActionExists(t *testing.T) {
 		{
 			name: "when backendPV Hook is added with event Delete and checking for event Create",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnDeleteVolumeEvent: HookConfig{
 						BackendPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:           EventTypeDeleteVolume,
 					},
 				},
+				Version: HookVersion,
 			},
 			resourceType: ResourceBackendPV,
 			eventType:    EventTypeCreateVolume,
@@ -466,12 +462,12 @@ func TestActionExists(t *testing.T) {
 		{
 			name: "when backendPV Hook is not added and checking for event Create",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						BackendPVCConfig: buildPVCHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            EventTypeCreateVolume,
 					},
 				},
+				Version: HookVersion,
 			},
 			resourceType: ResourceBackendPV,
 			eventType:    EventTypeCreateVolume,
@@ -480,12 +476,12 @@ func TestActionExists(t *testing.T) {
 		{
 			name: "when backendPV Hook is not added and checking for event Delete",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						BackendPVCConfig: buildPVCHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            EventTypeCreateVolume,
 					},
 				},
+				Version: HookVersion,
 			},
 			resourceType: ResourceBackendPV,
 			eventType:    EventTypeDeleteVolume,
@@ -496,12 +492,12 @@ func TestActionExists(t *testing.T) {
 		{
 			name: "when NFSService Hook is added with event Create and checking for event Create",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						NFSServiceConfig: buildServiceHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            EventTypeCreateVolume,
 					},
 				},
+				Version: HookVersion,
 			},
 			resourceType: ResourceNFSService,
 			eventType:    EventTypeCreateVolume,
@@ -510,12 +506,12 @@ func TestActionExists(t *testing.T) {
 		{
 			name: "when NFSService Hook is added with event Delete and checking for event Delete",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnDeleteVolumeEvent: HookConfig{
 						NFSServiceConfig: buildServiceHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            EventTypeDeleteVolume,
 					},
 				},
+				Version: HookVersion,
 			},
 			resourceType: ResourceNFSService,
 			eventType:    EventTypeDeleteVolume,
@@ -524,12 +520,12 @@ func TestActionExists(t *testing.T) {
 		{
 			name: "when NFSService Hook is added with event Create and checking for event Delete",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						NFSServiceConfig: buildServiceHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            EventTypeCreateVolume,
 					},
 				},
+				Version: HookVersion,
 			},
 			resourceType: ResourceNFSService,
 			eventType:    EventTypeDeleteVolume,
@@ -538,12 +534,12 @@ func TestActionExists(t *testing.T) {
 		{
 			name: "when NFSService Hook is added with event Delete and checking for event Create",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnDeleteVolumeEvent: HookConfig{
 						NFSServiceConfig: buildServiceHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            EventTypeDeleteVolume,
 					},
 				},
+				Version: HookVersion,
 			},
 			resourceType: ResourceNFSService,
 			eventType:    EventTypeCreateVolume,
@@ -552,12 +548,12 @@ func TestActionExists(t *testing.T) {
 		{
 			name: "when NFSService Hook is not added and checking for event Create",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						BackendPVCConfig: buildPVCHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            EventTypeCreateVolume,
 					},
 				},
+				Version: HookVersion,
 			},
 			resourceType: ResourceNFSService,
 			eventType:    EventTypeCreateVolume,
@@ -566,12 +562,12 @@ func TestActionExists(t *testing.T) {
 		{
 			name: "when NFSService Hook is not added and checking for event Delete",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						BackendPVCConfig: buildPVCHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:            EventTypeCreateVolume,
 					},
 				},
+				Version: HookVersion,
 			},
 			resourceType: ResourceNFSService,
 			eventType:    EventTypeDeleteVolume,
@@ -582,13 +578,13 @@ func TestActionExists(t *testing.T) {
 		{
 			name: "when NFSPV Hook is added with event Create and checking for event Create",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						BackendPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
 						NFSPVConfig:     buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:           EventTypeCreateVolume,
 					},
 				},
+				Version: HookVersion,
 			},
 			resourceType: ResourceNFSPV,
 			eventType:    EventTypeCreateVolume,
@@ -597,12 +593,12 @@ func TestActionExists(t *testing.T) {
 		{
 			name: "when NFSPV Hook is added with event Delete and checking for event Delete",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnDeleteVolumeEvent: HookConfig{
 						NFSPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:       EventTypeDeleteVolume,
 					},
 				},
+				Version: HookVersion,
 			},
 			resourceType: ResourceNFSPV,
 			eventType:    EventTypeDeleteVolume,
@@ -611,12 +607,12 @@ func TestActionExists(t *testing.T) {
 		{
 			name: "when NFSPV Hook is added with event Create and checking for event Delete",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						NFSPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:       EventTypeCreateVolume,
 					},
 				},
+				Version: HookVersion,
 			},
 			resourceType: ResourceNFSPV,
 			eventType:    EventTypeDeleteVolume,
@@ -625,12 +621,12 @@ func TestActionExists(t *testing.T) {
 		{
 			name: "when NFSPV Hook is added with event Delete and checking for event Create",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnDeleteVolumeEvent: HookConfig{
 						NFSPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:       EventTypeDeleteVolume,
 					},
 				},
+				Version: HookVersion,
 			},
 			resourceType: ResourceNFSPV,
 			eventType:    EventTypeCreateVolume,
@@ -639,12 +635,12 @@ func TestActionExists(t *testing.T) {
 		{
 			name: "when NFSPV Hook is not added and checking for event Create",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						NFSDeploymentConfig: buildDeploymentHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:               EventTypeCreateVolume,
 					},
 				},
+				Version: HookVersion,
 			},
 			resourceType: ResourceNFSPV,
 			eventType:    EventTypeCreateVolume,
@@ -653,12 +649,12 @@ func TestActionExists(t *testing.T) {
 		{
 			name: "when NFSPV Hook is not added and checking for event Delete",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						NFSDeploymentConfig: buildDeploymentHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:               EventTypeCreateVolume,
 					},
 				},
+				Version: HookVersion,
 			},
 			resourceType: ResourceNFSPV,
 			eventType:    EventTypeDeleteVolume,
@@ -669,12 +665,12 @@ func TestActionExists(t *testing.T) {
 		{
 			name: "when NFSServerDeployment Hook is added with event Create and checking for event Create",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						NFSDeploymentConfig: buildDeploymentHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:               EventTypeCreateVolume,
 					},
 				},
+				Version: HookVersion,
 			},
 			resourceType: ResourceNFSServerDeployment,
 			eventType:    EventTypeCreateVolume,
@@ -683,12 +679,12 @@ func TestActionExists(t *testing.T) {
 		{
 			name: "when NFSServerDeployment Hook is added with event Delete and checking for event Delete",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnDeleteVolumeEvent: HookConfig{
 						NFSDeploymentConfig: buildDeploymentHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:               EventTypeDeleteVolume,
 					},
 				},
+				Version: HookVersion,
 			},
 			resourceType: ResourceNFSServerDeployment,
 			eventType:    EventTypeDeleteVolume,
@@ -697,12 +693,12 @@ func TestActionExists(t *testing.T) {
 		{
 			name: "when NFSServerDeployment Hook is added with event Create and checking for event Delete",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						NFSDeploymentConfig: buildDeploymentHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:               EventTypeCreateVolume,
 					},
 				},
+				Version: HookVersion,
 			},
 			resourceType: ResourceNFSServerDeployment,
 			eventType:    EventTypeDeleteVolume,
@@ -711,12 +707,12 @@ func TestActionExists(t *testing.T) {
 		{
 			name: "when NFSServerDeployment Hook is added with event Delete and checking for event Create",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnDeleteVolumeEvent: HookConfig{
 						NFSDeploymentConfig: buildDeploymentHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:               EventTypeDeleteVolume,
 					},
 				},
+				Version: HookVersion,
 			},
 			resourceType: ResourceNFSServerDeployment,
 			eventType:    EventTypeCreateVolume,
@@ -725,12 +721,12 @@ func TestActionExists(t *testing.T) {
 		{
 			name: "when NFSServerDeployment Hook is not added and checking for event Create",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						NFSPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:       EventTypeCreateVolume,
 					},
 				},
+				Version: HookVersion,
 			},
 			resourceType: ResourceNFSServerDeployment,
 			eventType:    EventTypeCreateVolume,
@@ -739,12 +735,12 @@ func TestActionExists(t *testing.T) {
 		{
 			name: "when NFSServerDeployment Hook is not added and checking for event Delete",
 			hook: &Hook{
-				Config: []HookConfig{
-					{
+				Config: map[ActionType]HookConfig{
+					ActionAddOnCreateVolumeEvent: HookConfig{
 						NFSPVConfig: buildPVHook(map[string]string{"test.io/key": "val"}, []string{"test.io/finalizer"}),
-						Event:       EventTypeCreateVolume,
 					},
 				},
+				Version: HookVersion,
 			},
 			resourceType: ResourceNFSServerDeployment,
 			eventType:    EventTypeDeleteVolume,

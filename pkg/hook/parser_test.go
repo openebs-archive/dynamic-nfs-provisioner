@@ -23,55 +23,71 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func getTestHookData() []byte {
-	var pqr Hook
-	pqr.Config = append(pqr.Config,
-		HookConfig{
-			Name: "createHook",
-			BackendPVConfig: &PVHook{
-				Annotations: map[string]string{
-					"example.io/track": "true",
-					"test.io/owner":    "teamA",
-				},
-				Finalizers: []string{"test.io/tracking-protection"},
+func getTestHookData(version string) []byte {
+	var hook Hook
+	hook.Config = make(map[ActionType]HookConfig)
+	hook.Config[ActionAddOnCreateVolumeEvent] = HookConfig{
+		Name: "createHook",
+		BackendPVConfig: &PVHook{
+			Annotations: map[string]string{
+				"example.io/track": "true",
+				"test.io/owner":    "teamA",
 			},
-			NFSPVConfig: &PVHook{
-				Annotations: map[string]string{
-					"example.io/track": "true",
-					"test.io/owner":    "teamA",
-				},
-				Finalizers: []string{"test.io/tracking-protection"},
-			},
-
-			BackendPVCConfig: &PVCHook{
-				Annotations: map[string]string{
-					"example.io/track": "true",
-					"test.io/owner":    "teamA",
-				},
-				Finalizers: []string{"test.io/tracking-protection"},
-			},
-
-			NFSServiceConfig: &ServiceHook{
-				Annotations: map[string]string{
-					"example.io/track": "true",
-					"test.io/owner":    "teamA",
-				},
-				Finalizers: []string{"test.io/tracking-protection"},
-			},
-			NFSDeploymentConfig: &DeploymentHook{
-				Annotations: map[string]string{
-					"example.io/track": "true",
-					"test.io/owner":    "teamA",
-				},
-				Finalizers: []string{"test.io/tracking-protection"},
-			},
-			Event:  EventTypeCreateVolume,
-			Action: HookActionAdd,
+			Finalizers: []string{"test.io/tracking-protection"},
 		},
-	)
+		NFSPVConfig: &PVHook{
+			Annotations: map[string]string{
+				"example.io/track": "true",
+				"test.io/owner":    "teamA",
+			},
+			Finalizers: []string{"test.io/tracking-protection"},
+		},
 
-	pqr.Version = "0.0.1"
-	data, _ := yaml.Marshal(pqr)
+		BackendPVCConfig: &PVCHook{
+			Annotations: map[string]string{
+				"example.io/track": "true",
+				"test.io/owner":    "teamA",
+			},
+			Finalizers: []string{"test.io/tracking-protection"},
+		},
+
+		NFSServiceConfig: &ServiceHook{
+			Annotations: map[string]string{
+				"example.io/track": "true",
+				"test.io/owner":    "teamA",
+			},
+			Finalizers: []string{"test.io/tracking-protection"},
+		},
+		NFSDeploymentConfig: &DeploymentHook{
+			Annotations: map[string]string{
+				"example.io/track": "true",
+				"test.io/owner":    "teamA",
+			},
+			Finalizers: []string{"test.io/tracking-protection"},
+		},
+	}
+
+	hook.Version = version
+	data, _ := yaml.Marshal(hook)
+	return data
+}
+
+func getTestHookDataWithInvalidAction(version string) []byte {
+	var hook Hook
+	hook.Config = make(map[ActionType]HookConfig)
+	hook.Config["invalidAction"] = HookConfig{
+		Name: "createHook",
+		BackendPVConfig: &PVHook{
+			Annotations: map[string]string{
+				"example.io/track": "true",
+				"test.io/owner":    "teamA",
+			},
+			Finalizers: []string{"test.io/tracking-protection"},
+		},
+	}
+
+	hook.Version = version
+	data, _ := yaml.Marshal(hook)
 	return data
 }
 
@@ -86,6 +102,8 @@ NFSDeployment:
     - test.io/tracking-protection
 `
 
+	hookWithInvalidAction := getTestHookDataWithInvalidAction("1.0.0")
+
 	tests := []struct {
 		name          string
 		hookData      []byte
@@ -93,13 +111,23 @@ NFSDeployment:
 	}{
 		{
 			name:          "when correct hook data is passed",
-			hookData:      getTestHookData(),
+			hookData:      getTestHookData("1.0.0"),
 			shouldErrored: false,
+		},
+		{
+			name:          "when invalid versioned hook data is passed",
+			hookData:      getTestHookData("0.0.0"),
+			shouldErrored: true,
 		},
 		{
 			name:          "when invalid hook data is passed",
 			hookData:      []byte(invalidHookData),
 			shouldErrored: true,
+		},
+		{
+			name:          "when hook data is having invalid actionEvent",
+			hookData:      hookWithInvalidAction,
+			shouldErrored: false,
 		},
 	}
 

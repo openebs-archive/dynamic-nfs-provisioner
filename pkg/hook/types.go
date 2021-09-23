@@ -16,6 +16,9 @@ limitations under the License.
 
 package hook
 
+// HookVersion represent the hook config version
+const HookVersion = "1.0.0"
+
 const (
 	// Type of resources created by nfs-provisioner
 	ResourceBackendPVC int = iota
@@ -25,14 +28,35 @@ const (
 	ResourceNFSServerDeployment
 )
 
-// HookActionType defines type of action for annotation and finalizer
-type HookActionType string
+// ActionType defines type of action for the hook entry
+type ActionType string
+
+// ActionOp represent the operation performed for ActionType
+type ActionOp string
 
 const (
-	// HookActionAdd represent add action
-	HookActionAdd HookActionType = "Add"
-	// HookActionAdd represent remove action
-	HookActionRemove HookActionType = "Remove"
+	// Note:
+	// On adding new Action, ActionForEventMap must be updated with the new Action
+
+	// ActionAddOnCreateVolumeEvent represent add action on volume create Event
+	ActionAddOnCreateVolumeEvent ActionType = "addOrUpdateEntriesOnCreateVolumeEvent"
+
+	// ActionRemoveOnCreateVolumeEvent represent remove action on volume create Event
+	ActionRemoveOnCreateVolumeEvent ActionType = "removeEntriesOnCreateVolumeEvent"
+
+	// ActionAddOnDeleteVolumeEvent represent add action on volume delete Event
+	ActionAddOnDeleteVolumeEvent ActionType = "addOrUpdateEntriesOnDeleteVolumeEvent"
+
+	// ActionRemoveOnDeleteVolumeEvent represent remove action on volume delete Event
+	ActionRemoveOnDeleteVolumeEvent ActionType = "removeEntriesOnDeleteVolumeEvent"
+)
+
+const (
+	// ActionOpAddOrUpdate define Action addOrUpdateEntries
+	ActionOpAddOrUpdate ActionOp = "addOrUpdateEntries"
+
+	// ActionOpRemove define Action removeEntries
+	ActionOpRemove ActionOp = "removeEntries"
 )
 
 // EventType defines the type of events on which hook needs to be executed
@@ -41,8 +65,22 @@ type EventType string
 const (
 	// EventTypeCreateVolume represent volume create event
 	EventTypeCreateVolume EventType = "CreateVolume"
+
 	// EventTypeDeleteVolume represent volume delete event
 	EventTypeDeleteVolume EventType = "DeleteVolume"
+)
+
+var (
+	// ActionForEventMap stores the supported EventType for all ActionType
+	ActionForEventMap = map[ActionType]struct {
+		evType EventType
+		actOp  ActionOp
+	}{
+		ActionAddOnCreateVolumeEvent:    {evType: EventTypeCreateVolume, actOp: ActionOpAddOrUpdate},
+		ActionRemoveOnCreateVolumeEvent: {evType: EventTypeCreateVolume, actOp: ActionOpRemove},
+		ActionAddOnDeleteVolumeEvent:    {evType: EventTypeDeleteVolume, actOp: ActionOpAddOrUpdate},
+		ActionRemoveOnDeleteVolumeEvent: {evType: EventTypeDeleteVolume, actOp: ActionOpRemove},
+	}
 )
 
 // PVHook defines the field which will be updated for PV Hook Action
@@ -100,19 +138,12 @@ type HookConfig struct {
 
 	// NFSDeploymentConfig represent config for NFS Deployment resource
 	NFSDeploymentConfig *DeploymentHook `json:"nfsDeployment,omitempty"`
-
-	// Event defines provisioning event type on which
-	// given hook action needs to be executed
-	Event EventType `json:"eventType"`
-
-	// Action represent the type of hook action, i.e HookActionAdd or HookActionRemove
-	Action HookActionType `json:"actionType"`
 }
 
 // Hook stores HookConfig and its version
 type Hook struct {
 	//Config represent the list of HookConfig
-	Config []HookConfig `json:"hooks"`
+	Config map[ActionType]HookConfig `json:"hooks"`
 
 	// Version represent HookConfig format version; includes major, minor and patch version
 	Version string `json:"version"`

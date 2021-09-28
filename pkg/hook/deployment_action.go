@@ -23,8 +23,8 @@ import (
 	"github.com/openebs/dynamic-nfs-provisioner/pkg/helper"
 )
 
-// deployment_hook_action will execute the given hook config on the object for the given action
-func deployment_hook_action(hookCfg *DeploymentHook, action ActionOp, obj interface{}) error {
+// deploymentHookAction will execute the given hook config on the object for the given action
+func deploymentHookAction(hookCfg *DeploymentHook, action ActionOp, obj interface{}) error {
 	if hookCfg == nil {
 		return nil
 	}
@@ -36,16 +36,16 @@ func deployment_hook_action(hookCfg *DeploymentHook, action ActionOp, obj interf
 
 	switch action {
 	case ActionOpAddOrUpdate:
-		deployment_hook_action_add(dObj, *hookCfg)
+		deploymentHookActionAdd(dObj, *hookCfg)
 	case ActionOpRemove:
-		deployment_hook_action_remove(dObj, *hookCfg)
+		deploymentHookActionRemove(dObj, *hookCfg)
 	}
 
 	return nil
 }
 
-// deployment_hook_action_add will add the given hook config to the given object
-func deployment_hook_action_add(obj *appsv1.Deployment, hookCfg DeploymentHook) {
+// deploymentHookActionAdd will add the given hook config to the given object
+func deploymentHookActionAdd(obj *appsv1.Deployment, hookCfg DeploymentHook) {
 	if len(hookCfg.Annotations) != 0 {
 		AddAnnotations(&obj.ObjectMeta, hookCfg.Annotations)
 	}
@@ -56,8 +56,8 @@ func deployment_hook_action_add(obj *appsv1.Deployment, hookCfg DeploymentHook) 
 	return
 }
 
-// deployment_hook_action_remove will remove the given hook config to the given object
-func deployment_hook_action_remove(obj *appsv1.Deployment, hookCfg DeploymentHook) {
+// deploymentHookActionRemove will remove the given hook config to the given object
+func deploymentHookActionRemove(obj *appsv1.Deployment, hookCfg DeploymentHook) {
 	if len(hookCfg.Annotations) != 0 {
 		helper.RemoveAnnotations(&obj.ObjectMeta, hookCfg.Annotations)
 	}

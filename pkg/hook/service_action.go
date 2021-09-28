@@ -23,8 +23,8 @@ import (
 	"github.com/openebs/dynamic-nfs-provisioner/pkg/helper"
 )
 
-// service_hook_action will execute the given hook config on the object for the given action
-func service_hook_action(hookCfg *ServiceHook, action ActionOp, obj interface{}) error {
+// serviceHookAction will execute the given hook config on the object for the given action
+func serviceHookAction(hookCfg *ServiceHook, action ActionOp, obj interface{}) error {
 	if hookCfg == nil {
 		return nil
 	}
@@ -36,16 +36,16 @@ func service_hook_action(hookCfg *ServiceHook, action ActionOp, obj interface{})
 
 	switch action {
 	case ActionOpAddOrUpdate:
-		service_hook_action_add(sObj, *hookCfg)
+		serviceHookActionAdd(sObj, *hookCfg)
 	case ActionOpRemove:
-		service_hook_action_remove(sObj, *hookCfg)
+		serviceHookActionRemove(sObj, *hookCfg)
 	}
 
 	return nil
 }
 
-// service_hook_action_add will add the given hook config to the given object
-func service_hook_action_add(obj *corev1.Service, hookCfg ServiceHook) {
+// serviceHookActionAdd will add the given hook config to the given object
+func serviceHookActionAdd(obj *corev1.Service, hookCfg ServiceHook) {
 	if len(hookCfg.Annotations) != 0 {
 		AddAnnotations(&obj.ObjectMeta, hookCfg.Annotations)
 	}
@@ -56,8 +56,8 @@ func service_hook_action_add(obj *corev1.Service, hookCfg ServiceHook) {
 	return
 }
 
-// service_hook_action_remove will remove the given hook config to the given object
-func service_hook_action_remove(obj *corev1.Service, hookCfg ServiceHook) {
+// serviceHookActionRemove will remove the given hook config to the given object
+func serviceHookActionRemove(obj *corev1.Service, hookCfg ServiceHook) {
 	if len(hookCfg.Annotations) != 0 {
 		helper.RemoveAnnotations(&obj.ObjectMeta, hookCfg.Annotations)
 	}

@@ -24,7 +24,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func TestPv_hook_action(t *testing.T) {
+func TestPVHookAction(t *testing.T) {
 	tests := []struct {
 		name        string
 		hook        *PVHook
@@ -65,15 +65,15 @@ func TestPv_hook_action(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			assert.NotNil(t, test.obj, "object should not be nil")
-			err := pv_hook_action(test.hook, test.actionType, test.obj)
-			assert.Nil(t, err, "pv_hook_action returned error")
+			err := pvHookAction(test.hook, test.actionType, test.obj)
+			assert.Nil(t, err, "pvHookAction returned error")
 			assert.Equal(t, test.expectedObj, test.obj, "object should match")
 		})
 	}
 }
 
-// TestPv_hook_action_var verifies if template variables are processed or not
-func TestPv_hook_action_var(t *testing.T) {
+// TestPVHookTemplate verifies if template variables are processed or not
+func TestPVHookTemplate(t *testing.T) {
 	tests := []struct {
 		name        string
 		hook        *PVHook
@@ -99,8 +99,8 @@ func TestPv_hook_action_var(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			assert.NotNil(t, test.obj, "object should not be nil")
-			err := pv_hook_action(test.hook, test.actionType, test.obj)
-			assert.Nil(t, err, "pv_hook_action returned error")
+			err := pvHookAction(test.hook, test.actionType, test.obj)
+			assert.Nil(t, err, "pvHookAction returned error")
 			if test.expectedObj != nil {
 				assert.Equal(t, test.expectedObj, test.obj, "object should match")
 			} else {

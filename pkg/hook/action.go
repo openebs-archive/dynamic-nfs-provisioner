@@ -32,27 +32,27 @@ func (h *Hook) Action(obj interface{}, resourceType int, eventType EventType) er
 
 		switch resourceType {
 		case ResourceBackendPVC:
-			err = pvc_hook_action(cfg.BackendPVCConfig, actionEvent.actOp, obj)
+			err = pvcHookAction(cfg.BackendPVCConfig, actionEvent.actOp, obj)
 			if err != nil {
 				return err
 			}
 		case ResourceBackendPV:
-			err = pv_hook_action(cfg.BackendPVConfig, actionEvent.actOp, obj)
+			err = pvHookAction(cfg.BackendPVConfig, actionEvent.actOp, obj)
 			if err != nil {
 				return err
 			}
 		case ResourceNFSService:
-			err = service_hook_action(cfg.NFSServiceConfig, actionEvent.actOp, obj)
+			err = serviceHookAction(cfg.NFSServiceConfig, actionEvent.actOp, obj)
 			if err != nil {
 				return err
 			}
 		case ResourceNFSPV:
-			err = pv_hook_action(cfg.NFSPVConfig, actionEvent.actOp, obj)
+			err = pvHookAction(cfg.NFSPVConfig, actionEvent.actOp, obj)
 			if err != nil {
 				return err
 			}
 		case ResourceNFSServerDeployment:
-			err = deployment_hook_action(cfg.NFSDeploymentConfig, actionEvent.actOp, obj)
+			err = deploymentHookAction(cfg.NFSDeploymentConfig, actionEvent.actOp, obj)
 			if err != nil {
 				return err
 			}

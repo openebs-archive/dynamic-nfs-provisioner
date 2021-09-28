@@ -24,7 +24,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func TestService_hook_action(t *testing.T) {
+func TestServiceHookAction(t *testing.T) {
 	tests := []struct {
 		name        string
 		hook        *ServiceHook
@@ -65,15 +65,15 @@ func TestService_hook_action(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			assert.NotNil(t, test.obj, "object should not be nil")
-			err := service_hook_action(test.hook, test.actionType, test.obj)
-			assert.Nil(t, err, "service_hook_action returned error")
+			err := serviceHookAction(test.hook, test.actionType, test.obj)
+			assert.Nil(t, err, "serviceHookAction returned error")
 			assert.Equal(t, test.expectedObj, test.obj, "object should match")
 		})
 	}
 }
 
-// TestService_hook_action_var verifies if template variables are processed or not
-func TestService_hook_action_var(t *testing.T) {
+// TestServiceHookTemplate verifies if template variables are processed or not
+func TestServiceHookTemplate(t *testing.T) {
 	tests := []struct {
 		name        string
 		hook        *ServiceHook
@@ -99,8 +99,8 @@ func TestService_hook_action_var(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			assert.NotNil(t, test.obj, "object should not be nil")
-			err := service_hook_action(test.hook, test.actionType, test.obj)
-			assert.Nil(t, err, "service_hook_action returned error")
+			err := serviceHookAction(test.hook, test.actionType, test.obj)
+			assert.Nil(t, err, "serviceHookAction returned error")
 			if test.expectedObj != nil {
 				assert.Equal(t, test.expectedObj, test.obj, "object should match")
 			} else {

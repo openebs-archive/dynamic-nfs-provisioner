@@ -69,5 +69,4 @@ func (h *Hook) updateAvailableActions() {
 			h.availableActions[actionEvent.evType][ResourceNFSServerDeployment] = struct{}{}
 		}
 	}
-	return
 }

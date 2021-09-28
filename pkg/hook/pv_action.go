@@ -22,8 +22,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-// pv_hook_action will execute the given hook config on the object for the given action
-func pv_hook_action(hookCfg *PVHook, action ActionOp, obj interface{}) error {
+// pvHookAction will execute the given hook config on the object for the given action
+func pvHookAction(hookCfg *PVHook, action ActionOp, obj interface{}) error {
 	if hookCfg == nil {
 		return nil
 	}
@@ -35,16 +35,16 @@ func pv_hook_action(hookCfg *PVHook, action ActionOp, obj interface{}) error {
 
 	switch action {
 	case ActionOpAddOrUpdate:
-		pv_hook_action_add(pvObj, *hookCfg)
+		pvHookActionAdd(pvObj, *hookCfg)
 	case ActionOpRemove:
-		pv_hook_action_remove(pvObj, *hookCfg)
+		pvHookActionRemove(pvObj, *hookCfg)
 	}
 
 	return nil
 }
 
-// pv_hook_action_add will add the given hook config to the given object
-func pv_hook_action_add(obj *corev1.PersistentVolume, hookCfg PVHook) {
+// pvHookActionAdd will add the given hook config to the given object
+func pvHookActionAdd(obj *corev1.PersistentVolume, hookCfg PVHook) {
 	if len(hookCfg.Annotations) != 0 {
 		AddAnnotations(&obj.ObjectMeta, hookCfg.Annotations)
 	}
@@ -55,8 +55,8 @@ func pv_hook_action_add(obj *corev1.PersistentVolume, hookCfg PVHook) {
 	return
 }
 
-// pv_hook_action_remove will remove the given hook config to the given object
-func pv_hook_action_remove(obj *corev1.PersistentVolume, hookCfg PVHook) {
+// pvHookActionRemove will remove the given hook config to the given object
+func pvHookActionRemove(obj *corev1.PersistentVolume, hookCfg PVHook) {
 	if len(hookCfg.Annotations) != 0 {
 		helper.RemoveAnnotations(&obj.ObjectMeta, hookCfg.Annotations)
 	}

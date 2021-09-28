@@ -24,7 +24,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func TestDeployment_hook_action(t *testing.T) {
+func TestDeploymentHookAction(t *testing.T) {
 	tests := []struct {
 		name        string
 		hook        *DeploymentHook
@@ -65,15 +65,15 @@ func TestDeployment_hook_action(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			assert.NotNil(t, test.obj, "object should not be nil")
-			err := deployment_hook_action(test.hook, test.actionType, test.obj)
-			assert.Nil(t, err, "deployment_hook_action returned error")
+			err := deploymentHookAction(test.hook, test.actionType, test.obj)
+			assert.Nil(t, err, "deploymentHookAction returned error")
 			assert.Equal(t, test.expectedObj, test.obj, "object should match")
 		})
 	}
 }
 
-// TestDeployment_hook_action_var verifies if template variables are processed or not
-func TestDeployment_hook_action_var(t *testing.T) {
+// TestDeploymentHookTemplate verifies if template variables are processed or not
+func TestDeploymentHookTemplate(t *testing.T) {
 	tests := []struct {
 		name        string
 		hook        *DeploymentHook
@@ -99,8 +99,8 @@ func TestDeployment_hook_action_var(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			assert.NotNil(t, test.obj, "object should not be nil")
-			err := deployment_hook_action(test.hook, test.actionType, test.obj)
-			assert.Nil(t, err, "deployment_hook_action returned error")
+			err := deploymentHookAction(test.hook, test.actionType, test.obj)
+			assert.Nil(t, err, "deploymentHookAction returned error")
 			if test.expectedObj != nil {
 				assert.Equal(t, test.expectedObj, test.obj, "object should match")
 			} else {

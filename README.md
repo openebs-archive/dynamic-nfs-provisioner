@@ -21,13 +21,25 @@ Using NFS Volumes, you can share Volume data across the pods running on differen
 ## Installing Dynamic NFS Provisioner
 Please refer to our [Quickstart](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/docs/intro.md) and the [OpenEBS Documentation](https://docs.openebs.io).
 
+## Kubernetes Compatibility Matrix
+|                 | Kubernetes 1.14 | Kubernetes 1.15 | Kubernetes 1.16 | Kubernetes 1.17 | Kubernetes 1.18 | Kubernetes 1.19 | Kubernetes 1.20 | Kubernetes 1.21 | Kubernetes 1.22 |
+|-----------------|-----------------|-----------------|-----------------|-----------------|-----------------|-----------------|-----------------|-----------------|-----------------|
+| [nfs-provisioner-0.7.1](https://github.com/openebs/dynamic-nfs-provisioner/releases/tag/nfs-provisioner-0.7.1) / [v0.7.1](https://github.com/openebs/dynamic-nfs-provisioner/releases/tag/v0.7.1) |        ✓       | ✓               | ✓               | ✓               | ✓               | ✓               | ✓               |✓               |	✓
+| [HEAD](https://github.com/openebs/dynamic-nfs-provisioner/tree/HEAD)|        ✓       | ✓               | ✓               | ✓               | ✓               | ✓               | ✓               |✓               |	✓
 
 ## Usage
 [Deploying WordPress using Dynamic NFS Provisioner](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/docs/workload/wordpress.md)
 
+[Expanding NFS Volumes](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/docs/tutorial/nfs-volume-resize.md)
+
 [Configuring Node Affinity for NFS Volumes](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/docs/tutorial/node-affinity.md)
 
 [Setting Resource requirements for NFS Server](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/docs/tutorial/configure-nfs-server-resource-requirements.md)
+
+[Exposing NFS Volume outside the cluster](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/docs/expose-nfs-server.md)
+
+[Monitoring NFS Provisioner](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/docs/metrics.md)
+
 
 ## Troubleshooting
 If you encounter any issue while using OpenEBS Dynamic NFS Provisioner, review the [troubleshooting guide](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/docs/troubleshooting.md). You can also [file an issue](https://github.com/openebs/dynamic-nfs-provisioner/issues) or talk to us on [#openebs channel](https://kubernetes.slack.com/messages/openebs) in the [Kubernetes Slack](https://kubernetes.slack.com).

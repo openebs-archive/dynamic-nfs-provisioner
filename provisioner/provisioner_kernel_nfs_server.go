@@ -23,6 +23,7 @@ import (
 	"github.com/pkg/errors"
 	"k8s.io/klog/v2"
 
+	nfshook "github.com/openebs/dynamic-nfs-provisioner/pkg/hook"
 	mPV "github.com/openebs/dynamic-nfs-provisioner/pkg/kubernetes/api/core/v1/persistentvolume"
 	mconfig "github.com/openebs/maya/pkg/apis/openebs.io/v1alpha1"
 	v1 "k8s.io/api/core/v1"
@@ -140,6 +141,14 @@ func (p *Provisioner) ProvisionKernalNFSServer(ctx context.Context, opts pvContr
 		)
 		return nil, err
 	}
+
+	if p.hook != nil && p.hook.ActionExists(nfshook.ResourceNFSPV, nfshook.EventTypeCreateVolume) {
+		err = p.hook.Action(pvObj, nfshook.ResourceNFSPV, nfshook.EventTypeCreateVolume)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to execute hook on NFS PV=%s", pvObj.Name)
+		}
+	}
+
 	alertlog.Logger.Infow("",
 		"eventcode", "nfs.pv.provision.success",
 		"msg", "Successfully provisioned NFS PV",

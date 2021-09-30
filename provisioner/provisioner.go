@@ -51,15 +51,20 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	kubeinformers "k8s.io/client-go/informers"
+	"k8s.io/client-go/kubernetes"
 	listersv1 "k8s.io/client-go/listers/core/v1"
 	v1helper "k8s.io/kubernetes/pkg/apis/core/v1/helper"
 
-	//metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	nfshook "github.com/openebs/dynamic-nfs-provisioner/pkg/hook"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
 )
 
 var (
 	NodeAffinityRulesMismatchEvent = "No matching nodes found for given affinity rules"
+
+	// HookConfigMapDataField defines configmap data key for hook config
+	HookConfigMapDataField = "config"
 )
 
 // NewProvisioner will create a new Provisioner object and initialize
@@ -83,6 +88,15 @@ func NewProvisioner(ctx context.Context, kubeClient *clientset.Clientset) (*Prov
 
 	nfsServerNs := getNfsServerNamespace()
 
+	var hook *nfshook.Hook
+	hookCmap := getHookConfigMapName()
+	if hookCmap != "" {
+		err := initializeHook(kubeClient, ctx, namespace, hookCmap, &hook)
+		if err != nil {
+			return nil, errors.Errorf("failed to initialize hooks, err={%s}", err)
+		}
+	}
+
 	pvTracker := NewProvisioningTracker()
 
 	p := &Provisioner{
@@ -102,6 +116,7 @@ func NewProvisioner(ctx context.Context, kubeClient *clientset.Clientset) (*Prov
 		nodeAffinity:      getNodeAffinityRules(),
 		pvTracker:         pvTracker,
 		backendPvcTimeout: time.Duration(backendPvcTimeoutVal) * time.Second,
+		hook:              hook,
 	}
 	p.getVolumeConfig = p.GetVolumeConfig
 
@@ -214,7 +229,11 @@ func (p *Provisioner) Delete(ctx context.Context, pv *v1.PersistentVolume) (err 
 		sendEventOrIgnore(pvcName, pv.Name, size.String(), pvType, analytics.VolumeDeprovision)
 
 		if nfsServerType == "kernel" {
-			err = p.DeleteKernalNFSServer(ctx, pv)
+			if err = p.DeleteKernalNFSServer(ctx, pv); err == nil {
+				if p.hook != nil && p.hook.ActionExists(nfshook.ResourceNFSPV, nfshook.EventTypeDeleteVolume) {
+					err = p.hook.ExecuteHookOnNFSPV(p.kubeClient, ctx, pv.Name, nfshook.EventTypeDeleteVolume)
+				}
+			}
 		}
 
 		if err == nil {
@@ -282,4 +301,23 @@ func sendEventOrIgnore(pvcName, pvName, capacity, stgType, method string) {
 		SetReplicaCount("", method).
 		SetCategory(method).
 		SetVolumeCapacity(capacity).Send()
+}
+
+func initializeHook(kubeClient kubernetes.Interface, ctx context.Context, namespace, hookCmap string, hook **nfshook.Hook) error {
+	cmapObj, err := kubeClient.CoreV1().ConfigMaps(namespace).Get(ctx, hookCmap, metav1.GetOptions{})
+	if err != nil {
+		return errors.Wrapf(err, "failed to fetch hook configmap=%s", hookCmap)
+	}
+
+	data, ok := cmapObj.Data[HookConfigMapDataField]
+	if !ok {
+		return errors.Errorf("hook configmap=%s doesn't have data field=%s", hookCmap, HookConfigMapDataField)
+	}
+
+	hookObj, err := nfshook.ParseHooks([]byte(data))
+	if err != nil {
+		return err
+	}
+	*hook = hookObj
+	return nil
 }

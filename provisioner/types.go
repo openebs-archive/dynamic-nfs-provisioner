@@ -20,6 +20,7 @@ package provisioner
 import (
 	"time"
 
+	nfshook "github.com/openebs/dynamic-nfs-provisioner/pkg/hook"
 	mconfig "github.com/openebs/maya/pkg/apis/openebs.io/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	clientset "k8s.io/client-go/kubernetes"
@@ -62,6 +63,9 @@ type Provisioner struct {
 
 	// backendPvcTimeout defines timeout for backend PVC Bound check
 	backendPvcTimeout time.Duration
+
+	// hooks which needs to be executed on provisioning events
+	hook *nfshook.Hook
 }
 
 //VolumeConfig struct contains the merged configuration of the PVC

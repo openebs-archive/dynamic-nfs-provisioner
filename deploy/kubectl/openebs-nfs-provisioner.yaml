@@ -139,6 +139,9 @@ spec:
         # while creating nfs volume
         - name: OPENEBS_IO_NFS_SERVER_IMG
           value: openebs/nfs-server-alpine:ci
+        # OPENEBS_IO_NFS_HOOK_CONFIGMAP defines configmap to use for hook
+        #- name: OPENEBS_IO_NFS_HOOK_CONFIGMAP
+        #  value: "nfs-hook"
         # LEADER_ELECTION_ENABLED is used to enable/disable leader election. By default
         # leader election is enabled.
         #- name: LEADER_ELECTION_ENABLED

@@ -22,10 +22,11 @@ Using NFS Volumes, you can share Volume data across the pods running on differen
 Please refer to our [Quickstart](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/docs/intro.md) and the [OpenEBS Documentation](https://docs.openebs.io).
 
 ## Kubernetes Compatibility Matrix
-|                 | Kubernetes 1.14 | Kubernetes 1.15 | Kubernetes 1.16 | Kubernetes 1.17 | Kubernetes 1.18 | Kubernetes 1.19 | Kubernetes 1.20 | Kubernetes 1.21 | Kubernetes 1.22 |
-|-----------------|-----------------|-----------------|-----------------|-----------------|-----------------|-----------------|-----------------|-----------------|-----------------|
-| [nfs-provisioner-0.7.1](https://github.com/openebs/dynamic-nfs-provisioner/releases/tag/nfs-provisioner-0.7.1) / [v0.7.1](https://github.com/openebs/dynamic-nfs-provisioner/releases/tag/v0.7.1) |        ✓       | ✓               | ✓               | ✓               | ✓               | ✓               | ✓               |✓               |	✓
-| [HEAD](https://github.com/openebs/dynamic-nfs-provisioner/tree/HEAD)|        ✓       | ✓               | ✓               | ✓               | ✓               | ✓               | ✓               |✓               |	✓
+|     NFS PROVISIONER VERSION     | KUBERNETES VERSIONS | NOTES |
+|-----------------|-----------------|-----------------|
+| 0.7.0 | K8s >= 1.14 <= 1.22  | NFS Provisioner declared Beta. <br />[Changelog](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/CHANGELOG.md#070--2021-09-14) |
+| 0.7.1 | K8s >= 1.14 <= 1.22  | [Changelog](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/CHANGELOG.md#071--2021-09-16) |
+
 
 ## Usage
 [Deploying WordPress using Dynamic NFS Provisioner](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/docs/workload/wordpress.md)

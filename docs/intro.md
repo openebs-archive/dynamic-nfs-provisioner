@@ -48,7 +48,6 @@ helm install openebs openebs/openebs -n openebs --create-namespace --set nfs-pro
 
 ```console
 helm install openebs openebs/openebs -n openebs --create-namespace \
-	--set legacy.enabled=false \
   --set ndm.enabled=false \
   --set ndmOperator.enabled=false \
   --set localprovisioner.enabled=false  \

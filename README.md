@@ -24,8 +24,8 @@ Please refer to our [Quickstart](https://github.com/openebs/dynamic-nfs-provisio
 ## Kubernetes Compatibility Matrix
 |     NFS PROVISIONER VERSION     | KUBERNETES VERSIONS | NOTES |
 |-----------------|-----------------|-----------------|
-| 0.7.0 | K8s >= 1.14 <= 1.22  | NFS Provisioner declared Beta. <br />[Changelog](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/CHANGELOG.md#070--2021-09-14) |
-| 0.7.1 | K8s >= 1.14 <= 1.22  | [Changelog](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/CHANGELOG.md#071--2021-09-16) |
+| 0.7.0 | K8s >= 1.14  | NFS Provisioner declared Beta. <br />[Changelog](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/CHANGELOG.md#070--2021-09-14) |
+| 0.7.1 | K8s >= 1.14  | [Changelog](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/CHANGELOG.md#071--2021-09-16) |
 
 
 ## Usage

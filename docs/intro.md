@@ -30,13 +30,32 @@ Above installation will use latest stable release tag. To install a specific rel
 You can install NFS Provisioner through helm using below command:
 
 ```
-helm repo add openebs-nfs https://openebs.github.io/dynamic-nfs-provisioner
-helm install [RELEASE_NAME] openebs-nfs/nfs-provisioner --namespace openebs --create-namespace
+helm repo add openebs https://openebs.github.io/charts
+helm repo update
+helm install openebs openebs/openebs -n openebs --create-namespace --set nfs-provisioner.enabled=true
 ```
 
-Above command will install NFS Provisioner in *openebs* namespace. You can install specific version by adding `--version <VERSION>` in *helm install* command.
+<details>
+  <summary>Click here for configuration options.</summary>
 
-Refer https://github.com/openebs/dynamic-nfs-provisioner/tree/develop/deploy/helm/charts for the list of available configuration parameters for NFS Provisioner.
+  1. Install OpenEBS NFS Provisioner without NDM and Dynamic LocalPV Provisioner.
+
+     You may choose to exclude the NDM and LocalPV subchart from installation if...
+     - you want to only use OpenEBS NFS Provisioner
+     - you already have NDM and LocalPV installed. Check if
+        - NDM pods exist with the command `kubectl get pods -n openebs -l 'openebs.io/component-name in (ndm, ndm-operator)'`
+        - LocalPV pods exists with the command `kubectl get pods -n openebs -l 'openebs.io/component-name in (openebs-localpv-provisioner)'`
+
+```console
+helm install openebs openebs/openebs -n openebs --create-namespace \
+  --set ndm.enabled=false \
+  --set ndmOperator.enabled=false \
+  --set localprovisioner.enabled=false  \
+  --set nfs-provisioner.enabled=true
+```
+</details>
+
+[Click here](https://github.com/openebs/dynamic-nfs-provisioner/tree/develop/deploy/helm/charts) for detailed instructions on using the Helm chart.
 
 ## Provision NFS Volume
 To provision NFS Volume, NFS Provisioner creates the following resources:

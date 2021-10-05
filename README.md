@@ -21,13 +21,26 @@ Using NFS Volumes, you can share Volume data across the pods running on differen
 ## Installing Dynamic NFS Provisioner
 Please refer to our [Quickstart](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/docs/intro.md) and the [OpenEBS Documentation](https://docs.openebs.io).
 
+## Kubernetes Compatibility Matrix
+|     NFS PROVISIONER VERSION     | KUBERNETES VERSIONS | NOTES |
+|-----------------|-----------------|-----------------|
+| 0.7.0 | K8s >= 1.14  | NFS Provisioner declared Beta. <br />[Changelog](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/CHANGELOG.md#070--2021-09-14) |
+| 0.7.1 | K8s >= 1.14  | [Changelog](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/CHANGELOG.md#071--2021-09-16) |
+
 
 ## Usage
 [Deploying WordPress using Dynamic NFS Provisioner](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/docs/workload/wordpress.md)
 
+[Expanding NFS Volumes](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/docs/tutorial/nfs-volume-resize.md)
+
 [Configuring Node Affinity for NFS Volumes](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/docs/tutorial/node-affinity.md)
 
 [Setting Resource requirements for NFS Server](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/docs/tutorial/configure-nfs-server-resource-requirements.md)
+
+[Exposing NFS Volume outside the cluster](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/docs/expose-nfs-server.md)
+
+[Monitoring NFS Provisioner](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/docs/metrics.md)
+
 
 ## Troubleshooting
 If you encounter any issue while using OpenEBS Dynamic NFS Provisioner, review the [troubleshooting guide](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/docs/troubleshooting.md). You can also [file an issue](https://github.com/openebs/dynamic-nfs-provisioner/issues) or talk to us on [#openebs channel](https://kubernetes.slack.com/messages/openebs) in the [Kubernetes Slack](https://kubernetes.slack.com).

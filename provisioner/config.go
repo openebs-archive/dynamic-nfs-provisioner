@@ -19,20 +19,19 @@ package provisioner
 
 import (
 	"context"
+	"github.com/pkg/errors"
+	"os"
 	"strconv"
 	"strings"
 
 	"github.com/ghodss/yaml"
+	nfshook "github.com/openebs/dynamic-nfs-provisioner/pkg/hook"
 	mconfig "github.com/openebs/maya/pkg/apis/openebs.io/v1alpha1"
 	cast "github.com/openebs/maya/pkg/castemplate/v1alpha1"
 	"github.com/openebs/maya/pkg/util"
-	"k8s.io/klog/v2"
-
-	//"github.com/pkg/errors"
-	errors "github.com/pkg/errors"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	//storagev1 "k8s.io/api/storage/v1"
+	"k8s.io/klog/v2"
 )
 
 const (
@@ -66,6 +65,13 @@ const (
 
 	// NFSServerResourceLimits holds key name that represent NFS Resource Limits
 	NFSServerResourceLimits = "NFSServerResourceLimits"
+
+	// Hook Configuration
+	// HookConfigDirectory defines directory for hook configuration
+	HookConfigDirectory = "/etc/nfs-provisioner-hook"
+
+	// HookConfigFilePath defines path for hook config file
+	HookConfigFilePath = HookConfigDirectory + "/config"
 )
 
 const (
@@ -264,4 +270,50 @@ func GetStorageClassNameFromPVC(pvc *v1.PersistentVolumeClaim) *string {
 func GetNFSServerTypeFromPV(pv *v1.PersistentVolume) string {
 	//TODO extract this from PV annotations
 	return "kernel"
+}
+
+// hookConfigFileExist check if hook config file exists or not
+func hookConfigFileExist() (bool, error) {
+	// HookConfigFilePath
+	_, err := os.Stat(HookConfigFilePath)
+	if err == nil {
+		return true, nil
+	}
+
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+
+	return false, err
+}
+
+// initializeHook read the hook config file and update the given hook variable
+// return value:
+// 	- nil
+// 		- If hook config file doesn't exists
+// 		- If hook config file is parsed and given hook variable is updated
+// 	- error
+// 		- If hook config is invalid
+func initializeHook(hook **nfshook.Hook) error {
+	hookFileExists, err := hookConfigFileExist()
+	if err != nil {
+		return errors.Errorf("failed to check hook config file, err=%s", err)
+	}
+
+	if !hookFileExists {
+		return nil
+	}
+
+	data, err := os.ReadFile(HookConfigFilePath)
+	if err != nil {
+		return errors.Errorf("failed to read hook config file, err=%s", err)
+	}
+
+	hookObj, err := nfshook.ParseHooks([]byte(data))
+	if err != nil {
+		return err
+	}
+
+	*hook = hookObj
+	return nil
 }

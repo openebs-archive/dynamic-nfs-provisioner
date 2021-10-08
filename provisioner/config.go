@@ -20,6 +20,7 @@ package provisioner
 import (
 	"context"
 	"github.com/pkg/errors"
+	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
@@ -304,7 +305,7 @@ func initializeHook(hook **nfshook.Hook) error {
 		return nil
 	}
 
-	data, err := os.ReadFile(HookConfigFilePath)
+	data, err := ioutil.ReadFile(HookConfigFilePath)
 	if err != nil {
 		return errors.Errorf("failed to read hook config file, err=%s", err)
 	}

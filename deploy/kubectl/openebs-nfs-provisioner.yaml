@@ -176,6 +176,16 @@ spec:
           limits:
             cpu: 200m
             memory: 200M
+        volumeMounts:
+        # uncomment below lines to use nfs-hooks
+        #   - mountPath: /etc/nfs-provisioner
+        #     name: hook-config
+      volumes:
+        # uncomment below lines to use nfs-hooks
+        # - name: hook-config
+          # configMap:
+           #  name: hook-config
+
 ---
 #Sample storage classes for OpenEBS Local PV
 apiVersion: storage.k8s.io/v1

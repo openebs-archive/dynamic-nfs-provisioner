@@ -129,7 +129,7 @@ var _ = Describe("TEST NFS HOOK", func() {
 			cmap.Name = hookConfigMapName
 			cmap.Namespace = openebsNamespace
 			cmap.Data = map[string]string{
-				"config": string(data),
+				provisioner.HookConfigFileName: string(data),
 			}
 
 			err = Client.createConfigMap(&cmap)
@@ -171,7 +171,7 @@ var _ = Describe("TEST NFS HOOK", func() {
 			deploy.Spec.Template.Spec.Containers[0].VolumeMounts = append(deploy.Spec.Template.Spec.Containers[0].VolumeMounts,
 				corev1.VolumeMount{
 					Name:      hookVolumeName,
-					MountPath: provisioner.HookConfigDirectory,
+					MountPath: provisioner.ConfigDirectory,
 				},
 			)
 

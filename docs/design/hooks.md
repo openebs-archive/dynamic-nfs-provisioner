@@ -62,7 +62,7 @@ NFS Provisioner will load the hook configuration from the file located at pre-de
           initialDelaySeconds: 30
           periodSeconds: 60
         volumeMounts:
-          - mountPath: /etc/nfs-provisioner-hook
+          - mountPath: /etc/nfs-provisioner
             name: hook-config
       volumes:
         - name: hook-config
@@ -199,7 +199,7 @@ type Provisioner struct {
 ```
 
 #### Configmap structure
-User needs to create hook Configmap resource in nfs-provisioner namespace. Hook configuration needs to be provided in data field **config**.
+User needs to create hook Configmap resource in nfs-provisioner namespace. Hook configuration needs to be provided in data field **hook-config**.
 Configmap needs be defined as below:
 
 ```yaml
@@ -209,7 +209,7 @@ metadata:
   name: hook-config
   namespace: openebs
 data:
-  config: |
+  hook-config: |
     hooks:
       addOrUpdateEntriesOnCreateVolumeEvent:
         backendPV:
@@ -281,7 +281,7 @@ For initial development, following template variables will be supported:
 
 
 #### NFS Provisioner changes
-NFS Provisioner will initialize the hook configuration using pre-defined hook config file(*/etc/nfs-provisioner-hook/config*). If hook config file is not found then NFS Provisioner will skip the initialization of hooks and continue with provisioning.
+NFS Provisioner will initialize the hook configuration using pre-defined hook config file(*/etc/nfs-provisioner/hook-config*). If hook config file is not found then NFS Provisioner will skip the initialization of hooks and continue with provisioning.
 
 NFS Provisioner executes two events, volume provisioning, and volume deletion. On these two events provisioner needs to execute all the hooks as per the given hook Action.
 

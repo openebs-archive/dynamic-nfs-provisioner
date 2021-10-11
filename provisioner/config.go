@@ -67,12 +67,14 @@ const (
 	// NFSServerResourceLimits holds key name that represent NFS Resource Limits
 	NFSServerResourceLimits = "NFSServerResourceLimits"
 
-	// Hook Configuration
-	// HookConfigDirectory defines directory for hook configuration
-	HookConfigDirectory = "/etc/nfs-provisioner-hook"
+	// HookConfigFileName represent file name for hook configuration
+	HookConfigFileName = "hook-config"
+
+	// ConfigDirectory defines directory to store config files specific to NFS provisioner
+	ConfigDirectory = "/etc/nfs-provisioner"
 
 	// HookConfigFilePath defines path for hook config file
-	HookConfigFilePath = HookConfigDirectory + "/config"
+	HookConfigFilePath = ConfigDirectory + "/" + HookConfigFileName
 )
 
 const (
@@ -310,7 +312,7 @@ func initializeHook(hook **nfshook.Hook) error {
 		return errors.Errorf("failed to read hook config file, err=%s", err)
 	}
 
-	hookObj, err := nfshook.ParseHooks([]byte(data))
+	hookObj, err := nfshook.ParseHooks(data)
 	if err != nil {
 		return err
 	}

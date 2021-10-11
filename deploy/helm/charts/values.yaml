@@ -81,6 +81,11 @@ nfsProvisioner:
   # - If NFS Server needs to be placed only on storage nodes & nfs nodes then
   #   value can be: "kubernetes.io/storage-node,kubernetes.io/nfs-node"
   # nfsServerNodeAffinity: "kubernetes.io/storage-node,kubernetes.io/nfs-node"
+  #
+  # nfsHookConfigMap represent the ConfigMap name to be used for hook configuration.
+  # By default, nfsHookConfigMap is set to empty.
+  # If nfsHookConfigMap is set then chart will mount the configmap using volume, named `hook-config`
+  nfsHookConfigMap: ""
 
 nfsStorageClass:
   name: openebs-kernel-nfs

@@ -26,9 +26,16 @@ Example:
     $0 -n nfs-ns 0.7.1
 
 IMAGE_TAG is required to execute this script.
+
 By default, this script uses 'openebs' namespace to search nfs-server deployment.
 If you have used different namespace for nfs-server deployment then you must provide
 the namespace using option(-n).
+
+Supported options are as below:
+    -h			Show this message and exit
+    -n			namespace for nfs-server deployment. Default namespace used is 'openebs'
+    -d			nfs-server deployment name. If option '-d' is not mentioned then this script will
+                        upgrade all the nfs-server deployments available in 'openebs' or (-n NS) namespace.
 EOF
 }
 
@@ -38,6 +45,9 @@ NFS_SERVER_NS=openebs
 
 # IMAGE_TAG represent the version for nfs server image
 IMAGE_TAG=
+
+# DEPLOYMENTS represent the nfs-server deployment name/name-list
+DEPLOYMENTS=
 
 # list_deployment list nfs-server deployment in NFS_SERVER_NS namespace
 list_deployment() {
@@ -72,7 +82,7 @@ upgrade_deployment() {
 
 # options followed by ':' needs an argument
 # see `man getopt`
-shortOpts=hn:
+shortOpts=hn:d:
 
 # store the output of getopt so that we can assign it to "$@" using set command
 # since we are using "--options" in getopt, arguments are passed via -- "$@"
@@ -94,9 +104,12 @@ do
         -n)
             shift
             NFS_SERVER_NS=$1
-            echo $1 $NFS_SERVER_NS
             ;;
-        ## argument without options is mentioned after '--'
+        -d)
+            shift
+            DEPLOYMENTS=$1
+            ;;
+       ## argument without options is mentioned after '--'
         --)
             shift
             IMAGE_TAG=$1
@@ -107,10 +120,9 @@ done
 
 [[ -z $IMAGE_TAG ]] && print_help && exit 0
 
-deployment=
-list_deployment deployment
+[[ -z $DEPLOYMENTS ]] && list_deployment DEPLOYMENTS
 
-for i in ${deployment}; do
+for i in ${DEPLOYMENTS}; do
     upgrade_deployment ${i}
     echo "Deployment ${NFS_SERVER_NS}/${i} updated with image tag ${IMAGE_TAG}"
 done

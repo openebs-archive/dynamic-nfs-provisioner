@@ -50,4 +50,9 @@ Above command assumes that nfs-server deployments are running in *openebs* names
 ./docs/tutorial/upgrade-nfs-server.sh -n <NFS_SERVER_NS> 0.7.1
 ```
 
+To upgrade specific nfs-server deployment, run below command:
+
+```bash
+./docs/tutorial/upgrade-nfs-server.sh -d <NFS_SERVER_DEPLOYMENT_NAME>  0.7.1
+```
 *Note: Upgrading NFS server deployment recreates the nfs-server pod with the updated image tag. This action will cause downtime(**downtime = time to kill existing nfs-server pod + pull time for new nfs-server image + boot time for new nfs-server pod**) for IOs.*

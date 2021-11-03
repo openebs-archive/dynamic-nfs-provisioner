@@ -16,7 +16,7 @@ metadata:
   name: hook-config
   namespace: openebs
 data:
-  config: |
+  hook-config: |
     hooks:
       addOrUpdateEntriesOnCreateVolumeEvent:
         backendPV:
@@ -101,7 +101,7 @@ Supported *actionWithEventType* are as below:
 - addOrUpdateEntriesOnCreateVolumeEvent
     - This action will modify the resources, which are being created as part of the volume creation operation, by adding the provided configuration. If provided configuration exists in the resources spec then it will be updated with the given configuration.
 - removeEntriesOnCreateVolumeEvent
-    - This action will modify the resources, which are being created as part of the volume creation opreation, by removing the provided configuration from resource's spec. If provided configuration doesn't exists in the resource spec then it will skip those configuration.
+    - This action will modify the resources, which are being created as part of the volume creation operation, by removing the provided configuration from resource's spec. If provided configuration doesn't exists in the resource spec then it will skip those configuration.
 - addOrUpdateEntriesOnDeleteVolumeEvent
     - This action will modify the resources of a NFS volume when it gets deleted, by adding the provided configuration. If provided configuration exists in the resource spec then it will be updated with the given config.
 - removeEntriesOnDeleteVolumeEvent
@@ -130,16 +130,45 @@ Above four *actionWithEventType* supports following resources:
         - finalizers
 
 ## Updating NFS Provisioner
-Once Hook Configmap is created, update the NFS Provisioner Deployment to use environment variable *OPENEBS_IO_NFS_HOOK_CONFIGMAP*.
+Once Hook Configmap is created, update the NFS Provisioner Deployment to mount above Configmap as volume using *mountPath* set to */etc/nfs-provisioner*.
 
-To set the environment variable, run below command,
-```bash
-kubectl set env deployment/openebs-nfs-provisioner -n openebs   OPENEBS_IO_NFS_HOOK_CONFIGMAP=nfs-hook
+You can use below patch data to patch the NFS Provisioner Deployment.
+```json
+{
+    "spec": {
+        "template": {
+            "spec": {
+                "containers": [{
+                    "name": "openebs-provisioner-nfs",
+                    "volumeMounts": [{
+                        "mountPath": "/etc/nfs-provisioner",
+                        "name": "hook-config-volume"
+                    }]
+                }],
+                "volumes": [{
+                    "name": "hook-config-volume",
+                    "configMap": {
+                        "name": "hook-config"
+                    }
+                }]
+            }
+        }
+    }
+}
 ```
+In above json,
+- *hook-config* is the Configmap we created in [Create Hook Configmap](#create-hook-configmap)
+- *openebs-provisioner-nfs* is container name for NFS Provisioner. If you have installed NFS Provisioner through Helm, you need to update it accordingly.
 
-Here, *nfs-hook* is the Configmap we created in [Create Hook Configmap](#create-hook-configmap)
 
-After sucessful update, you can check the deployment spec to verify the environment name.
+Save above json to file named *nfs-hook-deployment.patch* and run below command to patch NFS Provisioner Deployment:
+```bash
+kubectl  patch deploy -n openebs openebs-nfs-provisioner --patch "$(cat nfs-hook-deployment.patch)"
+```
+In above command, *openebs-nfs-provisioner* is deployment name for NFS Provisioner. If you have installed NFS Provisioner using Helm, you need to change it accordingly.
+
+
+After applying the patch, you can check the deployment spec to verify the volumeMounts.
 
 <details>
     <summary>Click to check sample yaml of nfs-provisioner with above env.</summary>
@@ -149,19 +178,19 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
-    deployment.kubernetes.io/revision: "3"
+    deployment.kubernetes.io/revision: "2"
     kubectl.kubernetes.io/last-applied-configuration: |
       {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"labels":{"name":"openebs-nfs-provisioner","openebs.io/component-name":"openebs-nfs-provisioner","openebs.io/version":"dev"},"name":"openebs-nfs-provisioner","namespace":"openebs"},"spec":{"replicas":1,"selector":{"matchLabels":{"name":"openebs-nfs-provisioner","openebs.io/component-name":"openebs-nfs-provisioner"}},"strategy":{"type":"Recreate"},"template":{"metadata":{"labels":{"name":"openebs-nfs-provisioner","openebs.io/component-name":"openebs-nfs-provisioner","openebs.io/version":"dev"}},"spec":{"containers":[{"env":[{"name":"NODE_NAME","valueFrom":{"fieldRef":{"fieldPath":"spec.nodeName"}}},{"name":"OPENEBS_NAMESPACE","valueFrom":{"fieldRef":{"fieldPath":"metadata.namespace"}}},{"name":"OPENEBS_SERVICE_ACCOUNT","valueFrom":{"fieldRef":{"fieldPath":"spec.serviceAccountName"}}},{"name":"OPENEBS_IO_ENABLE_ANALYTICS","value":"false"},{"name":"OPENEBS_IO_NFS_SERVER_USE_CLUSTERIP","value":"true"},{"name":"OPENEBS_IO_INSTALLER_TYPE","value":"openebs-operator-nfs"},{"name":"OPENEBS_IO_NFS_SERVER_IMG","value":"openebs/nfs-server-alpine:ci"}],"image":"openebs/provisioner-nfs:ci","imagePullPolicy":"IfNotPresent","livenessProbe":{"exec":{"command":["sh","-c","test `pgrep \"^provisioner-nfs.*\"` = 1"]},"initialDelaySeconds":30,"periodSeconds":60},"name":"openebs-provisioner-nfs","resources":{"limits":{"cpu":"200m","memory":"200M"},"requests":{"cpu":"50m","memory":"50M"}}}],"serviceAccountName":"openebs-maya-operator"}}}}
-  creationTimestamp: "2021-10-05T05:07:02Z"
-  generation: 3
+  creationTimestamp: "2021-11-03T11:35:07Z"
+  generation: 2
   labels:
     name: openebs-nfs-provisioner
     openebs.io/component-name: openebs-nfs-provisioner
     openebs.io/version: dev
   name: openebs-nfs-provisioner
   namespace: openebs
-  resourceVersion: "19144"
-  uid: b82a8a28-977f-4bfd-8240-a9e393fb4653
+  resourceVersion: "201799"
+  uid: f812eab5-cb92-43ac-9ea5-e5a06c146d9a
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
@@ -205,8 +234,6 @@ spec:
           value: openebs-operator-nfs
         - name: OPENEBS_IO_NFS_SERVER_IMG
           value: openebs/nfs-server-alpine:ci
-        - name: OPENEBS_IO_NFS_HOOK_CONFIGMAP
-          value: hook-config
         image: openebs/provisioner-nfs:ci
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -230,6 +257,9 @@ spec:
             memory: 50M
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /etc/nfs-provisioner
+          name: hook-config-volume
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
@@ -237,22 +267,27 @@ spec:
       serviceAccount: openebs-maya-operator
       serviceAccountName: openebs-maya-operator
       terminationGracePeriodSeconds: 30
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: hook-config
+        name: hook-config-volume
 status:
   availableReplicas: 1
   conditions:
-  - lastTransitionTime: "2021-10-05T08:39:26Z"
-    lastUpdateTime: "2021-10-05T08:39:26Z"
+  - lastTransitionTime: "2021-11-03T11:36:48Z"
+    lastUpdateTime: "2021-11-03T11:36:48Z"
     message: Deployment has minimum availability.
     reason: MinimumReplicasAvailable
     status: "True"
     type: Available
-  - lastTransitionTime: "2021-10-05T05:07:02Z"
-    lastUpdateTime: "2021-10-05T08:39:26Z"
-    message: ReplicaSet "openebs-nfs-provisioner-5fd45558fc" has successfully progressed.
+  - lastTransitionTime: "2021-11-03T11:35:07Z"
+    lastUpdateTime: "2021-11-03T11:36:48Z"
+    message: ReplicaSet "openebs-nfs-provisioner-8b657b65" has successfully progressed.
     reason: NewReplicaSetAvailable
     status: "True"
     type: Progressing
-  observedGeneration: 3
+  observedGeneration: 2
   readyReplicas: 1
   replicas: 1
   updatedReplicas: 1
@@ -262,7 +297,7 @@ status:
 
 ## Creating NFS Volumes
 
-Once NFS Provisioner is updated with environment variable *OPENEBS_IO_NFS_HOOK_CONFIGMAP*, you can start deploying NFS Volumes. NFS resources generated for the volumes will have the annotations and finalizers as mentioned in the hook Configmap.
+Once NFS Provisioner is updated with volumeMounts, you can start deploying NFS Volumes. NFS resources generated for the volumes will have the annotations and finalizers as mentioned in the hook Configmap.
 
 If you need information on creating NFS Volume, visit [How to create NFS Volume](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/docs/intro.md#provision-nfs-volume)
 

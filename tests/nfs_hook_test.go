@@ -112,6 +112,7 @@ var _ = Describe("TEST NFS HOOK", func() {
 
 		backendPVName      = ""
 		hookConfigMapName  = "nfs-hook"
+		hookVolumeName     = "nfs-hook-vol"
 		hook               *nfshook.Hook
 		NFSProvisionerName = "openebs-nfs-provisioner"
 		openebsNamespace   = "openebs"
@@ -128,7 +129,7 @@ var _ = Describe("TEST NFS HOOK", func() {
 			cmap.Name = hookConfigMapName
 			cmap.Namespace = openebsNamespace
 			cmap.Data = map[string]string{
-				"config": string(data),
+				provisioner.HookConfigFileName: string(data),
 			}
 
 			err = Client.createConfigMap(&cmap)
@@ -154,15 +155,26 @@ var _ = Describe("TEST NFS HOOK", func() {
 			)
 
 			By("updating the deployment")
-			nsEnv := corev1.EnvVar{
-				Name:  string(provisioner.NFSHookConfigMapName),
-				Value: hookConfigMapName,
-			}
-
-			deploy.Spec.Template.Spec.Containers[0].Env = append(
-				deploy.Spec.Template.Spec.Containers[0].Env,
-				nsEnv,
+			deploy.Spec.Template.Spec.Volumes = append(deploy.Spec.Template.Spec.Volumes,
+				corev1.Volume{
+					Name: hookVolumeName,
+					VolumeSource: corev1.VolumeSource{
+						ConfigMap: &corev1.ConfigMapVolumeSource{
+							LocalObjectReference: corev1.LocalObjectReference{
+								Name: hookConfigMapName,
+							},
+						},
+					},
+				},
 			)
+
+			deploy.Spec.Template.Spec.Containers[0].VolumeMounts = append(deploy.Spec.Template.Spec.Containers[0].VolumeMounts,
+				corev1.VolumeMount{
+					Name:      hookVolumeName,
+					MountPath: provisioner.ConfigDirectory,
+				},
+			)
+
 			_, err = Client.updateDeployment(deploy)
 			Expect(err).To(BeNil(), "while updating deployment %s/%s", openebsNamespace, NFSProvisionerName)
 
@@ -335,16 +347,30 @@ var _ = Describe("TEST NFS HOOK", func() {
 			Expect(err).To(BeNil(), "while fetching deployment %s/%s", openebsNamespace, NFSProvisionerName)
 
 			By("updating the provisioner deployment")
+			// Removing volumeMount
 			idx := 0
-			for idx < len(deploy.Spec.Template.Spec.Containers[0].Env) {
-				if deploy.Spec.Template.Spec.Containers[0].Env[idx].Name == string(provisioner.NFSHookConfigMapName) {
+			for idx < len(deploy.Spec.Template.Spec.Containers[0].VolumeMounts) {
+				if deploy.Spec.Template.Spec.Containers[0].VolumeMounts[idx].Name == hookVolumeName {
 					break
 				}
 				idx++
 			}
-			deploy.Spec.Template.Spec.Containers[0].Env = append(deploy.Spec.Template.Spec.Containers[0].Env[:idx], deploy.Spec.Template.Spec.Containers[0].Env[idx+1:]...)
+			deploy.Spec.Template.Spec.Containers[0].VolumeMounts = append(deploy.Spec.Template.Spec.Containers[0].VolumeMounts[:idx],
+				deploy.Spec.Template.Spec.Containers[0].VolumeMounts[idx+1:]...)
+
+			// Removing volume
+			idx = 0
+			for idx < len(deploy.Spec.Template.Spec.Volumes) {
+				if deploy.Spec.Template.Spec.Volumes[idx].Name == hookVolumeName {
+					break
+				}
+				idx++
+			}
+			deploy.Spec.Template.Spec.Volumes = append(deploy.Spec.Template.Spec.Volumes[:idx],
+				deploy.Spec.Template.Spec.Volumes[idx+1:]...)
+
 			_, err = Client.updateDeployment(deploy)
-			Expect(err).To(BeNil(), "while updateingupdating deployment %s/%s", openebsNamespace, NFSProvisionerName)
+			Expect(err).To(BeNil(), "while updating deployment %s/%s", openebsNamespace, NFSProvisionerName)
 
 			By("waiting for deployment rollout")
 			err = Client.waitForDeploymentRollout(OpenEBSNamespace, NFSProvisionerName)

@@ -39,10 +39,10 @@ I should be able to configure nfs-provisioner to set the provided annotation and
 I should be able to configure nfs-provisioner to set the provided annotation and finalizer on specific resources created by nfs-provisioner.
 
 ### Proposed Implementation
-NFS-Provisioner will use user-provided Configmap to learn hooks configuration. These hooks will be executed on volume provisioning or deleting events to set the given information on provided resources. 
+NFS-Provisioner will use user-provided Config file to learn hooks configuration. These hooks will be executed on volume provisioning or deleting events to set the given information on provided resources. 
 
 ### High-Level Design
-User will deploy nfs-provisioner with Configmap having information about hook information. This Configmap should exist in the same namespace in which nfs-provisioner is deployed. Sample nfs-provisioner deployment config is as below:
+NFS Provisioner will load the hook configuration from the file located at pre-defined path. User can create a configmap with hook configuration and mount it at pre-defined path. Sample nfs-provisioner deployment config is as below:
 
 ```yaml
     spec:
@@ -61,9 +61,16 @@ User will deploy nfs-provisioner with Configmap having information about hook in
             - test `pgrep "^provisioner-nfs.*"` = 1
           initialDelaySeconds: 30
           periodSeconds: 60
+        volumeMounts:
+          - mountPath: /etc/nfs-provisioner
+            name: hook-config
+      volumes:
+        - name: hook-config
+          configMap:
+            name: hook-config
 ```
 
-User needs to provide Configmap name as a value of `OPENEBS_IO_NFS_HOOK_CONFIGMAP` environment variable.
+User needs to create a configmap named 'hook-config' in provisioner's namespace.
 
 ### Low-Level Design
 #### Hook Definition
@@ -192,7 +199,7 @@ type Provisioner struct {
 ```
 
 #### Configmap structure
-User needs to create hook Configmap resource in nfs-provisioner namespace. Hook configuration needs to be provided in data field **config**.
+User needs to create hook Configmap resource in nfs-provisioner namespace. Hook configuration needs to be provided in data field **hook-config**.
 Configmap needs be defined as below:
 
 ```yaml
@@ -202,7 +209,7 @@ metadata:
   name: hook-config
   namespace: openebs
 data:
-  config: |
+  hook-config: |
     hooks:
       addOrUpdateEntriesOnCreateVolumeEvent:
         backendPV:
@@ -274,7 +281,8 @@ For initial development, following template variables will be supported:
 
 
 #### NFS Provisioner changes
-If NFS Provisioner is configured with environment variable **OPENEBS_IO_NFS_HOOK_CONFIGMAP** set then Provisioner needs to lookup the provided Configmap in nfs-provisioner namespace. If Configmap exists then provisioner needs to initialize **Provisioner** with hook configuration provided in Configmap.
+NFS Provisioner will initialize the hook configuration using pre-defined hook config file(*/etc/nfs-provisioner/hook-config*). If hook config file is not found then NFS Provisioner will skip the initialization of hooks and continue with provisioning.
+
 NFS Provisioner executes two events, volume provisioning, and volume deletion. On these two events provisioner needs to execute all the hooks as per the given hook Action.
 
 NFS Provisioner will initialize the hook on startup. If Hook configuration is invalid then NFS Provisioner will throw the error and exit.

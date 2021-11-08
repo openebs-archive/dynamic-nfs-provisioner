@@ -41,6 +41,7 @@ Please refer to our [Quickstart](https://github.com/openebs/dynamic-nfs-provisio
 
 [Monitoring NFS Provisioner](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/docs/metrics.md)
 
+[Configuring Hook for NFS Provisioner](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/docs/tutorial/nfs-hook.md)
 
 ## Troubleshooting
 If you encounter any issue while using OpenEBS Dynamic NFS Provisioner, review the [troubleshooting guide](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/docs/troubleshooting.md). You can also [file an issue](https://github.com/openebs/dynamic-nfs-provisioner/issues) or talk to us on [#openebs channel](https://kubernetes.slack.com/messages/openebs) in the [Kubernetes Slack](https://kubernetes.slack.com).

@@ -128,6 +128,10 @@ Above four *actionWithEventType* supports following resources:
     - supported fields
         - annotations
         - finalizers
+- nfsPV
+    - supported fields
+        - annotations
+        - finalizers
 
 ## Updating NFS Provisioner
 Once Hook Configmap is created, update the NFS Provisioner Deployment to mount above Configmap as volume using *mountPath* set to */etc/nfs-provisioner*.

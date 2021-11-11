@@ -117,6 +117,7 @@ nfsStorageClass:
 
 nfsServer:
   useClusterIP: "true"
+  imagePullSecret: ""
 
 analytics:
   enabled: "true"

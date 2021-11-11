@@ -87,6 +87,10 @@ spec:
             - name: OPENEBS_IO_NFS_SERVER_NS
               value: {{ .Values.nfsProvisioner.nfsServerNamespace }}
             {{- end }}
+            {{- if .Values.nfsServer.imagePullSecret }}
+            - name: OPENEBS_IO_NFS_SERVER_IMAGE_PULL_SECRET
+              value: {{ .Values.nfsServer.imagePullSecret }}
+            {{- end }}
             # OPENEBS_IO_NFS_SERVER_NODE_AFFINITY defines the node affinity rules to place NFS Server
             # instance. It accepts affinity rules in multiple ways:
             # - If NFS Server needs to be placed on storage nodes as well as only in

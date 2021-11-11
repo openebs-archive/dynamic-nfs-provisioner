@@ -135,6 +135,9 @@ spec:
         # OPENEBS_IO_NFS_SERVER_NS defines the namespace for nfs-server deployment
         #- name: OPENEBS_IO_NFS_SERVER_NS
         #  value: "openebs"
+        # OPENEBS_IO_NFS_SERVER_IMAGE_PULL_SECRET defines the name of an image pull secret to be used by the NFS server pods
+        #- name: OPENEBS_IO_NFS_SERVER_IMAGE_PULL_SECRET
+        #  value: ""
         # OPENEBS_IO_NFS_SERVER_IMG defines the nfs-server-alpine image name to be used
         # while creating nfs volume
         - name: OPENEBS_IO_NFS_SERVER_IMG
@@ -176,12 +179,12 @@ spec:
           limits:
             cpu: 200m
             memory: 200M
-        volumeMounts:
         # uncomment below lines to use nfs-hooks
+        # volumeMounts:
         #   - mountPath: /etc/nfs-provisioner
         #     name: hook-config
-      volumes:
-        # uncomment below lines to use nfs-hooks
+      # uncomment below lines to use nfs-hooks
+      # volumes:
         # - name: hook-config
           # configMap:
            #  name: hook-config

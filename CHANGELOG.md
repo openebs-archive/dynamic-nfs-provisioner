@@ -1,3 +1,10 @@
+0.8.0 / 2021-11-09
+========================
+- send install analytic event for nfs-provisioner ([#109](https://github.com/openebs/dynamic-nfs-provisioner/pull/109),[@mynktl](https://github.com/mynktl))
+- support to configure *ImagePullSecret* for nfs-server pods ([#114](https://github.com/openebs/dynamic-nfs-provisioner/pull/114),[@g-linville](https://github.com/g-linville))
+- hooks support for nfs-provisioner, to add custom annotations/finalizers on nfs resources ([#93](https://github.com/openebs/dynamic-nfs-provisioner/pull/93),[@mynktl](https://github.com/mynktl))
+
+
 0.7.1 / 2021-09-16
 ========================
 * added installation analytic event for nfs-provisioner ([#110](https://github.com/openebs/dynamic-nfs-provisioner/pull/110),[@mynktl](https://github.com/mynktl))

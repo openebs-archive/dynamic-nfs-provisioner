@@ -121,6 +121,19 @@ spec:
                 - test `pgrep "^provisioner-nfs.*"` = 1
             initialDelaySeconds: {{ .Values.nfsProvisioner.healthCheck.initialDelaySeconds }}
             periodSeconds: {{ .Values.nfsProvisioner.healthCheck.periodSeconds }}
+          volumeMounts:
+            # Mounting hook-config volume into nfs-provisioner config directory
+            {{- if .Values.nfsProvisioner.nfsHookConfigMap }}
+            - name: hook-config
+              mountPath: /etc/nfs-provisioner
+            {{- end }}
+      volumes:
+        # hook-config volume uses ConfigMap 'hook-config' to load hook configuration
+        {{- if .Values.nfsProvisioner.nfsHookConfigMap }}
+        - name: hook-config
+          configMap:
+            name: {{ .Values.nfsProvisioner.nfsHookConfigMap }}
+        {{- end }}
 {{- if .Values.nfsProvisioner.nodeSelector }}
       nodeSelector:
 {{ toYaml .Values.nfsProvisioner.nodeSelector | indent 8 }}

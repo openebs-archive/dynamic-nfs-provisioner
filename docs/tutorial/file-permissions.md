@@ -7,7 +7,7 @@ The file permission changes are handled before the NFS server initializes.
 The `chown` and `chmod` commands are run with the `--recursive` flag.<br>
 **NOTE:** The commands are run only if the existing values for the owner, the group or the file mode of the root of the shared directory do not match with the requested values. This is similar to the Kubernetes [fsGroupChangePolicy's "OnRootMismatch"](https://kubernetes.io/blog/2020/12/14/kubernetes-release-1.20-fsgroupchangepolicy-fsgrouppolicy/#allow-users-to-skip-recursive-permission-changes-on-mount).
 
-Declare ownership and file mode change specfications using the UID, GID and mode keys (sample StorageClass below):<br>
+Declare ownership and file mode change specfications using the UID, GID and mode keys (sample PersistentVolumeClaim below):<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**UID:** This is the owner's user ID. Only valid UIDs are usable.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**GID:** This is the group ID of the owning group. Only valid GIDs are usable.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**mode:** Use this to specify the filesystem permission modes. Both octal and alphabet inputs are accepted. E.g. "0755", "g+rw".<br><br>

@@ -122,6 +122,95 @@ fi
 set -uo pipefail
 IFS=$'\n\t'
 
+# Modify the shared directory (${SHARED_DIRECTORY}) file user owner
+# Does not support more than one shared directory
+if [ -n "${FILEPERMISSIONS_UID}" ]; then
+  # These variables will be used to handle errors
+  UID_ERROR=""
+  CHOWN_UID_ERROR=""
+  # Validating input UID value
+  # Errors if UID is not a decimal number
+  targetUID=$(printf %d ${FILEPERMISSIONS_UID}) || UID_ERROR=$?
+  if [ -n "${UID_ERROR}" ]; then
+    echo "user change error: Invalid UID ${FILEPERMISSIONS_UID}"
+    exit 1
+  fi
+
+  presentUID=$(stat ${SHARED_DIRECTORY} --printf=%u)
+
+  # OnRootMismatch-like check
+  if [ "$presentUID" -ne "$targetUID" ]; then
+    chown -R $targetUID ${SHARED_DIRECTORY} || CHOWN_UID_ERROR=$?
+    if [ -n "${CHOWN_UID_ERROR}" ]; then
+      echo "user change error: Failed to change user owner of ${SHARED_DIRECTORY}"
+      exit 1
+    fi
+
+    echo "chown user command succeeded"
+  fi
+fi
+
+# Modify the shared directory (${SHARED_DIRECTORY}) file group owner
+# Does not support more than one shared directory
+if [ -n "${FILEPERMISSIONS_GID}" ]; then
+  # These variables will be used to handle errors
+  GID_ERROR=""
+  CHOWN_GID_ERROR=""
+  # Validating input UID value
+  # Errors if UID is not a decimal number
+  targetGID=$(printf %d ${FILEPERMISSIONS_GID}) || GID_ERROR=$?
+  if [ -n "${GID_ERROR}" ]; then
+    echo "group change error: Invalid GID ${FILEPERMISSIONS_GID}"
+    exit 1
+  fi
+
+  presentGID=$(stat ${SHARED_DIRECTORY} --printf=%g)
+
+  # OnRootMismatch-like check
+  if [ "$presentGID" -ne "$targetGID" ]; then
+    chown -R :${targetGID} ${SHARED_DIRECTORY} || CHOWN_GID_ERROR=$?
+    if [ -n "${CHOWN_GID_ERROR}" ]; then
+      echo "group change error: Failed to change group owner of ${SHARED_DIRECTORY}"
+      exit 1
+    fi
+
+    echo "chown group command succeeded"
+  fi
+fi
+
+# Modify the shared directory (${SHARED_DIRECTORY}) file permissions
+# Does not support more than one shared directory
+if [ -n "${FILEPERMISSIONS_MODE}" ]; then
+  # These variables will be used to handle errors
+  TEST_CHMOD_ERROR=""
+  CHMOD_ERROR=""
+  
+  # 'chmod -c' output is a non-empty string if the file mode changes
+  # The TEST_CHMOD_OUT variable is used to capture this string
+  TEST_CHMOD_OUT=$(chmod ${FILEPERMISSIONS_MODE} ${SHARED_DIRECTORY} -c) || TEST_CHMOD_ERROR=$?
+  # If the command fails, the specified mode is invalid
+  if [ -n "${TEST_CHMOD_ERROR}" ]; then
+    echo "mode change error: chmod test command failed"
+    echo "mode change error: 'mode' value ${FILEPERMISSIONS_MODE} might be invalid"
+    exit 1
+  fi
+
+  # If the TEST_CHMOD_OUT is not empty, then there is a root mismatch
+  # (Similar to OnRootMismatch)
+  # Thus a recursive chmod is issued if there is root mismatch
+  # NOTE: This test won't work if we want to handle root mismatch in
+  #       any other way than the execution of the recursive chmod
+  if [ -n "${TEST_CHMOD_OUT}" ]; then
+    chmod -R ${FILEPERMISSIONS_MODE} ${SHARED_DIRECTORY} || CHMOD_ERROR=$?
+    if [ -n "${CHMOD_ERROR}" ]; then
+      echo "mode change error: Failed to change file mode of ${SHARED_DIRECTORY}"
+      exit 1
+    fi
+
+    echo "chmod command succeeded"
+  fi
+fi
+
 # This loop runs till until we've started up successfully
 while true; do
 

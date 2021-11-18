@@ -64,6 +64,18 @@ func (p *Provisioner) ProvisionKernalNFSServer(ctx context.Context, opts pvContr
 		return nil, err
 	}
 
+	gid, err := volumeConfig.GetFsGID()
+	if err != nil {
+		klog.Errorf("Failed to get GID for FilePermissions. error: %s", err.Error())
+		return nil, err
+	}
+
+	mode, err := volumeConfig.GetFsMode()
+	if err != nil {
+		klog.Errorf("Failed to get mode for FilePermissions. error: %s", err.Error())
+		return nil, err
+	}
+
 	//Extract the details to create a NFS Server
 	nfsServerOpts := &KernelNFSServerOptions{
 		pvName:                name,
@@ -74,6 +86,9 @@ func (p *Provisioner) ProvisionKernalNFSServer(ctx context.Context, opts pvContr
 		leaseTime:             leaseTime,
 		graceTime:             graceTime,
 		fsGroup:               fsGID,
+		permissionsUID:        volumeConfig.GetFsUID(),
+		permissionsGID:        gid,
+		permissionsMode:       mode,
 		pvcName:               pvc.Name,
 		pvcNamespace:          pvc.Namespace,
 		pvcUID:                string(pvc.UID),

@@ -336,7 +336,6 @@ func TestCreateDeployment(t *testing.T) {
 				provisionerNS:  "openebs",
 				pvName:         "test3-pv",
 				backendPvcName: "nfs-test3-pv",
-				fsGroup:        getInt64Ptr(123),
 			},
 			provisioner: &Provisioner{
 				kubeClient:      fake.NewSimpleClientset(),
@@ -344,7 +343,6 @@ func TestCreateDeployment(t *testing.T) {
 			},
 			expectedDeploymentFields: []func(*appsv1.Deployment) error{
 				verifyDeploymentExistence("nfs-server-ns3", "nfs-test3-pv"),
-				verifyDeploymentFSGIDValue(getInt64Ptr(123)),
 				verifyDeploymentEnvValues("CUSTOM_EXPORTS_CONFIG", ""),
 				verifyDeploymentEnvValues("NFS_LEASE_TIME", "0"),
 				verifyDeploymentEnvValues("NFS_GRACE_TIME", "0"),
@@ -356,7 +354,6 @@ func TestCreateDeployment(t *testing.T) {
 				provisionerNS:         "openebs",
 				pvName:                "test4-pv",
 				backendPvcName:        "nfs-test4-pv",
-				fsGroup:               getInt64Ptr(123),
 				leaseTime:             100,
 				graceTime:             100,
 				nfsServerCustomConfig: "/nfsshare *(rw,fsid=0,async,no_auth_nlm)",
@@ -367,7 +364,6 @@ func TestCreateDeployment(t *testing.T) {
 			},
 			expectedDeploymentFields: []func(*appsv1.Deployment) error{
 				verifyDeploymentExistence("nfs-server-ns4", "nfs-test4-pv"),
-				verifyDeploymentFSGIDValue(getInt64Ptr(123)),
 				verifyDeploymentEnvValues("CUSTOM_EXPORTS_CONFIG", "/nfsshare *(rw,fsid=0,async,no_auth_nlm)"),
 				verifyDeploymentEnvValues("NFS_LEASE_TIME", "100"),
 				verifyDeploymentEnvValues("NFS_GRACE_TIME", "100"),

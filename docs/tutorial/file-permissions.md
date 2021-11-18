@@ -17,12 +17,13 @@ kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: secure-vol
-  cas.openebs.io/config: |
-    - name: FilePermissions
-      data:
-        UID: "1000"
-        GID: "2000"
-        mode: "0744"
+  annotations:   
+    cas.openebs.io/config: |
+      - name: FilePermissions
+        data:
+          UID: "1000"
+          GID: "2000"
+          mode: "0744"
 spec:
   storageClassName: openebs-kernel-nfs
   accessModes:
@@ -46,11 +47,12 @@ kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: secure-vol
-  cas.openebs.io/config: |
-    - name: FilePermissions
-      data:
-        GID: "2000"
-        mode: "g+s"
+  annotations:
+    cas.openebs.io/config: |
+      - name: FilePermissions
+        data:
+          GID: "2000"
+          mode: "g+s"
 spec:
   storageClassName: openebs-kernel-nfs
   accessModes:

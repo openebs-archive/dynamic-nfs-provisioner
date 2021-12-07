@@ -173,8 +173,6 @@ func TestGetResourceList(t *testing.T) {
 func TestGetFsGID(t *testing.T) {
 	tests := map[string]struct {
 		volumeConfig   *VolumeConfig
-		key            string
-		dataKey        string
 		expectedOutput string
 		isErrExpected  bool
 	}{
@@ -191,8 +189,6 @@ func TestGetFsGID(t *testing.T) {
 					},
 				},
 			},
-			key:            FilePermissions,
-			dataKey:        FsGID,
 			expectedOutput: "",
 			isErrExpected:  true,
 		},
@@ -204,8 +200,6 @@ func TestGetFsGID(t *testing.T) {
 					},
 				},
 			},
-			key:            FilePermissions,
-			dataKey:        FsGID,
 			expectedOutput: "2000",
 			isErrExpected:  false,
 		},
@@ -217,8 +211,6 @@ func TestGetFsGID(t *testing.T) {
 					},
 				},
 			},
-			key:            FilePermissions,
-			dataKey:        FsGID,
 			expectedOutput: "",
 			isErrExpected:  false,
 		},
@@ -245,8 +237,6 @@ func TestGetFsGID(t *testing.T) {
 func TestGetFsMode(t *testing.T) {
 	tests := map[string]struct {
 		volumeConfig   *VolumeConfig
-		key            string
-		dataKey        string
 		expectedOutput string
 		isErrExpected  bool
 	}{
@@ -263,8 +253,6 @@ func TestGetFsMode(t *testing.T) {
 					},
 				},
 			},
-			key:            FilePermissions,
-			dataKey:        FsMode,
 			expectedOutput: "",
 			isErrExpected:  true,
 		},
@@ -276,8 +264,6 @@ func TestGetFsMode(t *testing.T) {
 					},
 				},
 			},
-			key:            FilePermissions,
-			dataKey:        FsMode,
 			expectedOutput: "0744",
 			isErrExpected:  false,
 		},
@@ -289,8 +275,6 @@ func TestGetFsMode(t *testing.T) {
 					},
 				},
 			},
-			key:            FilePermissions,
-			dataKey:        FsMode,
 			expectedOutput: "",
 			isErrExpected:  false,
 		},

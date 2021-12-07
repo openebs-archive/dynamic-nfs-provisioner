@@ -3,6 +3,15 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: openebs-rwx-pvc
+  #annotaions:
+  #  cas.openebs.io/config: |
+  #      FilePermissions can we used to modify the owner, group
+  #      and file modes of the shared NFS filesystem.   
+  #    - name: FilePermissions
+  #      data:
+  #        UID: "1000"
+  #        GID: "2000"
+  #        mode: "0744"
 spec:
   accessModes:
     - ReadWriteMany

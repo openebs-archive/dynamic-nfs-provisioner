@@ -123,7 +123,10 @@ func (p *Provisioner) GetVolumeConfig(pvName string, pvc *v1.PersistentVolumeCla
 		if err == nil {
 			pvConfig = cast.MergeConfig(pvcCASConfig, pvConfig)
 		} else {
-			return nil, errors.Wrapf(err, "failed to get config: invalid pvc config {%v}", pvcCASConfigStr)
+			return nil, errors.Wrapf(err, "failed to get config: invalid config {%v}"+
+				" in pvc {%v} in namespace {%v}",
+				pvcCASConfigStr, pvc.Name, pvc.Namespace,
+			)
 		}
 	}
 
@@ -163,12 +166,12 @@ func (p *Provisioner) GetVolumeConfig(pvName string, pvc *v1.PersistentVolumeCla
 
 	pvConfigMap, err := cast.ConfigToMap(pvConfig)
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to read volume config: pvc {%v}", pvc.ObjectMeta.Name)
+		return nil, errors.Wrapf(err, "unable to read volume config: pvc {%v} in namespace {%v}", pvc.Name, pvc.Namespace)
 	}
 
 	dataPvConfigMap, err := dataConfigToMap(pvConfig)
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to read volume config: pvc {%v}", pvc.ObjectMeta.Name)
+		return nil, errors.Wrapf(err, "unable to read volume config: pvc {%v} in namespace {%v}", pvc.Name, pvc.Namespace)
 	}
 
 	c := &VolumeConfig{
@@ -267,7 +270,8 @@ func (c *VolumeConfig) GetFSGroupID() (*int64, error) {
 	klog.Infof("The %s option key '%s' is being deprecated"+
 		" and will be removed in future releases."+
 		"\nYou may use the %s option key in the "+
-		"backend volume PersistentVolumeClaim's %s "+
+		"NFS PersistentVolumeClaim's or NFS StorageClass's "+
+		"(NFS PVC's configuration takes precedence) %s "+
 		"annotation key to achieve the same result."+
 		"\nSample config:\n"+
 		"\t\t"+"- name: FilePermissions\n"+
@@ -286,35 +290,25 @@ func (c *VolumeConfig) GetFsGID() (string, error) {
 	fsGIDStr := strings.TrimSpace(c.getData(FilePermissions, FsGID))
 
 	// TODO: remove this block when FSGID is deprecated
-	// Replace this block with the commented code below
-	fsGroupIDStr, _ := c.GetFSGroupID()
+	deprecatedFsGroupIDStr, _ := c.GetFSGroupID()
 
 	existsFsGIDStr := (len(fsGIDStr) > 0)
-	existsFsGroupIDStr := (fsGroupIDStr != nil)
+	existsDeprecatedFsGroupIDStr := (deprecatedFsGroupIDStr != nil)
 
 	// Checking if FSGID and FilePermissions (GID) are being used together
-	if existsFsGIDStr && existsFsGroupIDStr {
+	if existsFsGIDStr && existsDeprecatedFsGroupIDStr {
 		return "", errors.Errorf("both '%s' and %s data "+
 			"key '%s' cannot be used together",
 			FSGroupID, FilePermissions, FsGID,
 		)
 	}
 
-	if existsFsGroupIDStr {
+	if existsDeprecatedFsGroupIDStr {
 		return "", nil
-	} else if existsFsGIDStr {
-		return fsGIDStr, nil
 	}
 
-	return "", nil
-
-	/*
-		if len(fsGIDStr) == 0 {
-			return ""
-		}
-
-		return fsGIDStr
-	*/
+	// existsFsGIDStr == true OR fsGIDStr == ""
+	return fsGIDStr, nil
 }
 
 // GetFsGID fetches the user owner's ID from
@@ -328,40 +322,31 @@ func (c *VolumeConfig) GetFsUID() string {
 	return fsUIDStr
 }
 
-// GetFsMode fetches the file mode from
-// PVC annotation, if specified
+// GetFsMode fetches the file mode from PVC
+// or StorageClass annotation, if specified
 func (c *VolumeConfig) GetFsMode() (string, error) {
-	modeStr := strings.TrimSpace(c.getData(FilePermissions, FsMode))
+	fsModeStr := strings.TrimSpace(c.getData(FilePermissions, FsMode))
 
 	// TODO: remove this block when FSGID is deprecated
-	// Replace this block with the commented code below
-	fsGroupIDStr, _ := c.GetFSGroupID()
+	deprecatedFsGroupIDStr, _ := c.GetFSGroupID()
 
-	existsFsModeStr := (len(modeStr) > 0)
-	existsFsGroupIDStr := (fsGroupIDStr != nil)
+	existsFsModeStr := (len(fsModeStr) > 0)
+	existsDeprecatedFsGroupIDStr := (deprecatedFsGroupIDStr != nil)
 
 	// Checking if FSGID and FilePermissions (mode) are being used together
-	if existsFsModeStr && existsFsGroupIDStr {
+	if existsFsModeStr && existsDeprecatedFsGroupIDStr {
 		return "", errors.Errorf("both '%s' and %s data "+
 			"key '%s' cannot be used together",
 			FSGroupID, FilePermissions, FsMode,
 		)
 	}
 
-	if existsFsGroupIDStr {
+	if existsDeprecatedFsGroupIDStr {
 		return "", nil
-	} else if existsFsModeStr {
-		return modeStr, nil
 	}
 
-	return "", nil
-	/*
-		if len(modeStr) == 0 {
-			return ""
-		}
-
-		return modeStr
-	*/
+	// existsFsModeStr == true OR fsModeStr == ""
+	return fsModeStr, nil
 }
 
 // GetNFSServerResourceRequirements fetches the resource(cpu & memory) request &

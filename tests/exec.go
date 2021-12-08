@@ -18,7 +18,6 @@ package tests
 
 import (
 	"bytes"
-	"fmt"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -53,7 +52,7 @@ func (k *KubeClient) Exec(command, pod, container, ns string) (string, string, e
 
 	exec, err := remotecommand.NewSPDYExecutor(k.config, "POST", req.URL())
 	if err != nil {
-		return "", "", fmt.Errorf("error while creating Executor: %v", err)
+		return "", "", errors.Errorf("error while creating Executor: %v", err)
 	}
 
 	err = exec.Stream(remotecommand.StreamOptions{

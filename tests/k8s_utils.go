@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -149,6 +150,21 @@ func (k *KubeClient) waitForPods(podNamespace, labelSelector string, expectedPha
 
 func (k *KubeClient) listPods(podNamespace string, labelSelector string) (*corev1.PodList, error) {
 	return k.CoreV1().Pods(podNamespace).List(context.TODO(), metav1.ListOptions{LabelSelector: labelSelector})
+}
+
+// Lists Pods created from a Deployment
+func (k *KubeClient) listDeploymentPods(deploy *appsv1.Deployment) (*corev1.PodList, error) {
+	if deploy == nil {
+		return nil, errors.Errorf("failed to get PodList: invalid input")
+	}
+
+	var labelSelector string
+	for key, val := range deploy.Spec.Selector.MatchLabels {
+		labelSelector += key + "=" + val
+	}
+	labelSelector = strings.TrimSuffix(labelSelector, ",")
+
+	return k.listPods(deploy.Namespace, labelSelector)
 }
 
 func (k *KubeClient) createNamespace(namespace string) error {

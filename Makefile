@@ -193,7 +193,7 @@ license-check:
 	@echo
 
 .PHONY: sanity-test
-sanity-test: sanity-test
+sanity-test:
 	@echo "--> Running sanity test";
 	go test -v -timeout 120m ./tests/...
 

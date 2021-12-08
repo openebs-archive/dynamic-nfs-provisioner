@@ -173,7 +173,7 @@ var _ = Describe("TEST NFS SERVER FILE PERMISSIONS", func() {
 			pod := &podList.Items[0]
 
 			By("exec-ing in the NFS server Pod and checking file permissions")
-			stdout, stderr, err := Client.Exec("stat --printf=%u ${SHARED_DIRECTORY}", pod.Name, pod.Spec.Containers[0].Name, pod.Namespace)
+			stdout, stderr, err := Client.Exec("/bin/bash -c 'stat --printf=%u ${SHARED_DIRECTORY}'", pod.Name, pod.Spec.Containers[0].Name, pod.Namespace)
 			Expect(err).To(BeNil(), "when exec-ing into the NFS "+
 				"server container in pod {%s} in namespace "+
 				"{%s}", pod.Name, pod.Namespace,
@@ -187,7 +187,7 @@ var _ = Describe("TEST NFS SERVER FILE PERMISSIONS", func() {
 				"check owner's UID",
 			)
 
-			stdout, stderr, err = Client.Exec("stat --printf=%g ${SHARED_DIRECTORY}", pod.Name, pod.Spec.Containers[0].Name, pod.Namespace)
+			stdout, stderr, err = Client.Exec("/bin/bash -c 'stat --printf=%g ${SHARED_DIRECTORY}'", pod.Name, pod.Spec.Containers[0].Name, pod.Namespace)
 			Expect(err).To(BeNil(), "when exec-ing into the NFS "+
 				"server container in pod {%s} in namespace "+
 				"{%s}", pod.Name, pod.Namespace,
@@ -201,7 +201,7 @@ var _ = Describe("TEST NFS SERVER FILE PERMISSIONS", func() {
 				"check owner's GID",
 			)
 
-			stdout, stderr, err = Client.Exec("stat --printf=%04a ${SHARED_DIRECTORY}", pod.Name, pod.Spec.Containers[0].Name, pod.Namespace)
+			stdout, stderr, err = Client.Exec("/bin/bash -c 'stat --printf=%04a ${SHARED_DIRECTORY}'", pod.Name, pod.Spec.Containers[0].Name, pod.Namespace)
 			Expect(err).To(BeNil(), "when exec-ing into the NFS "+
 				"server container in pod {%s} in namespace "+
 				"{%s}", pod.Name, pod.Namespace,

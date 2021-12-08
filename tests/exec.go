@@ -18,7 +18,6 @@ package tests
 
 import (
 	"bytes"
-	"strings"
 
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
@@ -27,7 +26,7 @@ import (
 )
 
 // Exec execute the given command in given ns/pod/container and return the output
-func (k *KubeClient) Exec(command, pod, container, ns string) (string, string, error) {
+func (k *KubeClient) Exec(command []string, pod, container, ns string) (string, string, error) {
 	var stderr, stdout bytes.Buffer
 
 	req := k.CoreV1().
@@ -44,7 +43,7 @@ func (k *KubeClient) Exec(command, pod, container, ns string) (string, string, e
 
 	paramCodec := runtime.NewParameterCodec(scheme)
 	req.VersionedParams(&corev1.PodExecOptions{
-		Command:   strings.Fields(command),
+		Command:   command,
 		Container: container,
 		Stdout:    true,
 		Stderr:    true,

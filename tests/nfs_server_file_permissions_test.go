@@ -17,6 +17,7 @@ limitations under the License.
 package tests
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/ghodss/yaml"
@@ -40,7 +41,7 @@ var _ = Describe("TEST NFS SERVER FILE PERMISSIONS", func() {
 		// PVC namespace
 		accessModes     = []corev1.PersistentVolumeAccessMode{corev1.ReadWriteMany}
 		capacity        = "2Gi"
-		pvcName         = "pvc-nfs-resource-requests-limits"
+		pvcName         = "pvc-nfs-file-permissions"
 		uid             = "1000"
 		gid             = "2000"
 		mode            = "0744"
@@ -64,7 +65,7 @@ var _ = Describe("TEST NFS SERVER FILE PERMISSIONS", func() {
 		scNfsServerType = "kernel"
 
 		// application details
-		deployName    = "busybox-resource-requests-limits"
+		deployName    = "busybox-file-permissions"
 		label         = "demo=nfs-deployment"
 		labelselector = map[string]string{
 			"demo": "nfs-deployment",
@@ -171,9 +172,14 @@ var _ = Describe("TEST NFS SERVER FILE PERMISSIONS", func() {
 			)
 
 			pod := &podList.Items[0]
+			Eventually(func() corev1.PodPhase {
+				pod, err := Client.CoreV1().Pods(pod.Namespace).Get(context.TODO(), pod.Name, metav1.GetOptions{})
+				Expect(err).To(BeNil(), "when GETing NFS server pod status")
+				return pod.Status.Phase
+			}, 90, 5).Should(Equal(corev1.PodRunning))
 
 			By("exec-ing in the NFS server Pod and checking file permissions")
-			stdout, stderr, err := Client.Exec("/bin/bash -c 'stat --printf=%u ${SHARED_DIRECTORY}'", pod.Name, pod.Spec.Containers[0].Name, pod.Namespace)
+			stdout, stderr, err := Client.Exec([]string{"/bin/bash", "-c", "stat --printf=%u ${SHARED_DIRECTORY}"}, pod.Name, pod.Spec.Containers[0].Name, pod.Namespace)
 			Expect(err).To(BeNil(), "when exec-ing into the NFS "+
 				"server container in pod {%s} in namespace "+
 				"{%s}", pod.Name, pod.Namespace,
@@ -187,7 +193,7 @@ var _ = Describe("TEST NFS SERVER FILE PERMISSIONS", func() {
 				"check owner's UID",
 			)
 
-			stdout, stderr, err = Client.Exec("/bin/bash -c 'stat --printf=%g ${SHARED_DIRECTORY}'", pod.Name, pod.Spec.Containers[0].Name, pod.Namespace)
+			stdout, stderr, err = Client.Exec([]string{"/bin/bash", "-c", "stat --printf=%g ${SHARED_DIRECTORY}"}, pod.Name, pod.Spec.Containers[0].Name, pod.Namespace)
 			Expect(err).To(BeNil(), "when exec-ing into the NFS "+
 				"server container in pod {%s} in namespace "+
 				"{%s}", pod.Name, pod.Namespace,
@@ -201,7 +207,7 @@ var _ = Describe("TEST NFS SERVER FILE PERMISSIONS", func() {
 				"check owner's GID",
 			)
 
-			stdout, stderr, err = Client.Exec("/bin/bash -c 'stat --printf=%04a ${SHARED_DIRECTORY}'", pod.Name, pod.Spec.Containers[0].Name, pod.Namespace)
+			stdout, stderr, err = Client.Exec([]string{"/bin/bash", "-c", "stat --printf=%04a ${SHARED_DIRECTORY}"}, pod.Name, pod.Spec.Containers[0].Name, pod.Namespace)
 			Expect(err).To(BeNil(), "when exec-ing into the NFS "+
 				"server container in pod {%s} in namespace "+
 				"{%s}", pod.Name, pod.Namespace,

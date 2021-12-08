@@ -168,7 +168,7 @@ var _ = Describe("TEST NON ROOT USER ACCESSING NFS VOLUME", func() {
 			listPods, err := Client.listPods(openebsNamespace, nfsServerLabel)
 			Expect(err).To(BeNil(), "while fetching NFS Server details")
 
-			_, stdErr, err := Client.Exec("chmod o=rx /nfsshare", listPods.Items[0].Name, "nfs-server", openebsNamespace)
+			_, stdErr, err := Client.Exec([]string{"/bin/bash", "-c", "chmod o=rx /nfsshare"}, listPods.Items[0].Name, "nfs-server", openebsNamespace)
 			Expect(err).To(BeNil(), "while updating permissions of NFS volume stderror {%s}", stdErr)
 		})
 	})
@@ -204,7 +204,7 @@ var _ = Describe("TEST NON ROOT USER ACCESSING NFS VOLUME", func() {
 			By("Accesing volume via exec API")
 
 			stdOut, stdError, err := Client.Exec(
-				"touch /mnt/store1/testvolume",
+				[]string{"/bin/bash", "-c", "touch /mnt/store1/testvolume"},
 				podList.Items[0].Name,
 				"busybox",
 				applicationNamespace)
@@ -267,7 +267,7 @@ var _ = Describe("TEST NON ROOT USER ACCESSING NFS VOLUME", func() {
 			Expect(err).To(BeNil(), "while listing pods")
 			By("Accesing volume via exec API")
 			stdOut, stdError, err := Client.Exec(
-				"touch /mnt/store1/testvolume",
+				[]string{"/bin/bash", "-c", "touch /mnt/store1/testvolume"},
 				podList.Items[0].Name,
 				"busybox",
 				applicationNamespace)

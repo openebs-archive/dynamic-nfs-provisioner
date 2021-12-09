@@ -169,17 +169,12 @@ func (p *Provisioner) GetVolumeConfig(pvName string, pvc *v1.PersistentVolumeCla
 		return nil, errors.Wrapf(err, "unable to read volume config: pvc {%v} in namespace {%v}", pvc.Name, pvc.Namespace)
 	}
 
-	dataPvConfigMap, err := dataConfigToMap(pvConfig)
-	if err != nil {
-		return nil, errors.Wrapf(err, "unable to read volume config: pvc {%v} in namespace {%v}", pvc.Name, pvc.Namespace)
-	}
-
 	c := &VolumeConfig{
 		pvName:     pvName,
 		pvcName:    pvc.ObjectMeta.Name,
 		scName:     *scName,
 		options:    pvConfigMap,
-		configData: dataPvConfigMap,
+		configData: dataConfigToMap(pvConfig),
 	}
 	return c, nil
 }
@@ -297,8 +292,8 @@ func (c *VolumeConfig) GetFsGID() (string, error) {
 
 	// Checking if FSGID and FilePermissions (GID) are being used together
 	if existsFsGIDStr && existsDeprecatedFsGroupIDStr {
-		return "", errors.Errorf("both '%s' and %s data "+
-			"key '%s' cannot be used together",
+		return "", errors.Errorf("both '%s' and '%s."+
+			"%s' cannot be used together",
 			FSGroupID, FilePermissions, FsGID,
 		)
 	}
@@ -335,8 +330,8 @@ func (c *VolumeConfig) GetFsMode() (string, error) {
 
 	// Checking if FSGID and FilePermissions (mode) are being used together
 	if existsFsModeStr && existsDeprecatedFsGroupIDStr {
-		return "", errors.Errorf("both '%s' and %s data "+
-			"key '%s' cannot be used together",
+		return "", errors.Errorf("both '%s' and '%s."+
+			"%s' cannot be used together",
 			FSGroupID, FilePermissions, FsMode,
 		)
 	}
@@ -485,7 +480,7 @@ func initializeHook(hook **nfshook.Hook) error {
 	return nil
 }
 
-func dataConfigToMap(pvConfig []mconfig.Config) (map[string]interface{}, error) {
+func dataConfigToMap(pvConfig []mconfig.Config) map[string]interface{} {
 	m := map[string]interface{}{}
 
 	for _, configObj := range pvConfig {
@@ -495,14 +490,8 @@ func dataConfigToMap(pvConfig []mconfig.Config) (map[string]interface{}, error) 
 		}
 
 		configName := strings.TrimSpace(configObj.Name)
-		confHierarchy := map[string]interface{}{
-			configName: configObj.Data,
-		}
-		isMerged := util.MergeMapOfObjects(m, confHierarchy)
-		if !isMerged {
-			return nil, errors.Errorf("failed to transform cas config 'Data' for configName '%s' to map: failed to merge: %s", configName, configObj)
-		}
+		m[configName] = configObj.Data
 	}
 
-	return m, nil
+	return m
 }

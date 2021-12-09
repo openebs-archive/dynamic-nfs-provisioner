@@ -160,7 +160,7 @@ func (k *KubeClient) listDeploymentPods(deploy *appsv1.Deployment) (*corev1.PodL
 
 	var labelSelector string
 	for key, val := range deploy.Spec.Selector.MatchLabels {
-		labelSelector += key + "=" + val
+		labelSelector += key + "=" + val + ","
 	}
 	labelSelector = strings.TrimSuffix(labelSelector, ",")
 

@@ -22,30 +22,6 @@ import (
 )
 
 // Checks if all of the input ENV's present in the
-// container exist and have non-empty values
-// Returns true iff all of the ENV's values are non-empty
-func isEnvValuePresent(k8sContainer *corev1.Container, envList ...string) (bool, error) {
-	envListLen := len(envList)
-	if k8sContainer == nil || envListLen == 0 {
-		return false, errors.Errorf("failed to check for ENVs: invalid input")
-	}
-
-	containerEnvList := make(map[string]int)
-
-	for i, env := range k8sContainer.Env {
-		containerEnvList[env.Name] = i
-	}
-
-	for _, env := range envList {
-		if _, ok := containerEnvList[env]; !ok {
-			return false, nil
-		}
-	}
-
-	return true, nil
-}
-
-// Checks if all of the input ENV's present in the
 // container exist and have their corresponding values
 // Returns true iff all of the ENVs have their corresponding values
 func isEnvValueCorrect(k8sContainer *corev1.Container, envVal map[string]string) (bool, error) {

@@ -160,6 +160,7 @@ var _ = Describe("TEST NFS SERVER FILE PERMISSIONS", func() {
 
 		It("should have correct file permissions on backend vol mountpath", func() {
 			By("GETing NFS server Pod from the Deployment")
+			Expect(nfsDeployment).NotTo(BeNil(), "nfs deployment shouldn't be empty")
 			podList, err := Client.listDeploymentPods(nfsDeployment)
 			Expect(err).To(BeNil(), "when listing the pods of "+
 				"NFS server deployment {%s} in namespace {%s}",

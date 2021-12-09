@@ -178,7 +178,7 @@ var _ = Describe("TEST RECLAIM OF RELEASED NFS PV", func() {
 			Expect(err).To(BeNil(), "while fetching nfs-server pod")
 
 			appFileName = "/mnt/store1/" + time.Now().Format("20060102150405")
-			_, stdErr, err := Client.Exec([]string{"/bin/bash", "-c", "touch " + appFileName}, podList.Items[0].Name, "busybox", applicationNamespace)
+			_, stdErr, err := Client.Exec([]string{"/bin/sh", "-c", "touch " + appFileName}, podList.Items[0].Name, "busybox", applicationNamespace)
 			Expect(err).To(BeNil(), "while creating a file=%s err={%s}", appFileName, stdErr)
 		})
 	})
@@ -274,7 +274,7 @@ var _ = Describe("TEST RECLAIM OF RELEASED NFS PV", func() {
 			podList, err := Client.listPods(applicationNamespace, appLabel)
 			Expect(err).To(BeNil(), "while fetching nfs-server pod")
 
-			_, stdErr, err := Client.Exec([]string{"/bin/bash", "-c", "ls " + appFileName}, podList.Items[0].Name, "busybox", applicationNamespace)
+			_, stdErr, err := Client.Exec([]string{"/bin/sh", "-c", "ls " + appFileName}, podList.Items[0].Name, "busybox", applicationNamespace)
 			Expect(err).To(BeNil(), "while checking a file=%s err={%s}", appFileName, stdErr)
 		})
 	})

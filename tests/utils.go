@@ -29,17 +29,12 @@ func isEnvValueCorrect(k8sContainer *corev1.Container, envVal map[string]string)
 		return false, errors.Errorf("failed to check for ENVs: invalid input")
 	}
 
-	containerEnvList := make(map[string]string)
-
-	for _, env := range k8sContainer.Env {
-		containerEnvList[env.Name] = env.Value
-	}
-
-	for env, val := range envVal {
-		if containerVal, ok := containerEnvList[env]; !ok || containerVal != val {
-			return false, nil
+	envMatchCount := 0
+	for _, containerENV := range k8sContainer.Env {
+		if val, ok := envVal[containerENV.Name]; ok && containerENV.Value == val {
+			envMatchCount++
 		}
 	}
 
-	return true, nil
+	return envMatchCount == len(envVal), nil
 }

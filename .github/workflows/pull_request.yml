@@ -18,6 +18,7 @@ on:
   pull_request:
     paths-ignore:
       - 'deploy/helm/**'
+      - 'docs/**'
       - 'MAINTAINERS'
       - '*.md'
       - 'LICENSE'

@@ -61,6 +61,7 @@ var _ = Describe("TEST WaitForFirstConsumer binding mode for NFS PV", func() {
 
 		NFSScBindingMode = storagev1.VolumeBindingWaitForFirstConsumer
 		NFSScName        = "nfs-sc-waitforfirstconsumer"
+		backendSCName    = "openebs-hostpath"
 		scNfsServerType  = "kernel"
 	)
 
@@ -71,6 +72,10 @@ var _ = Describe("TEST WaitForFirstConsumer binding mode for NFS PV", func() {
 				{
 					Name:  provisioner.KeyPVNFSServerType,
 					Value: scNfsServerType,
+				},
+				{
+					Name:  provisioner.KeyPVBackendStorageClass,
+					Value: backendSCName,
 				},
 			}
 

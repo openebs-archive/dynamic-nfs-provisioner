@@ -12,7 +12,7 @@
 #See the License for the specific language governing permissions and
 #limitations under the License.
 #
-FROM alpine:3.11.5
+FROM alpine:3.12
 
 RUN apk add --no-cache \
     iproute2 \
@@ -51,4 +51,4 @@ LABEL org.label-schema.build-date=$DBUILD_DATE
 LABEL org.label-schema.vcs-url=$DBUILD_REPO_URL
 LABEL org.label-schema.url=$DBUILD_SITE_URL
 
-CMD ["/provisioner-nfs"]
+ENTRYPOINT ["/provisioner-nfs"]

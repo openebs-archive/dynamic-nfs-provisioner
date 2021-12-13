@@ -156,8 +156,8 @@ if [ -n "${FILEPERMISSIONS_GID}" ]; then
   # These variables will be used to handle errors
   GID_ERROR=""
   CHOWN_GID_ERROR=""
-  # Validating input UID value
-  # Errors if UID is not a decimal number
+  # Validating input GID value
+  # Errors if GID is not a decimal number
   targetGID=$(printf %d ${FILEPERMISSIONS_GID}) || GID_ERROR=$?
   if [ -n "${GID_ERROR}" ]; then
     echo "group change error: Invalid GID ${FILEPERMISSIONS_GID}"
@@ -190,8 +190,7 @@ if [ -n "${FILEPERMISSIONS_MODE}" ]; then
   TEST_CHMOD_OUT=$(chmod ${FILEPERMISSIONS_MODE} ${SHARED_DIRECTORY} -c) || TEST_CHMOD_ERROR=$?
   # If the command fails, the specified mode is invalid
   if [ -n "${TEST_CHMOD_ERROR}" ]; then
-    echo "mode change error: chmod test command failed"
-    echo "mode change error: 'mode' value ${FILEPERMISSIONS_MODE} might be invalid"
+    echo "mode change error: chmod test command failed. 'mode' value ${FILEPERMISSIONS_MODE} might be invalid"
     exit 1
   fi
 

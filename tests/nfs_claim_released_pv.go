@@ -57,6 +57,7 @@ var _ = Describe("TEST RECLAIM OF RELEASED NFS PV", func() {
 		// nfs provisioner values
 		openebsNamespace = "openebs"
 		scName           = "nfs-pv-sc-retain"
+		backendSCName    = "openebs-hostpath"
 		scReclaimPolicy  = corev1.PersistentVolumeReclaimRetain
 		scNfsServerType  = "kernel"
 		// nfsPv stores pv name created by application pvc
@@ -70,6 +71,10 @@ var _ = Describe("TEST RECLAIM OF RELEASED NFS PV", func() {
 				{
 					Name:  provisioner.KeyPVNFSServerType,
 					Value: scNfsServerType,
+				},
+				{
+					Name:  provisioner.KeyPVBackendStorageClass,
+					Value: backendSCName,
 				},
 			}
 

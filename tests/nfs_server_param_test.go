@@ -54,6 +54,7 @@ var _ = Describe("TEST NFS SERVER CONFIGURATION", func() {
 		openebsNamespace = "openebs"
 		nfsServerLabel   = "openebs.io/nfs-server"
 		scName           = "nfs-server-config-sc"
+		backendSCName    = "openebs-hostpath"
 		scNfsServerType  = "kernel"
 		scGraceTime      = "30"
 		scLeaseTime      = "30"
@@ -83,6 +84,10 @@ var _ = Describe("TEST NFS SERVER CONFIGURATION", func() {
 				{
 					Name:  provisioner.CustomServerConfig,
 					Value: scExportConfig,
+				},
+				{
+					Name:  provisioner.KeyPVBackendStorageClass,
+					Value: backendSCName,
 				},
 			}
 

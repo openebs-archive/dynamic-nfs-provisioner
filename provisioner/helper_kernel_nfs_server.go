@@ -95,6 +95,24 @@ type KernelNFSServerOptions struct {
 	// volume permissions will be updated by OR'ing with rw-rw----
 	fsGroup *int64
 
+	// This sets the value of the env FILEPERMISSIONS_GID on the
+	// NFS server Pod template
+	// The NFS server init process will use this value to set the
+	// group owner of the backend volume filesystem directory
+	permissionsGID string
+
+	// This sets the value of the env FILEPERMISSIONS_UID on the
+	// NFS server Pod template
+	// The NFS server init process will use this value to set the
+	// user owner of the backend volume filesystem directory
+	permissionsUID string
+
+	// This sets the value of the env FILEPERMISSIONS_MODE on the
+	// NFS server Pod template
+	// The NFS server init process will use this value to set the
+	// file mode of the backend volume filesystem directory
+	permissionsMode string
+
 	// resources defines the request & limits of NFS server
 	// This will be populated from NFS StorageClass. If not
 	// specified resource limits will not be applied on NFS
@@ -294,6 +312,18 @@ func (p *Provisioner) createDeployment(nfsServerOpts *KernelNFSServerOptions) er
 								{
 									Name:  "NFS_GRACE_TIME",
 									Value: strconv.Itoa(nfsServerOpts.graceTime),
+								},
+								{
+									Name:  "FILEPERMISSIONS_UID",
+									Value: nfsServerOpts.permissionsUID,
+								},
+								{
+									Name:  "FILEPERMISSIONS_GID",
+									Value: nfsServerOpts.permissionsGID,
+								},
+								{
+									Name:  "FILEPERMISSIONS_MODE",
+									Value: nfsServerOpts.permissionsMode,
 								},
 							},
 						).

@@ -21,6 +21,7 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/google/go-cmp/cmp"
+	mconfig "github.com/openebs/maya/pkg/apis/openebs.io/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 )
@@ -164,6 +165,134 @@ func TestGetResourceList(t *testing.T) {
 		if !test.isErrExpected {
 			if !reflect.DeepEqual(test.expectedResourceList, gotOutput) {
 				t.Errorf("%q test has following diff %s", name, cmp.Diff(test.expectedResourceList, gotOutput))
+			}
+		}
+	}
+}
+
+func TestGetFsGID(t *testing.T) {
+	tests := map[string]struct {
+		volumeConfig   *VolumeConfig
+		expectedOutput string
+		isErrExpected  bool
+	}{
+		"When to-be-deprecated FSGID and FilePermissions-GID are used together": {
+			volumeConfig: &VolumeConfig{
+				options: map[string]interface{}{
+					FSGroupID: map[string]string{
+						string(mconfig.ValuePTP): "1000",
+					},
+				},
+				configData: map[string]interface{}{
+					FilePermissions: map[string]string{
+						FsGID: "2000",
+					},
+				},
+			},
+			expectedOutput: "",
+			isErrExpected:  true,
+		},
+		"When a valid FilePermissions-GID is used": {
+			volumeConfig: &VolumeConfig{
+				configData: map[string]interface{}{
+					FilePermissions: map[string]string{
+						FsGID: "2000",
+					},
+				},
+			},
+			expectedOutput: "2000",
+			isErrExpected:  false,
+		},
+		"When an empty FilePermissions-GID is used": {
+			volumeConfig: &VolumeConfig{
+				configData: map[string]interface{}{
+					FilePermissions: map[string]string{
+						FsGID: "",
+					},
+				},
+			},
+			expectedOutput: "",
+			isErrExpected:  false,
+		},
+	}
+
+	for name, test := range tests {
+		name := name
+		test := test
+		gotOutput, err := test.volumeConfig.GetFsGID()
+		if test.isErrExpected && err == nil {
+			t.Errorf("%q test failed expected error to occur but got nil", name)
+		}
+		if !test.isErrExpected && err != nil {
+			t.Errorf("%q test failed expected error not to occur but got %v", name, err)
+		}
+		if !test.isErrExpected {
+			if !(test.expectedOutput == gotOutput) {
+				t.Errorf("%q test: expected %s, but got %s", name, test.expectedOutput, gotOutput)
+			}
+		}
+	}
+}
+
+func TestGetFsMode(t *testing.T) {
+	tests := map[string]struct {
+		volumeConfig   *VolumeConfig
+		expectedOutput string
+		isErrExpected  bool
+	}{
+		"When to-be-deprecated FSGID and FilePermissions-mode are used together": {
+			volumeConfig: &VolumeConfig{
+				options: map[string]interface{}{
+					FSGroupID: map[string]string{
+						string(mconfig.ValuePTP): "1000",
+					},
+				},
+				configData: map[string]interface{}{
+					FilePermissions: map[string]string{
+						FsMode: "0744",
+					},
+				},
+			},
+			expectedOutput: "",
+			isErrExpected:  true,
+		},
+		"When a valid FilePermissions-mode is used": {
+			volumeConfig: &VolumeConfig{
+				configData: map[string]interface{}{
+					FilePermissions: map[string]string{
+						FsMode: "0744",
+					},
+				},
+			},
+			expectedOutput: "0744",
+			isErrExpected:  false,
+		},
+		"When an empty FilePermissions-mode is used": {
+			volumeConfig: &VolumeConfig{
+				configData: map[string]interface{}{
+					FilePermissions: map[string]string{
+						FsMode: "",
+					},
+				},
+			},
+			expectedOutput: "",
+			isErrExpected:  false,
+		},
+	}
+
+	for name, test := range tests {
+		name := name
+		test := test
+		gotOutput, err := test.volumeConfig.GetFsMode()
+		if test.isErrExpected && err == nil {
+			t.Errorf("%q test failed expected error to occur but got nil", name)
+		}
+		if !test.isErrExpected && err != nil {
+			t.Errorf("%q test failed expected error not to occur but got %v", name, err)
+		}
+		if !test.isErrExpected {
+			if !(test.expectedOutput == gotOutput) {
+				t.Errorf("%q test: expected %s, but got %s", name, test.expectedOutput, gotOutput)
 			}
 		}
 	}

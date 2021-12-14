@@ -19,11 +19,12 @@ package provisioner
 
 import (
 	"context"
-	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/pkg/errors"
 
 	"github.com/ghodss/yaml"
 	nfshook "github.com/openebs/dynamic-nfs-provisioner/pkg/hook"
@@ -59,7 +60,30 @@ const (
 	DefaultGraceTime = 90
 
 	// FSGroupID defines the permissions of nfs share volume
+	// -----------------------------------------------------
+	// NOTE: This feature has been deprecated
+	//       Alternative: Use FilePermission 'cas.openebs.io/config' annotation
+	//                    key on the backend volume PVC. Sample FilePermissions
+	//      	      for FSGID-like configuration --
+	//
+	//                    name: FilePermissions
+	//                    data:
+	//                      GID: <group-ID>
+	//                      mode: "g+s"
+	// -----------------------------------------------------
 	FSGroupID = "FSGID"
+
+	// This is the cas-template key for all file permission 'data' keys
+	FilePermissions = "FilePermissions"
+
+	// FsUID defines the user owner of the shared directory
+	FsUID = "UID"
+
+	// FsGID defines the group owner of the shared directory
+	FsGID = "GID"
+
+	// FSMode defines the file permission mode of the shared directory
+	FsMode = "mode"
 
 	// NFSServerResourceRequests holds key name that represent NFS Resource Requests
 	NFSServerResourceRequests = "NFSServerResourceRequests"
@@ -91,6 +115,21 @@ func (p *Provisioner) GetVolumeConfig(pvName string, pvc *v1.PersistentVolumeCla
 
 	pvConfig := p.defaultConfig
 
+	// extract and merge the cas config from PersistentVolumeClaim
+	pvcCASConfigStr := pvc.ObjectMeta.Annotations[string(mconfig.CASConfigKey)]
+	klog.V(4).Infof("PVC %v has config:%v", pvc.Name, pvcCASConfigStr)
+	if len(strings.TrimSpace(pvcCASConfigStr)) != 0 {
+		pvcCASConfig, err := cast.UnMarshallToConfig(pvcCASConfigStr)
+		if err == nil {
+			pvConfig = cast.MergeConfig(pvcCASConfig, pvConfig)
+		} else {
+			return nil, errors.Wrapf(err, "failed to get config: invalid config {%v}"+
+				" in pvc {%v} in namespace {%v}",
+				pvcCASConfigStr, pvc.Name, pvc.Namespace,
+			)
+		}
+	}
+
 	//Fetch the SC
 	scName := GetStorageClassNameFromPVC(pvc)
 	sc, err := p.kubeClient.StorageV1().StorageClasses().Get(context.TODO(), *scName, metav1.GetOptions{})
@@ -104,7 +143,11 @@ func (p *Provisioner) GetVolumeConfig(pvName string, pvc *v1.PersistentVolumeCla
 	if len(strings.TrimSpace(scCASConfigStr)) != 0 {
 		scCASConfig, err := cast.UnMarshallToConfig(scCASConfigStr)
 		if err == nil {
-			pvConfig = cast.MergeConfig(scCASConfig, pvConfig)
+			// Config keys which already exist (PVC config),
+			// will be skipped
+			// i.e. PVC config will have precedence over SC config,
+			// if both have the same keys
+			pvConfig = cast.MergeConfig(pvConfig, scCASConfig)
 		} else {
 			return nil, errors.Wrapf(err, "failed to get config: invalid sc config {%v}", scCASConfigStr)
 		}
@@ -123,14 +166,15 @@ func (p *Provisioner) GetVolumeConfig(pvName string, pvc *v1.PersistentVolumeCla
 
 	pvConfigMap, err := cast.ConfigToMap(pvConfig)
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to read volume config: pvc {%v}", pvc.ObjectMeta.Name)
+		return nil, errors.Wrapf(err, "unable to read volume config: pvc {%v} in namespace {%v}", pvc.Name, pvc.Namespace)
 	}
 
 	c := &VolumeConfig{
-		pvName:  pvName,
-		pvcName: pvc.ObjectMeta.Name,
-		scName:  *scName,
-		options: pvConfigMap,
+		pvName:     pvName,
+		pvcName:    pvc.ObjectMeta.Name,
+		scName:     *scName,
+		options:    pvConfigMap,
+		configData: dataConfigToMap(pvConfig),
 	}
 	return c, nil
 }
@@ -197,16 +241,107 @@ func (c *VolumeConfig) GetNFServerGraceTime() (int, error) {
 
 // GetFSGroupID fetches the group ID permissions from
 // StorageClass if specified
+// -----------------------------------------------------
+// NOTE: This feature has been deprecated
+//       Alternative: Use FilePermission 'cas.openebs.io/config' annotation
+//                    key on the backend volume PVC. Sample FilePermissions
+//      	      for FSGID-like configuration --
+//
+//                    name: FilePermissions
+//                    data:
+//                      GID: <group-ID>
+//                      mode: "g+s"
+// -----------------------------------------------------
 func (c *VolumeConfig) GetFSGroupID() (*int64, error) {
-	fsGIDStr := c.getValue(FSGroupID)
-	if len(strings.TrimSpace(fsGIDStr)) == 0 {
+	fsGroupIDStr := c.getValue(FSGroupID)
+	if len(strings.TrimSpace(fsGroupIDStr)) == 0 {
 		return nil, nil
 	}
-	fsGIDInt, err := strconv.ParseInt(fsGIDStr, 10, 64)
+	fsGIDInt, err := strconv.ParseInt(fsGroupIDStr, 10, 64)
 	if err != nil {
 		return nil, err
 	}
+
+	klog.Infof("The %s option key '%s' is being deprecated"+
+		" and will be removed in future releases."+
+		"\nYou may use the %s option key in the "+
+		"NFS PersistentVolumeClaim's or NFS StorageClass's "+
+		"(NFS PVC's configuration takes precedence) %s "+
+		"annotation key to achieve the same result."+
+		"\nSample config:\n"+
+		"\t\t"+"- name: FilePermissions\n"+
+		"\t\t"+"  data:\n"+
+		"\t\t"+"    %s: \"%s\"\n"+
+		"\t\t"+"    %s: \"g+s\"\n",
+		string(mconfig.CASConfigKey), FSGroupID, FilePermissions,
+		string(mconfig.CASConfigKey), FsGID, fsGroupIDStr, FsMode,
+	)
 	return &fsGIDInt, nil
+}
+
+// GetFsGID fetches the group owner's ID from
+// PVC annotation, if specified
+func (c *VolumeConfig) GetFsGID() (string, error) {
+	fsGIDStr := strings.TrimSpace(c.getData(FilePermissions, FsGID))
+
+	// TODO: remove this block when FSGID is deprecated
+	deprecatedFsGroupIDStr, _ := c.GetFSGroupID()
+
+	existsFsGIDStr := (len(fsGIDStr) > 0)
+	existsDeprecatedFsGroupIDStr := (deprecatedFsGroupIDStr != nil)
+
+	// Checking if FSGID and FilePermissions (GID) are being used together
+	if existsFsGIDStr && existsDeprecatedFsGroupIDStr {
+		return "", errors.Errorf("both '%s' and '%s."+
+			"%s' cannot be used together",
+			FSGroupID, FilePermissions, FsGID,
+		)
+	}
+
+	if existsDeprecatedFsGroupIDStr {
+		return "", nil
+	}
+
+	// existsFsGIDStr == true OR fsGIDStr == ""
+	return fsGIDStr, nil
+}
+
+// GetFsGID fetches the user owner's ID from
+// PVC annotation, if specified
+func (c *VolumeConfig) GetFsUID() string {
+	fsUIDStr := strings.TrimSpace(c.getData(FilePermissions, FsUID))
+	if len(fsUIDStr) == 0 {
+		return ""
+	}
+
+	return fsUIDStr
+}
+
+// GetFsMode fetches the file mode from PVC
+// or StorageClass annotation, if specified
+func (c *VolumeConfig) GetFsMode() (string, error) {
+	fsModeStr := strings.TrimSpace(c.getData(FilePermissions, FsMode))
+
+	// TODO: remove this block when FSGID is deprecated
+	deprecatedFsGroupIDStr, _ := c.GetFSGroupID()
+
+	existsFsModeStr := (len(fsModeStr) > 0)
+	existsDeprecatedFsGroupIDStr := (deprecatedFsGroupIDStr != nil)
+
+	// Checking if FSGID and FilePermissions (mode) are being used together
+	if existsFsModeStr && existsDeprecatedFsGroupIDStr {
+		return "", errors.Errorf("both '%s' and '%s."+
+			"%s' cannot be used together",
+			FSGroupID, FilePermissions, FsMode,
+		)
+	}
+
+	if existsDeprecatedFsGroupIDStr {
+		return "", nil
+	}
+
+	// existsFsModeStr == true OR fsModeStr == ""
+	return fsModeStr, nil
 }
 
 // GetNFSServerResourceRequirements fetches the resource(cpu & memory) request &
@@ -256,6 +391,30 @@ func (c *VolumeConfig) getValue(key string) string {
 			return val
 		}
 	}
+	return ""
+}
+
+//getData is a utility function to extract the value
+// of the `key` from the ConfigMap object - which is
+// map[string]interface{map[string]interface{map[string]string}}
+// Example:
+// {
+//     key1: {
+//             value: value1
+//             data: {
+//                     dataKey1: dataValue1
+//                   }
+//           }
+// }
+// In the above example, if `key1` and `dataKey1` are passed as input,
+//   `dataValue1` will be returned.
+func (c *VolumeConfig) getData(key string, dataKey string) string {
+	if configData, ok := util.GetNestedField(c.configData, key).(map[string]string); ok {
+		if val, p := configData[dataKey]; p {
+			return val
+		}
+	}
+	//Default case
 	return ""
 }
 
@@ -319,4 +478,20 @@ func initializeHook(hook **nfshook.Hook) error {
 
 	*hook = hookObj
 	return nil
+}
+
+func dataConfigToMap(pvConfig []mconfig.Config) map[string]interface{} {
+	m := map[string]interface{}{}
+
+	for _, configObj := range pvConfig {
+		//No Data Parameter
+		if configObj.Data == nil {
+			continue
+		}
+
+		configName := strings.TrimSpace(configObj.Name)
+		m[configName] = configObj.Data
+	}
+
+	return m
 }

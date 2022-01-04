@@ -104,6 +104,16 @@ nfsStorageClass:
   # graceTime defines the recovery period(in seconds) to reclaim locks
   # setting graceTime and leaseTime lower will reduce the io pause time during nfs server restart
   graceTime:
+  # filePermissions defines the file ownership and mode specifications
+  # for the NFS server's shared filesystem volume.
+  # File permission changes are applied recursively if the root of the
+  # volume's filesystem does not match the specified value.
+  # For more information: https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/docs/tutorial/file-permissions.md
+  filePermissions: {}
+  #  UID:
+  #  GID:
+  #  mode:
+
   # nfsServerResources defines the NFS server resource requests and limits
   # Usually, below request and limits are good enough for NFS Server to work
   # seamlessly(IOs will be taken care by kerner space process i.e nfsd).

@@ -36,7 +36,7 @@ spec:
 
 ## FSGID/fsGroup
 
-The 'FSGID' config key (StorageClass annotations) is being deprecated and will be removed in future releases. At present, the FSGID config can be used, but it cannot be used along with FilePermission data keys 'GID' and/or 'mode'.
+The 'FSGID' config key (StorageClass annotations) is **being deprecated and will be removed in future releases**. At present, the FSGID config can be used, but it cannot be used along with FilePermission data keys 'GID' and/or 'mode'.
 
 You can use the FilePermissions data values to change the group ownership and set a SetGID bit. This will result in changes similar to setting the fsGroup key in the NFS server Pod's securityContext (same as the previously-used FSGID `cas.openebs.io/config` key).
 

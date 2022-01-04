@@ -13,35 +13,23 @@ To support above use cases OpenEBS NFS Provisioner provides an option to configu
 
 Non-root applications can consume NFS volume by following two steps:
 
-- Create a StorageClass by specifying appropriate permissions under FSGID.
-  Volumes provisioned by using below storage class will have permissions set to 120.
-```yaml
-#Sample storage classes with OpenEBS LVM-LocalPV
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: openebs-non-root-rwx
-  annotations:
-    openebs.io/cas-type: nfsrwx
-    cas.openebs.io/config: |
-      - name: NFSServerType
-        value: "kernel"
-      - name: BackendStorageClass
-        value: "openebs-lvm-localpv"
-      - name: FSGID
-        value: "120"
-provisioner: openebs.io/nfsrwx
-reclaimPolicy: Delete
-```
+- Create a PersistentVolumeClaim by specifying appropriate permissions under the FilePermissions config key.
+  The volumes provisioned for this PVC will have its group-owner set to 120, and its SetGID bit enabled ([read more](../tutorial/file-permissions.md)).
 
-- Create a persistent volume claim with storage class referring to above example
+Sample PersistentVolumeClaim:  
 ```yaml
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: nfs-pvc
+  annotations:
+    cas.openebs.io/config: |
+      - name: FilePermissions
+        data:
+          GID: "120"
+          mode: "g+s"
 spec:
-  storageClassName: openebs-non-root-rwx
+  storageClassName: openebs-kernel-nfs
   accessModes:
     - ReadWriteMany
   resources:
@@ -49,8 +37,7 @@ spec:
       storage: 5G
 ```
 
-
-- Now create an application by specifying `FSGID` value(i.e 120) under supplemental groups.
+- Now create an application by specifying the group ID value(i.e 120) under supplemental groups.
   When supplemental groups are specified corresponding user will be part of the same group
   and it makes volume accessible.
 ```yaml
@@ -81,9 +68,6 @@ spec:
       claimName: nfs-pvc
 ```
 
-**Note**: Above NFS volume is deployed on OpenEBS LVM-Local PV.
-
-
 
 ### How to debug permission denied error?
 
@@ -104,5 +88,3 @@ Following are the steps to find permissions configured on backend volume:
   Modify: 2021-07-09 11:23:41.933968717 +0000
   Change: 2021-07-09 11:23:41.933968717 +0000
   ```
-
-- If backend storage is an offering from CSI, check whether [fsGroupPolicy](https://kubernetes-csi.github.io/docs/support-fsgroup.html#csi-driver-fsgroup-support) is populated with an appropriate value.

@@ -110,9 +110,18 @@ nfsStorageClass:
   # volume's filesystem does not match the specified value.
   # For more information: https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/docs/tutorial/file-permissions.md
   filePermissions: {}
-  #  UID:
-  #  GID:
-  #  mode:
+  # The UID value is used to set the user-owner of NFS shared directory. Only valid
+  # UIDs are accepted.
+  # The ownership change is carried out recursively down the directory tree.
+  #  UID: ""
+  # The GID value is used to set the group-owner of NFS shared directory. Only valid
+  # GIDs are accepted.
+  # The ownership change is carried out recursively down the directory tree.
+  #  GID: ""
+  # The mode value is used to set the file mode of NFS shared directory. Both octals (e.g. 0744)
+  # and incremental/decremental (e.g. "u+r", "o+rw") values are accepted.
+  # The file mode change is carried out recursively down the directory tree.
+  #  mode: ""
 
   # nfsServerResources defines the NFS server resource requests and limits
   # Usually, below request and limits are good enough for NFS Server to work

@@ -5,8 +5,10 @@ metadata:
   name: openebs-rwx-pvc
   #annotaions:
   #  cas.openebs.io/config: |
-  #      FilePermissions can be used to modify the owner, group
-  #      and file modes of the shared NFS filesystem.   
+  #     FilePermissions defines the file ownership and mode specifications
+  #     for the NFS server's shared filesystem volume.
+  #     File permission changes are applied recursively if the root of the
+  #     volume's filesystem does not match the specified value.
   #    - name: FilePermissions
   #      data:
   #        UID: "1000"

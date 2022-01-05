@@ -202,27 +202,39 @@ metadata:
         value: "kernel"
       - name: BackendStorageClass
         value: "openebs-hostpath"
-      #  NFSServerResourceRequests defines the resource requests for NFS Server
+      # NFSServerResourceRequests defines the resource requests for NFS Server
       #- name: NFSServerResourceRequests
       #  value: |-
       #      memory: 50Mi
       #      cpu: 50m
-      #  NFSServerResourceLimits defines the resource limits for NFS Server
+      # NFSServerResourceLimits defines the resource limits for NFS Server
       #- name: NFSServerResourceLimits
       #  value: |-
       #      memory: 100Mi
       #      cpu: 100m
-      #  LeaseTime defines the renewl period(in seconds) for client state
+      # LeaseTime defines the renewal period(in seconds) for client state
       #- name: LeaseTime
       #  value: 30
-      #  GraceTime defines the recovery period(in seconds) to reclaim locks
+      # GraceTime defines the recovery period(in seconds) to reclaim locks
       #- name: GraceTime
       #  value: 30
-      #  FSGID defines the group permissions of NFS Volume. If it is set
-      #  then non-root applications should add FSGID value under pod
-      #  Suplemental groups.
-      #  The FSGID config key is being deprecated. Please use the
-      #  FilePermissions config key on the PersistentVolumeClaim instead.
+      # FilePermissions defines the file ownership and mode specifications
+      # for the NFS server's shared filesystem volume.
+      # File permission changes are applied recursively if the root of the
+      # volume's filesystem does not match the specified value.
+      # Volume-specific file permission configuration can be specified by
+      # using the FilePermissions config key in the PVC YAML, instead of
+      # the StorageClass's.
+      #- name: FilePermissions
+      #  data:
+      #    UID: "1000"
+      #    GID: "2000"
+      #    mode: "0744"
+      # FSGID defines the group permissions of NFS Volume. If it is set
+      # then non-root applications should add FSGID value under pod
+      # Suplemental groups.
+      # The FSGID config key is being deprecated. Please use the
+      # FilePermissions config key instead.
       #- name: FSGID
       #  value: "120"
 provisioner: openebs.io/nfsrwx

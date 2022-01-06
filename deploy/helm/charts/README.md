@@ -136,7 +136,10 @@ helm install openebs-nfs openebs-nfs/nfs-provisioner --namespace openebs --creat
 | `nfsStorageClass.reclaimPolicy`       | ReclaimPolicy for NFS PVs                      | `"Delete"`                     |
 | `nfsStorageClass.leaseTime`       | Renewal period(in seconds) for NFS client state                      | `90`                     |
 | `nfsStorageClass.graceTime`       | Recovery period(in seconds) to reclaim locks for NFS client                      | `90`                     |
-| `nfsStorageClass.nfsServerResources`       | Resource requests and limits of NFS Server      | `""`                     |
+| `nfsStorageClass.nfsServerResources`  | Resource requests and limits of NFS Server      | `""`                     |
+| `nfsStorageClass.filePermissions.UID` | Set user owner of the shared directory      | `""`                     |
+| `nfsStorageClass.filePermissions.GID` | Set group owner of the shared directory      | `""`                     |
+| `nfsStorageClass.filePermissions.mode` | Set file mode of the shared directory      | `""`                     |
 | `rbac.create`                         | Enable RBAC Resources                          | `true`                         |
 | `rbac.pspEnabled`                     | Create pod security policy resources           | `false`                        |
 | `nfsServer.imagePullSecret`           | Image pull secret name to be used by NFS Server pods | `""`                     |

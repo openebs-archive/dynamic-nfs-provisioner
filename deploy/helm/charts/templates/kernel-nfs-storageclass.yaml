@@ -37,7 +37,7 @@ metadata:
 {{ toYaml .Values.nfsStorageClass.nfsServerResources.limits | indent 10 }}
 {{- end }}
 {{- end }}
-{{- if or .Values.nfsStorageClass.filePermissions.UID .Values.nfsStorageClass.filePermissions.GID .Values.nfsStorageClass.filePermissions.mode }}
+{{- if .Values.nfsStorageClass.filePermissions }}
       - name: FilePermissions
         data:
 {{- if .Values.nfsStorageClass.filePermissions.UID }}

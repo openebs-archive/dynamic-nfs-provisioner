@@ -55,3 +55,9 @@ metadata:
 {{- end }}
 provisioner: openebs.io/nfsrwx
 reclaimPolicy: {{ .Values.nfsStorageClass.reclaimPolicy }}
+{{- if .Values.nfsStorageClass.mountOptions }}
+mountOptions:
+  {{- range .Values.nfsStorageClass.mountOptions }}
+  - {{ . }}
+  {{- end }}
+{{- end }}

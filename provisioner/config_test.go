@@ -170,6 +170,92 @@ func TestGetResourceList(t *testing.T) {
 	}
 }
 
+func Test_listConfigToMap(t *testing.T) {
+	tests := map[string]struct {
+		pvConfig      []mconfig.Config
+		expectedValue map[string]interface{}
+		isErrExpected bool
+	}{
+		"Valid list parameter": {
+			pvConfig: []mconfig.Config{
+				{Name: "NodeAffinityLabels", List: []string{"node1", "node2"}},
+			},
+			expectedValue: map[string]interface{}{
+				"NodeAffinityLabels": []string{"node1", "node2"},
+			},
+			isErrExpected: false,
+		},
+	}
+	for k, v := range tests {
+		t.Run(k, func(t *testing.T) {
+			got, err := listConfigToMap(v.pvConfig)
+			if (err != nil) != v.isErrExpected {
+				t.Errorf("listConfigToMap() error = %v, wantErr %v", err, v.isErrExpected)
+				return
+			}
+			if !reflect.DeepEqual(got, v.expectedValue) {
+				t.Errorf("listConfigToMap() got = %v, want %v", got, v.expectedValue)
+			}
+		})
+	}
+}
+
+func TestGetNodeAffinityList(t *testing.T) {
+	tests := map[string]struct {
+		pvConfig       []mconfig.Config
+		volumeConfig   *VolumeConfig
+		key            string
+		expectedOutput NodeAffinity
+		isErrExpected  bool
+	}{
+		"When a valid node affinity is used": {
+			volumeConfig: &VolumeConfig{
+				configList: map[string]interface{}{
+					NodeAffinityLabels: []string{"node1", "node2"},
+				},
+			},
+			expectedOutput: NodeAffinity{
+				MatchExpressions: []corev1.NodeSelectorRequirement{
+					{
+						Key:      "kubernetes.io/hostname",
+						Operator: corev1.NodeSelectorOpIn,
+						Values:   []string{"node1", "node2"},
+					},
+				},
+			},
+			key:           NodeAffinityLabels,
+			isErrExpected: false,
+		},
+		"When an empty node affinity is used": {
+			volumeConfig: &VolumeConfig{
+				configList: map[string]interface{}{
+					NodeAffinityLabels: nil,
+				},
+			},
+			expectedOutput: NodeAffinity{},
+			isErrExpected:  false,
+		},
+	}
+
+	for name, test := range tests {
+		name := name
+		test := test
+		gotOutput, err := test.volumeConfig.GetNodeAffinityLabels()
+
+		if test.isErrExpected && err == nil {
+			t.Errorf("%q test failed expected error to occur but got nil", name)
+		}
+		if !test.isErrExpected && err != nil {
+			t.Errorf("%q test failed expected error not to occur but got %v", name, err)
+		}
+		if !test.isErrExpected {
+			if !reflect.DeepEqual(test.expectedOutput, gotOutput) {
+				t.Errorf("%q test has following diff %s", name, cmp.Diff(test.expectedOutput, gotOutput))
+			}
+		}
+	}
+}
+
 func TestGetFsGID(t *testing.T) {
 	tests := map[string]struct {
 		volumeConfig   *VolumeConfig

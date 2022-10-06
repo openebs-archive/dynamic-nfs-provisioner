@@ -152,6 +152,17 @@ func (p *Provisioner) Provision(ctx context.Context, opts pvController.Provision
 		return nil, pvController.ProvisioningNoChange, err
 	}
 
+	// Get the NodeAffinity from the Config if it is provided
+	// override the given NodeAffinity
+	nodeAffinityList, err := pvCASConfig.GetNodeAffinityLabels()
+	if err != nil {
+		return nil, pvController.ProvisioningNoChange, err
+	}
+
+	if len(nodeAffinityList.MatchExpressions) != 0 {
+		p.nodeAffinity = nodeAffinityList
+	}
+
 	// Validate nodeAffinity rules for scheduling
 	// There might be changes to node after deploying
 	// NFS Provisioner

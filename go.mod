@@ -34,7 +34,7 @@ require (
 	github.com/google/go-cmp v0.5.2
 	github.com/onsi/ginkgo v1.12.0
 	github.com/onsi/gomega v1.9.0
-	github.com/openebs/maya v1.12.1-0.20210821080724-b90b5ede546d
+	github.com/openebs/maya v1.12.1-0.20211022052259-bd98908028af
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.9.0
 	github.com/spf13/cobra v1.1.1

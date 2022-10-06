@@ -85,6 +85,9 @@ const (
 	// FSMode defines the file permission mode of the shared directory
 	FsMode = "mode"
 
+	// NodeAffinityLabels defines the node affinity for the NFS server pod
+	NodeAffinityLabels = "NodeAffinityLabels"
+
 	// NFSServerResourceRequests holds key name that represent NFS Resource Requests
 	NFSServerResourceRequests = "NFSServerResourceRequests"
 
@@ -169,14 +172,41 @@ func (p *Provisioner) GetVolumeConfig(pvName string, pvc *v1.PersistentVolumeCla
 		return nil, errors.Wrapf(err, "unable to read volume config: pvc {%v} in namespace {%v}", pvc.Name, pvc.Namespace)
 	}
 
+	listPvConfigMap, err := listConfigToMap(pvConfig)
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to read volume config: pvc {%v}", pvc.ObjectMeta.Name)
+	}
+
 	c := &VolumeConfig{
 		pvName:     pvName,
 		pvcName:    pvc.ObjectMeta.Name,
 		scName:     *scName,
 		options:    pvConfigMap,
 		configData: dataConfigToMap(pvConfig),
+		configList: listPvConfigMap,
 	}
 	return c, nil
+}
+
+// GetNodeAffinityLabels returns NodeAffinity for the NFS server pod
+// retreived from NodeAffinity as an array of strings
+func (c *VolumeConfig) GetNodeAffinityLabels() (NodeAffinity, error) {
+	var nodeAffinity NodeAffinity
+
+	NodeAffinityLabels := c.getList(NodeAffinityLabels)
+	if len(NodeAffinityLabels) == 0 {
+		return nodeAffinity, nil
+	}
+
+	nodeAffinity.MatchExpressions = []v1.NodeSelectorRequirement{
+		{
+			Key:      "kubernetes.io/hostname",
+			Operator: v1.NodeSelectorOpIn,
+			Values:   NodeAffinityLabels,
+		},
+	}
+
+	return nodeAffinity, nil
 }
 
 //GetNFSServerTypeFromConfig returns the NFSServerType value configured
@@ -394,6 +424,15 @@ func (c *VolumeConfig) getValue(key string) string {
 	return ""
 }
 
+// This gets the list of values for the 'List' parameter.
+func (c *VolumeConfig) getList(key string) []string {
+	if listValues, ok := util.GetNestedField(c.configList, key).([]string); ok {
+		return listValues
+	}
+	//Default case
+	return nil
+}
+
 //getData is a utility function to extract the value
 // of the `key` from the ConfigMap object - which is
 // map[string]interface{map[string]interface{map[string]string}}
@@ -494,4 +533,25 @@ func dataConfigToMap(pvConfig []mconfig.Config) map[string]interface{} {
 	}
 
 	return m
+}
+
+func listConfigToMap(pvConfig []mconfig.Config) (map[string]interface{}, error) {
+	m := map[string]interface{}{}
+	for _, configObj := range pvConfig {
+		//No List Parameter
+		if len(configObj.List) == 0 {
+			continue
+		}
+
+		configName := strings.TrimSpace(configObj.Name)
+		confHierarchy := map[string]interface{}{
+			configName: configObj.List,
+		}
+		isMerged := util.MergeMapOfObjects(m, confHierarchy)
+		if !isMerged {
+			return nil, errors.Errorf("failed to transform cas config 'List' for configName '%s' to map: failed to merge: %s", configName, configObj)
+		}
+	}
+
+	return m, nil
 }

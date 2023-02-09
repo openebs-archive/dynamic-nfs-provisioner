@@ -32,7 +32,7 @@ spec:
     requests:
       storage: 10Gi
 ```
->**Note:** The FilePermissions config may be used with the `cas.openebs.io/config` StorageClass annotation key as well. If the config option is present on both the StorageClass and the PersistentVolumeClaim, the PersistentVolumeClaim config takes precedence.
+>**Note:** The FilePermissions config may be used with the `cas.openebs.io/config` StorageClass annotation key as well. If the config option is present on both the StorageClass and the PersistentVolumeClaim, the StorageClass config takes precedence.
 
 ## FSGID/fsGroup
 

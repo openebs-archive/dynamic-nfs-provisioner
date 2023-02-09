@@ -143,11 +143,9 @@ func (p *Provisioner) GetVolumeConfig(pvName string, pvc *v1.PersistentVolumeCla
 	if len(strings.TrimSpace(scCASConfigStr)) != 0 {
 		scCASConfig, err := cast.UnMarshallToConfig(scCASConfigStr)
 		if err == nil {
-			// Config keys which already exist (PVC config),
-			// will be skipped
-			// i.e. PVC config will have precedence over SC config,
+			// SC config will have precedence over PVC config,
 			// if both have the same keys
-			pvConfig = cast.MergeConfig(pvConfig, scCASConfig)
+			pvConfig = cast.MergeConfig(scCASConfig, pvConfig)
 		} else {
 			return nil, errors.Wrapf(err, "failed to get config: invalid sc config {%v}", scCASConfigStr)
 		}

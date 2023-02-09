@@ -271,7 +271,7 @@ func (p *Provisioner) createDeployment(nfsServerOpts *KernelNFSServerOptions) er
 	nfsDeployLabelSelector[nfsPvcNameLabelKey] = nfsServerOpts.pvcName
 	nfsDeployLabelSelector[nfsPvcUIDLabelKey] = nfsServerOpts.pvcUID
 	nfsDeployLabelSelector[nfsPvcNsLabelKey] = nfsServerOpts.pvcNamespace
-	
+
 	if nfsServerOpts.resources != nil {
 		resourceRequirements = *nfsServerOpts.resources
 	}

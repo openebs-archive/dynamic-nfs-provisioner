@@ -1,8 +1,17 @@
+0.10.0 / 2023-02-09
+========================
+* add original PVC context to the nfs server deployment labels ([#151](https://github.com/openebs/dynamic-nfs-provisioner/pull/151),[@farcaller](https://github.com/farcaller))
+* fix config generation logic -- prefer SC config over PVC config ([@niladrih](https://github.com/niladrih))
+
+0.9.0 / 2022-01-03
+========================
+* support for changing shared filesystem ownership and mode ([#125](https://github.com/openebs/dynamic-nfs-provisioner/pull/125),[@niladrih](https://github.com/niladrih))
+
 0.8.0 / 2021-11-09
 ========================
-- send install analytic event for nfs-provisioner ([#109](https://github.com/openebs/dynamic-nfs-provisioner/pull/109),[@mynktl](https://github.com/mynktl))
-- support to configure *ImagePullSecret* for nfs-server pods ([#114](https://github.com/openebs/dynamic-nfs-provisioner/pull/114),[@g-linville](https://github.com/g-linville))
-- hooks support for nfs-provisioner, to add custom annotations/finalizers on nfs resources ([#93](https://github.com/openebs/dynamic-nfs-provisioner/pull/93),[@mynktl](https://github.com/mynktl))
+* send install analytic event for nfs-provisioner ([#109](https://github.com/openebs/dynamic-nfs-provisioner/pull/109),[@mynktl](https://github.com/mynktl))
+* support to configure *ImagePullSecret* for nfs-server pods ([#114](https://github.com/openebs/dynamic-nfs-provisioner/pull/114),[@g-linville](https://github.com/g-linville))
+* hooks support for nfs-provisioner, to add custom annotations/finalizers on nfs resources ([#93](https://github.com/openebs/dynamic-nfs-provisioner/pull/93),[@mynktl](https://github.com/mynktl))
 
 
 0.7.1 / 2021-09-16

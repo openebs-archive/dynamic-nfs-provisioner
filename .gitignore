@@ -5,3 +5,4 @@ profile.out
 .DS_Store
 buildscripts/provisioner-nfs/provisioner-nfs
 vendor/
+**/.idea

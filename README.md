@@ -19,14 +19,14 @@ NFS Volumes using different kinds of block storage available on the Kubernetes n
 Using NFS Volumes, you can share Volume data across the pods running on different node machines. You can easily create NFS Volumes using OpenEBS Dynamic NFS Provisioner and use it anywhere.
 
 ## Installing Dynamic NFS Provisioner
-Please refer to our [Quickstart](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/docs/intro.md) and the [OpenEBS Documentation](https://docs.openebs.io).
+Please refer to our [Quickstart](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/docs/intro.md) and the [OpenEBS Documentation](https://openebs.io/docs).
 
 ## Kubernetes Compatibility Matrix
-|     NFS PROVISIONER VERSION     | KUBERNETES VERSIONS | NOTES |
-|-----------------|-----------------|-----------------|
-| 0.7.0 | K8s >= 1.14  | NFS Provisioner declared Beta. <br />[Changelog](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/CHANGELOG.md#070--2021-09-14) |
-| 0.7.1 | K8s >= 1.14  | [Changelog](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/CHANGELOG.md#071--2021-09-16) |
-| 0.8.0 | K8s >= 1.14  | [Changelog](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/CHANGELOG.md#080--2021-11-09) |
+| NFS PROVISIONER VERSION | KUBERNETES VERSIONS | NOTES                                                                                                      |
+|-------------------------|-----------------|------------------------------------------------------------------------------------------------------------|
+| 0.8.0                   | K8s >= 1.14  | [Changelog](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/CHANGELOG.md#080--2021-11-09)  |
+| 0.9.0                   | K8s >= 1.14  | [Changelog](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/CHANGELOG.md#090--2022-01-03)  |
+| 0.10.0                  | K8s >= 1.14  | [Changelog](https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/CHANGELOG.md#0100--2023-02-09) |
 
 
 ## Usage

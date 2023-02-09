@@ -264,7 +264,7 @@ func (c *VolumeConfig) GetFSGroupID() (*int64, error) {
 		" and will be removed in future releases."+
 		"\nYou may use the %s option key in the "+
 		"NFS PersistentVolumeClaim's or NFS StorageClass's "+
-		"(NFS PVC's configuration takes precedence) %s "+
+		"(NFS SC's configuration takes precedence) %s "+
 		"annotation key to achieve the same result."+
 		"\nSample config:\n"+
 		"\t\t"+"- name: FilePermissions\n"+

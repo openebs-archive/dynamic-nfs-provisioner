@@ -37,10 +37,10 @@ func run() error {
 	defer logger.FlushLogs()
 
 	// Create & execute new command
-	cmd, err := app.StartProvisioner()
+	cmdd, err := app.StartProvisioner()
 	if err != nil {
 		return err
 	}
 
-	return cmd.Execute()
+	return cmdd.Execute()
 }

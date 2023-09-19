@@ -132,6 +132,7 @@ helm install openebs-nfs openebs-nfs/nfs-provisioner --namespace openebs --creat
 | `nfsProvisioner.nfsBackendPvcTimeout`       | Timeout for backend PVC binding in seconds                | `"60"`                      |
 | `nfsProvisioner.nfsHookConfigMap`       | Existing Configmap name to load hook configuration                | `""`                        |
 | `nfsStorageClass.backendStorageClass` | StorageClass to be used to provision the backend volume. If not specified, the default StorageClass is used. | `""`                        |
+| `nfsStorageClass.mountOptions` | NFS mount options to be passed on to storageclass | `[]`
 | `nfsStorageClass.isDefaultClass`      | Make 'openebs-kernel-nfs' the default StorageClass | `"false"`                   |
 | `nfsStorageClass.reclaimPolicy`       | ReclaimPolicy for NFS PVs                      | `"Delete"`                  |
 | `nfsStorageClass.leaseTime`       | Renewal period(in seconds) for NFS client state                      | `90`                        |

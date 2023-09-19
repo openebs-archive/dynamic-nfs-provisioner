@@ -93,8 +93,9 @@ nfsStorageClass:
   nfsServerType: kernel
   isDefaultClass: false
   backendStorageClass: ""
-  mountOptions:
-    - vers=4.1
+  # NFS Mount Options to be applied to the storage class.
+  # For more information: https://linux.die.net/man/5/nfs
+  mountOptions: []
   # The customServerConfig key passes a custom /etc/exports configuration to
   # the NFS servers created using this StorageClass.
   # The configuration settings are not validated, and can lead to security

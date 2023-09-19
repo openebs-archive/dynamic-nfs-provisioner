@@ -3,7 +3,7 @@
 Before installing nfs-provisioner make sure your Kubernetes cluster meets the following prerequisites:
 
 1. Kubernetes version 1.18
-2. This guide assumes you have completed: https://openebs.io/docs/user-guides/localpv-hostpath
+2. This guide assumes you have a backend storageclass available, either a default one or any other (e.g: https://openebs.io/docs/user-guides/localpv-hostpath).
 3. NFS Client is installed on all nodes that will run a pod that mounts an `openebs-rwx` volume.
    Here's how to prepare an NFS client on some common Operating Systems:
 

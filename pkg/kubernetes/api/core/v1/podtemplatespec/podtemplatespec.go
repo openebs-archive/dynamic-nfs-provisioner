@@ -225,7 +225,7 @@ func (b *Builder) WithNodeSelectorNew(nodeselectors map[string]string) *Builder 
 	return b
 }
 
-//WithNodeSelectorByValue overrides the NodeSelector with new values
+// WithNodeSelectorByValue overrides the NodeSelector with new values
 func (b *Builder) WithNodeSelectorByValue(nodeselectors map[string]string) *Builder {
 	// copy of original map
 	newnodeselectors := map[string]string{}
@@ -290,9 +290,12 @@ func (b *Builder) WithAffinity(affinity *corev1.Affinity) *Builder {
 // WithNodeAffinityMatchExpressions sets matchexpressions under
 // nodeAffinity
 // NOTE: If nil is passed then match expressions will not be
-//		 propogated to node affinity.
+//
+//	propogated to node affinity.
+//
 // CAUTION: Don't invoke WithAffinity func after calling this function
-//			It will overwrite MatchExpression
+//
+//	It will overwrite MatchExpression
 func (b *Builder) WithNodeAffinityMatchExpressions(
 	mExpressions []corev1.NodeSelectorRequirement) *Builder {
 	if len(mExpressions) == 0 {

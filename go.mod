@@ -31,21 +31,20 @@ replace (
 
 require (
 	github.com/ghodss/yaml v1.0.0
-	github.com/google/go-cmp v0.5.2
-	github.com/onsi/ginkgo v1.12.0
-	github.com/onsi/gomega v1.9.0
+	github.com/google/go-cmp v0.5.9
+	github.com/onsi/ginkgo v1.16.4
+	github.com/onsi/gomega v1.19.0
+	github.com/openebs/google-analytics-4 v0.1.0
 	github.com/openebs/maya v1.12.1-0.20210821080724-b90b5ede546d
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.9.0
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.6.1
-	golang.org/x/crypto v0.0.0-20201124201722-c8d3bf9c5392 // indirect
-	google.golang.org/appengine v1.6.6 // indirect
-	k8s.io/api v0.20.2
-	k8s.io/apimachinery v0.20.2
+	github.com/stretchr/testify v1.8.1
+	k8s.io/api v0.27.2
+	k8s.io/apimachinery v0.27.2
 	k8s.io/client-go v11.0.0+incompatible
-	k8s.io/klog/v2 v2.10.0
+	k8s.io/klog/v2 v2.100.1
 	k8s.io/kubernetes v1.17.3
 	sigs.k8s.io/sig-storage-lib-external-provisioner/v7 v7.0.1
 )

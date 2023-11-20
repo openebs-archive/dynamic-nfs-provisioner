@@ -89,6 +89,8 @@ nfsProvisioner:
 
 nfsStorageClass:
   name: openebs-kernel-nfs
+  # If true, enables creation of the openebs-kernel-nfs StorageClass
+  enabled: true
   reclaimPolicy: Delete
   nfsServerType: kernel
   isDefaultClass: false

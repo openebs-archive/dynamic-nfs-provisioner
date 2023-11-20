@@ -63,7 +63,8 @@ var (
 )
 
 // NewProvisioner will create a new Provisioner object and initialize
-//  it with global information used across PV create and delete operations.
+//
+//	it with global information used across PV create and delete operations.
 func NewProvisioner(ctx context.Context, kubeClient *clientset.Clientset) (*Provisioner, error) {
 
 	namespace := getOpenEBSNamespace()
@@ -133,13 +134,15 @@ func NewProvisioner(ctx context.Context, kubeClient *clientset.Clientset) (*Prov
 }
 
 // SupportsBlock will be used by controller to determine if block mode is
-//  supported by the host path provisioner.
+//
+//	supported by the host path provisioner.
 func (p *Provisioner) SupportsBlock() bool {
 	return false
 }
 
 // Provision is invoked by the PVC controller which expect the PV
-//  to be provisioned and a valid PV spec returned.
+//
+//	to be provisioned and a valid PV spec returned.
 func (p *Provisioner) Provision(ctx context.Context, opts pvController.ProvisionOptions) (*v1.PersistentVolume, pvController.ProvisioningState, error) {
 	pvc := opts.PVC
 
@@ -201,9 +204,10 @@ func (p *Provisioner) Provision(ctx context.Context, opts pvController.Provision
 }
 
 // Delete is invoked by the PVC controller to perform clean-up
-//  activities before deleteing the PV object. If reclaim policy is
-//  set to not-retain, then this function will create a helper pod
-//  to delete the host path from the node.
+//
+//	activities before deleteing the PV object. If reclaim policy is
+//	set to not-retain, then this function will create a helper pod
+//	to delete the host path from the node.
 func (p *Provisioner) Delete(ctx context.Context, pv *v1.PersistentVolume) (err error) {
 	p.pvTracker.Add(pv.Name)
 	defer p.pvTracker.Delete(pv.Name)

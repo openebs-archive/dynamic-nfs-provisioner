@@ -25,7 +25,7 @@ import (
 	"k8s.io/klog/v2"
 )
 
-//RegisterShutdownChannel closes the channel when signaled for termination
+// RegisterShutdownChannel closes the channel when signaled for termination
 func RegisterShutdownChannel(cancelFn context.CancelFunc) {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)

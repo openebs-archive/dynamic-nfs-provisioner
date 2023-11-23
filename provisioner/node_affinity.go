@@ -44,38 +44,39 @@ func getNodeAffinityRules() NodeAffinity {
 // getOneOrMoreNodeSelectorRequirements can take one or more node affinity requirements
 // as string and convert them to structured form of Requirements
 // Ex:
-//	  Case1 - Input argument: kubernetes.io/storage-node,kubernetes.io/nfs-node,kubernetes.io/zone:[zone-1,zone-2,zone-3]
 //
-//	  Return value:
-//		- key: kubernetes.io/storage-node
-//		  operator: Exists
-//		- key: kubernetes.io/nfs-node
-//		  operator: Exists
-//		- key: kubernetes.io/zone
-//		  operator: In
-//		  values:
-//		  - zone-1
-//		  - zone-2
-//		  - zone-3
+//		  Case1 - Input argument: kubernetes.io/storage-node,kubernetes.io/nfs-node,kubernetes.io/zone:[zone-1,zone-2,zone-3]
 //
-//    Case2 - Input argument: kubernetes.io/storage-node,kubernetes.io/nfs-node,kubernetes.io/linux-amd64
+//		  Return value:
+//			- key: kubernetes.io/storage-node
+//			  operator: Exists
+//			- key: kubernetes.io/nfs-node
+//			  operator: Exists
+//			- key: kubernetes.io/zone
+//			  operator: In
+//			  values:
+//			  - zone-1
+//			  - zone-2
+//			  - zone-3
 //
-//    Return value:
-//		- key: kubernetes.io/storage-node
-//		  operator: Exists
-//		- key: kubernetes.io/nfs-node
-//		  operator: Exists
-//		- key: kubernetes.io/linux-amd64
-//		  operator: Exists
+//	   Case2 - Input argument: kubernetes.io/storage-node,kubernetes.io/nfs-node,kubernetes.io/linux-amd64
 //
-//    Case3 - Input argument: kubernetes.io/zone:[zone-1,zone-2]
+//	   Return value:
+//			- key: kubernetes.io/storage-node
+//			  operator: Exists
+//			- key: kubernetes.io/nfs-node
+//			  operator: Exists
+//			- key: kubernetes.io/linux-amd64
+//			  operator: Exists
 //
-//    Return value:
-//		- key: kubernetes.io/zone
-//		  operator: In
-//		  values:
-//		  - zone-1
-//		  - zone-2
+//	   Case3 - Input argument: kubernetes.io/zone:[zone-1,zone-2]
+//
+//	   Return value:
+//			- key: kubernetes.io/zone
+//			  operator: In
+//			  values:
+//			  - zone-1
+//			  - zone-2
 func getOneOrMoreNodeSelectorRequirements(
 	requirementsAsValue string) []corev1.NodeSelectorRequirement {
 	var nodeRequirements []corev1.NodeSelectorRequirement
@@ -120,25 +121,25 @@ func getOneOrMoreNodeSelectorRequirements(
 //
 // Example: kubernetes.io/hostName:[z1-host1,z2-host1,z3-host1] value convert as below
 //
-//			key: kubernetes.io/hostName
-//			operator: "In"
-//			values:
-//			- z1-host1
-//			- z2-host1
-//			- z3-host1
+//	key: kubernetes.io/hostName
+//	operator: "In"
+//	values:
+//	- z1-host1
+//	- z2-host1
+//	- z3-host1
 //
 // Example: kubernetes.io/hostName:[region-1,region-2 value convert as below
 //
-//			key: kubernetes.io/hostName
-//			operator: "In"
-//			values:
-//			- region-1
-//			- region-2
+//	key: kubernetes.io/hostName
+//	operator: "In"
+//	values:
+//	- region-1
+//	- region-2
 //
 // Example: kubernetes.io/storage-node
 //
-//			key: kubernetes.io/storage-node
-//			operator: "Exists"
+//	key: kubernetes.io/storage-node
+//	operator: "Exists"
 func getNodeSelectorRequirement(reqAsValue string) corev1.NodeSelectorRequirement {
 	var nsRequirement corev1.NodeSelectorRequirement
 	keyValues := strings.Split(reqAsValue, ":")
@@ -169,9 +170,9 @@ func getNodeSelectorRequirement(reqAsValue string) corev1.NodeSelectorRequiremen
 // getRightMostMatchingString will return right must matching string
 // which satisfies given pattern
 // Example:
-//	- Fetch last pattern matching on string
-//		Pattern: {,.*:\[.*} string: "key1,key2,key3:[v1, v2, v3]"
-//		Return value: key3:[v1, v2, v3]
+//   - Fetch last pattern matching on string
+//     Pattern: {,.*:\[.*} string: "key1,key2,key3:[v1, v2, v3]"
+//     Return value: key3:[v1, v2, v3]
 func getRightMostMatchingString(regex *regexp.Regexp, value string) string {
 	loc := regex.FindStringIndex(value)
 	if len(loc) == 0 {

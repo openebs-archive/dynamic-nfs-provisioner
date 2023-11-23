@@ -195,7 +195,7 @@ license-check:
 .PHONY: sanity-test
 sanity-test:
 	@echo "--> Running sanity test";
-	go test -v -timeout 120m ./tests/...
+	@cd tests && sudo -E env "PATH=${PATH}" ginkgo -v -failFast
 
 .PHONY: push
 push:

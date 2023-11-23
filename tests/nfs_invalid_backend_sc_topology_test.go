@@ -124,8 +124,8 @@ var _ = Describe("TEST PROVISIONING WITH DIFFERENT TOPOLOGY FOR BACKEND SC", fun
 				},
 				{
 					// Ref: https://github.com/openebs/dynamic-localpv-provisioner/blob/develop/cmd/provisioner-localpv/app/config.go#L103
-					Name:  "NodeAffinityLabel",
-					Value: backendScNodeAffinityLabel,
+					Name: "NodeAffinityLabels",
+					List: []string{backendScNodeAffinityLabel},
 				},
 			}
 
@@ -257,7 +257,7 @@ var _ = Describe("TEST PROVISIONING WITH DIFFERENT TOPOLOGY FOR BACKEND SC", fun
 				Expect(err).To(BeNil(), "while fetching events for namespace {%s}", openebsNamespace)
 
 				for _, cn := range events.Items {
-					if strings.Contains(cn.Message, "0/1 nodes are available: 1 pod has unbound immediate PersistentVolumeClaims.") {
+					if strings.Contains(cn.Message, "0/1 nodes are available: pod has unbound immediate PersistentVolumeClaims.") {
 						if cn.InvolvedObject.Name == podName {
 							foundFailedSchedulingEvent = true
 							break

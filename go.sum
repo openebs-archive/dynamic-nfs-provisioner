@@ -624,8 +624,8 @@ github.com/openebs/google-analytics-4 v0.1.0 h1:6aUDbQoh1ezb+NU/MkapFKffogW4QK3W
 github.com/openebs/google-analytics-4 v0.1.0/go.mod h1:3DkQfGCo79pZhL76Xtg0/R7LNLMttW6Bm/uP0yiZQHU=
 github.com/openebs/lib-csi v0.8.2 h1:HmoiZX3VXFPglwqnRPnRus7K58ixDWBa19OpPZGk2Ws=
 github.com/openebs/lib-csi v0.8.2/go.mod h1:4yc0Q1thH+oU80z73zGELfrOw2yeLdLNIRmcrxBxsBc=
-github.com/openebs/maya v1.12.1-0.20210821080724-b90b5ede546d h1:2X9S+8NjD24GwRUD5uW6qPEt/fwasvp2sJQrFPX6AS0=
-github.com/openebs/maya v1.12.1-0.20210821080724-b90b5ede546d/go.mod h1:J3DC3bzJ346KPhstfae02FfIpe8ikpk/4xV1iSqKLXQ=
+github.com/openebs/maya v1.12.1-0.20211022052259-bd98908028af h1:ybONzwC+k/zvgDcsCAatvT6u2j75tIVNYu5jX1pTmJE=
+github.com/openebs/maya v1.12.1-0.20211022052259-bd98908028af/go.mod h1:J3DC3bzJ346KPhstfae02FfIpe8ikpk/4xV1iSqKLXQ=
 github.com/opentracing-contrib/go-observer v0.0.0-20170622124052-a52f23424492/go.mod h1:Ngi6UdF0k5OKD5t5wlmGhe/EDKPoUM3BXZSSfIuJbis=
 github.com/opentracing/basictracer-go v1.0.0/go.mod h1:QfBfYuafItcjQuMwinw9GhYKwFXS9KnPs5lxoYwgW74=
 github.com/opentracing/opentracing-go v1.0.2/go.mod h1:UkNAQd3GIcIGf0SeVgPpRdFStlNbqXla1AfSYxPUl2o=

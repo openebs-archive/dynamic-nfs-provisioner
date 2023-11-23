@@ -307,7 +307,7 @@ func (b *Builder) WithReplicas(replicas *int32) *Builder {
 	return b
 }
 
-//WithStrategyType sets the strategy field of the deployment
+// WithStrategyType sets the strategy field of the deployment
 func (b *Builder) WithStrategyType(
 	strategytype appsv1.DeploymentStrategyType,
 ) *Builder {
@@ -323,7 +323,7 @@ func (b *Builder) WithStrategyType(
 	return b
 }
 
-//WithStrategyTypeRecreate sets the strategy field of the deployment as Recreate
+// WithStrategyTypeRecreate sets the strategy field of the deployment as Recreate
 func (b *Builder) WithStrategyTypeRecreate() *Builder {
 	return b.WithStrategyType(appsv1.RecreateDeploymentStrategyType)
 }
@@ -519,7 +519,7 @@ func (d *Deploy) IsTerminationInProgress() bool {
 
 // IsUpdateInProgress Checks if all the replicas are updated or not.
 // If Status.AvailableReplicas < Status.UpdatedReplicas then all the
-//older replicas are not there but there are less number of availableReplicas
+// older replicas are not there but there are less number of availableReplicas
 func IsUpdateInProgress() Predicate {
 	return func(d *Deploy) bool {
 		return d.IsUpdateInProgress()

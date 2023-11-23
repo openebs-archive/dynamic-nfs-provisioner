@@ -3,6 +3,7 @@ module github.com/openebs/dynamic-nfs-provisioner
 go 1.19
 
 replace (
+	google.golang.org/protobuf => google.golang.org/protobuf v1.25.0
 	k8s.io/api => k8s.io/api v0.20.2
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.20.2
 	k8s.io/apimachinery => k8s.io/apimachinery v0.20.2

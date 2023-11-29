@@ -112,6 +112,10 @@ spec:
         #     value:  "kubernetes.io/storage-node,kubernetes.io/nfs-node"
         # - name: OPENEBS_IO_NFS_SERVER_NODE_AFFINITY
         #   value: "kubernetes.io/storage-node,kubernetes.io/nfs-node"
+        #   Provide a switch to turn off the function of clearing stale pvc to avoid
+        #.  garbage collecting an NFS backend PVC if the NFS PVC is deleted.
+        # - name: OPENEBS_IO_NFS_SERVER_GARBAGE_COLLECTION_ENABLED
+        #.  value: false
         - name: NODE_NAME
           valueFrom:
             fieldRef:

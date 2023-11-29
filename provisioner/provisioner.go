@@ -117,8 +117,18 @@ func NewProvisioner(ctx context.Context, kubeClient *clientset.Clientset) (*Prov
 	// and maintain it in cache
 	go k8sNodeInformer.Run(ctx.Done())
 
-	// Running garbage collector to perform cleanup for stale NFS resources
-	go RunGarbageCollector(ctx, kubeClient, pvTracker, nfsServerNs)
+	gcStr := getNfsGarbageCollectionEnable()
+	gcEnable, err := strconv.ParseBool(gcStr)
+	if err != nil {
+		klog.Warningf("Invalid %s value=%s, using default value=true", NFSGarbageCollectionEnable, gcStr)
+		gcEnable = true
+	}
+	if gcEnable {
+		// Running garbage collector to perform cleanup for stale NFS resources
+		go RunGarbageCollector(ctx, kubeClient, pvTracker, nfsServerNs)
+	} else {
+		klog.Warning("Garbage collector is disabled")
+	}
 
 	return p, nil
 }

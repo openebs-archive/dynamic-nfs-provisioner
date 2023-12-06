@@ -59,7 +59,7 @@ import (
 )
 
 const (
-	// Ping messgae
+	// Ping message
 	Ping string = "ping"
 	// DefaultCASType Event application name constant for volume event
 	DefaultCASType string = "nfs"

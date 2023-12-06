@@ -40,6 +40,9 @@ nfsProvisioner:
     tag:
     pullPolicy: IfNotPresent
   enableLeaderElection: "true"
+  # Provide a switch to turn off the function of clearing stale pvc to avoid
+  # garbage collecting an NFS backend PVC if the NFS PVC is deleted.
+  enableGarbageCollection: "true"
   # Specify image name of nfs-server-alpine used for creating nfs server deployment
   # If not mentioned, default value openebs/nfs-server-alpine:tag will be used where
   # the tag will be the same as a provisioner-nfs image tag

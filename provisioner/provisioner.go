@@ -45,9 +45,9 @@ import (
 	pvController "sigs.k8s.io/sig-storage-lib-external-provisioner/v7/controller"
 
 	"github.com/openebs/dynamic-nfs-provisioner/pkg/metrics"
+	analytics "github.com/openebs/google-analytics-4/usage"
 	mconfig "github.com/openebs/maya/pkg/apis/openebs.io/v1alpha1"
 	menv "github.com/openebs/maya/pkg/env/v1alpha1"
-	analytics "github.com/openebs/maya/pkg/usage"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	kubeinformers "k8s.io/client-go/informers"
@@ -56,6 +56,15 @@ import (
 
 	nfshook "github.com/openebs/dynamic-nfs-provisioner/pkg/hook"
 	clientset "k8s.io/client-go/kubernetes"
+)
+
+const (
+	// Ping message
+	Ping string = "ping"
+	// DefaultCASType Event application name constant for volume event
+	DefaultCASType string = "nfs"
+	// Default replica count unknown action
+	DefaultUnknownReplicaCount string = "replica:<N/A>"
 )
 
 var (
@@ -299,12 +308,20 @@ func sendEventOrIgnore(pvcName, pvName, capacity, stgType, method string) {
 		stgType = "nfs-" + stgType
 	}
 
-	analytics.New().Build().ApplicationBuilder().
-		SetVolumeType(stgType, method).
-		SetDocumentTitle(pvName).
-		SetCampaignName(pvcName).
+	analytics.New().CommonBuild(GetEngineName(stgType, method)).ApplicationBuilder().
+		SetVolumeName(pvName).
+		SetVolumeClaimName(pvcName).
 		SetLabel(analytics.EventLabelCapacity).
-		SetReplicaCount("", method).
+		SetAction(DefaultUnknownReplicaCount).
 		SetCategory(method).
 		SetVolumeCapacity(capacity).Send()
+}
+
+// Wrapper for setting the default storage-engine for volume-provision event
+func GetEngineName(volType, method string) string {
+	if method == analytics.VolumeProvision && volType == "" {
+		return DefaultCASType
+	} else {
+		return volType
+	}
 }

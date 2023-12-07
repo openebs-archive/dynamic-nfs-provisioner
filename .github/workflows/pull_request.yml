@@ -56,6 +56,10 @@ jobs:
     # to ignore builds on release
     if: ${{ (github.event.ref_type != 'tag') }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        kubernetes: [v1.27.3]
     needs: ['lint', 'unit-test']
     steps:
       - name: Checkout

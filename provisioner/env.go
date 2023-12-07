@@ -58,6 +58,9 @@ const (
 	// NFSBackendPvcTimeout defines env name to store BackendPvcBoundTimeout value
 	NFSBackendPvcTimeout menv.ENVKey = "OPENEBS_IO_NFS_SERVER_BACKEND_PVC_TIMEOUT"
 
+	// The NFSGarbageCollectionEnable environment variable is the switch for the garbage collector.(default true)
+	NFSGarbageCollectionEnable menv.ENVKey = "OPENEBS_IO_NFS_SERVER_GARBAGE_COLLECTION_ENABLED"
+
 	// NFSServerImagePullSecret defines the env name to store the name of the image pull secret
 	NFSServerImagePullSecret menv.ENVKey = "OPENEBS_IO_NFS_SERVER_IMAGE_PULL_SECRET"
 )
@@ -105,6 +108,9 @@ func getBackendPvcTimeout() string {
 	return menv.Get(NFSBackendPvcTimeout)
 }
 
+func getNfsGarbageCollectionEnable() string {
+	return menv.GetOrDefault(NFSGarbageCollectionEnable, "true")
+}
 func getNfsServerImagePullSecret() string {
 	return menv.GetOrDefault(NFSServerImagePullSecret, "")
 }

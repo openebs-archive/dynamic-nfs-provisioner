@@ -31,7 +31,8 @@ import (
 )
 
 // ProvisionKernalNFSServer is invoked by the Provisioner to create a NFS
-//  with kernel NFS server
+//
+//	with kernel NFS server
 func (p *Provisioner) ProvisionKernalNFSServer(ctx context.Context, opts pvController.ProvisionOptions, volumeConfig *VolumeConfig) (*v1.PersistentVolume, error) {
 	var leaseTime, graceTime int
 	var leaseErr, graceErr error
@@ -174,8 +175,9 @@ func (p *Provisioner) ProvisionKernalNFSServer(ctx context.Context, opts pvContr
 }
 
 // DeleteKernalNFSServer is invoked by the PVC controller to perform clean-up
-//  activities before deleteing the PV object. If reclaim policy is
-//  set to not-retain, then this function will delete the associated BDC
+//
+//	activities before deleteing the PV object. If reclaim policy is
+//	set to not-retain, then this function will delete the associated BDC
 func (p *Provisioner) DeleteKernalNFSServer(ctx context.Context, pv *v1.PersistentVolume) (err error) {
 	defer func() {
 		err = errors.Wrapf(err, "failed to delete volume %v", pv.Name)

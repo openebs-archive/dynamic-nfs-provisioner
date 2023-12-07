@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: License Check
         run: make license-check
@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Unit test
         run: make test
@@ -59,15 +59,19 @@ jobs:
     # to ignore builds on release
     if: ${{ (github.event.ref_type != 'tag') }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        kubernetes: [v1.27.3]
     needs: ['lint', 'unit-test']
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set up Go 1.15
-        uses: actions/setup-go@v3
+      - name: Set up Go 1.19
+        uses: actions/setup-go@v4
         with:
-          go-version: 1.15.15
+          go-version: 1.19.13
 
       - name: Build provisioner-nfs image
         run: make provisioner-nfs-image
@@ -80,11 +84,14 @@ jobs:
           sudo apt-get update && sudo apt-get install -y nfs-common
 
       - name: Setup Minikube-Kubernetes
-        uses: manusa/actions-setup-minikube@v2.7.2
+        uses: medyagh/setup-minikube@latest
         with:
-          minikube version: v1.29.0
-          kubernetes version: v1.23.16
-          start args: '--install-addons=false'
+          cache: false
+          minikube-version: 1.31.1
+          driver: none
+          kubernetes-version: ${{ matrix.kubernetes }}
+          cni: calico
+          start-args: '--install-addons=false'
 
       - name: Installation
         run: |
@@ -99,12 +106,12 @@ jobs:
     needs: ['lint', 'unit-test']
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set up Go 1.15
+      - name: Set up Go 1.19
         uses: actions/setup-go@v3
         with:
-          go-version: 1.15.15
+          go-version: 1.19.13
 
       - name: Set Image Org
         # sets the default IMAGE_ORG to openebs
@@ -124,21 +131,20 @@ jobs:
       - name: Set Build Date
         id: date
         run: |
-          echo "::set-output name=DATE::$(date -u +'%Y-%m-%dT%H:%M:%S%Z')"
+          echo "DATE=$(date -u +'%Y-%m-%dT%H:%M:%S%Z')" >> $GITHUB_OUTPUT
 
       - name: Docker meta
         id: docker_meta
-        uses: crazy-max/ghaction-docker-meta@v1
+        uses: docker/metadata-action@v4
         with:
           # add each registry to which the image needs to be pushed here
           images: |
             ${{ env.IMAGE_ORG }}/provisioner-nfs
             quay.io/${{ env.IMAGE_ORG }}/provisioner-nfs
             ghcr.io/${{ env.IMAGE_ORG }}/provisioner-nfs
-          tag-latest: false
-          tag-custom-only: true
-          tag-custom: |
-            ${{ env.TAG }}
+          tags: |
+            type=raw,value=latest,enable=false
+            type=raw,value=${{ env.TAG }}
 
       - name: Print Tags
         run: |
@@ -194,7 +200,7 @@ jobs:
     needs: ['lint', 'unit-test']
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set Image Org
         # sets the default IMAGE_ORG to openebs
@@ -213,17 +219,16 @@ jobs:
 
       - name: Docker meta
         id: docker_meta
-        uses: crazy-max/ghaction-docker-meta@v1
+        uses: docker/metadata-action@v4
         with:
           # add each registry to which the image needs to be pushed here
           images: |
             ${{ env.IMAGE_ORG }}/nfs-server-alpine
             quay.io/${{ env.IMAGE_ORG }}/nfs-server-alpine
             ghcr.io/${{ env.IMAGE_ORG }}/nfs-server-alpine
-          tag-latest: false
-          tag-custom-only: true
-          tag-custom: |
-            ${{ env.TAG }}
+          tags: |
+            type=raw,value=latest,enable=false
+            type=raw,value=${{ env.TAG }}
 
       - name: Print Tags
         run: |
@@ -274,7 +279,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set Image Org
         # sets the default IMAGE_ORG to openebs

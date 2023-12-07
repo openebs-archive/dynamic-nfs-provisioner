@@ -19,7 +19,6 @@ import (
 
 	errors "github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -447,7 +446,7 @@ func TestKubernetesPVCCreate(t *testing.T) {
 		getClientSetForPath getClientsetForPathFn
 		kubeConfigPath      string
 		create              createFn
-		pvc                 *v1.PersistentVolumeClaim
+		pvc                 *corev1.PersistentVolumeClaim
 		expectErr           bool
 	}{
 		"Test 1": {
@@ -455,7 +454,7 @@ func TestKubernetesPVCCreate(t *testing.T) {
 			getClientSetForPath: fakeGetClientSetForPathErr,
 			kubeConfigPath:      "",
 			create:              fakeCreateFnOk,
-			pvc:                 &v1.PersistentVolumeClaim{ObjectMeta: metav1.ObjectMeta{Name: "PVC-1"}},
+			pvc:                 &corev1.PersistentVolumeClaim{ObjectMeta: metav1.ObjectMeta{Name: "PVC-1"}},
 			expectErr:           true,
 		},
 		"Test 2": {
@@ -463,7 +462,7 @@ func TestKubernetesPVCCreate(t *testing.T) {
 			getClientSetForPath: fakeGetClientSetForPathOk,
 			kubeConfigPath:      "",
 			create:              fakeCreateFnErr,
-			pvc:                 &v1.PersistentVolumeClaim{ObjectMeta: metav1.ObjectMeta{Name: "PVC-2"}},
+			pvc:                 &corev1.PersistentVolumeClaim{ObjectMeta: metav1.ObjectMeta{Name: "PVC-2"}},
 			expectErr:           true,
 		},
 		"Test 3": {
@@ -516,13 +515,13 @@ func TestKubernetesPVCCreateCollection(t *testing.T) {
 	tests := map[string]struct {
 		getClientSet getClientsetFn
 		create       createFn
-		pvc          *v1.PersistentVolumeClaim
+		pvc          *corev1.PersistentVolumeClaim
 		expectErr    bool
 	}{
 		"Test 1": {
 			getClientSet: fakeGetClientSetErr,
 			create:       fakeCreateFnOk,
-			pvc: &v1.PersistentVolumeClaim{
+			pvc: &corev1.PersistentVolumeClaim{
 				ObjectMeta: metav1.ObjectMeta{GenerateName: "PVC-1"},
 			},
 			expectErr: true,
@@ -530,7 +529,7 @@ func TestKubernetesPVCCreateCollection(t *testing.T) {
 		"Test 2": {
 			getClientSet: fakeGetClientSetOk,
 			create:       fakeCreateFnErr,
-			pvc: &v1.PersistentVolumeClaim{
+			pvc: &corev1.PersistentVolumeClaim{
 				ObjectMeta: metav1.ObjectMeta{GenerateName: "PVC-2"},
 			},
 			expectErr: true,
@@ -544,7 +543,7 @@ func TestKubernetesPVCCreateCollection(t *testing.T) {
 		"Test 4": {
 			getClientSet: fakeGetClientSetOk,
 			create:       fakeCreateFnOk,
-			pvc: &v1.PersistentVolumeClaim{
+			pvc: &corev1.PersistentVolumeClaim{
 				ObjectMeta: metav1.ObjectMeta{GenerateName: "PVC-4"},
 			},
 			expectErr: false,

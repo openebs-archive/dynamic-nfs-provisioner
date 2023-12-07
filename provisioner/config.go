@@ -107,7 +107,7 @@ const (
 	betaStorageClassAnnotation = "volume.beta.kubernetes.io/storage-class"
 )
 
-//GetVolumeConfig creates a new VolumeConfig struct by
+// GetVolumeConfig creates a new VolumeConfig struct by
 // parsing and merging the configuration provided in the PVC
 // annotation - cas.openebs.io/config with the
 // default configuration of the provisioner.
@@ -177,7 +177,7 @@ func (p *Provisioner) GetVolumeConfig(pvName string, pvc *v1.PersistentVolumeCla
 	return c, nil
 }
 
-//GetNFSServerTypeFromConfig returns the NFSServerType value configured
+// GetNFSServerTypeFromConfig returns the NFSServerType value configured
 // in StorageClass. Default is kernel
 func (c *VolumeConfig) GetNFSServerTypeFromConfig() string {
 	serverType := c.getValue(KeyPVNFSServerType)
@@ -187,7 +187,7 @@ func (c *VolumeConfig) GetNFSServerTypeFromConfig() string {
 	return serverType
 }
 
-//GetBackendStorageClassFromConfig returns the Storage Class
+// GetBackendStorageClassFromConfig returns the Storage Class
 // value configured in StorageClass. Default is ""
 func (c *VolumeConfig) GetBackendStorageClassFromConfig() string {
 	backingSC := c.getValue(KeyPVBackendStorageClass)
@@ -241,14 +241,16 @@ func (c *VolumeConfig) GetNFServerGraceTime() (int, error) {
 // StorageClass if specified
 // -----------------------------------------------------
 // NOTE: This feature has been deprecated
-//       Alternative: Use FilePermission 'cas.openebs.io/config' annotation
-//                    key on the backend volume PVC. Sample FilePermissions
-//      	      for FSGID-like configuration --
 //
-//                    name: FilePermissions
-//                    data:
-//                      GID: <group-ID>
-//                      mode: "g+s"
+//	 Alternative: Use FilePermission 'cas.openebs.io/config' annotation
+//	              key on the backend volume PVC. Sample FilePermissions
+//		      for FSGID-like configuration --
+//
+//	              name: FilePermissions
+//	              data:
+//	                GID: <group-ID>
+//	                mode: "g+s"
+//
 // -----------------------------------------------------
 func (c *VolumeConfig) GetFSGroupID() (*int64, error) {
 	fsGroupIDStr := c.getValue(FSGroupID)
@@ -371,18 +373,21 @@ func (c *VolumeConfig) getResourceList(key string) (v1.ResourceList, error) {
 	return resourceList, nil
 }
 
-//getValue is a utility function to extract the value
+// getValue is a utility function to extract the value
 // of the `key` from the ConfigMap object - which is
 // map[string]interface{map[string][string]}
 // Example:
-// {
-//     key1: {
-//             value: value1
-//             enabled: true
-//           }
-// }
+//
+//	{
+//	    key1: {
+//	            value: value1
+//	            enabled: true
+//	          }
+//	}
+//
 // In the above example, if `key1` is passed as input,
-//   `value1` will be returned.
+//
+//	`value1` will be returned.
 func (c *VolumeConfig) getValue(key string) string {
 	if configObj, ok := util.GetNestedField(c.options, key).(map[string]string); ok {
 		if val, p := configObj[string(mconfig.ValuePTP)]; p {
@@ -392,20 +397,23 @@ func (c *VolumeConfig) getValue(key string) string {
 	return ""
 }
 
-//getData is a utility function to extract the value
+// getData is a utility function to extract the value
 // of the `key` from the ConfigMap object - which is
 // map[string]interface{map[string]interface{map[string]string}}
 // Example:
-// {
-//     key1: {
-//             value: value1
-//             data: {
-//                     dataKey1: dataValue1
-//                   }
-//           }
-// }
+//
+//	{
+//	    key1: {
+//	            value: value1
+//	            data: {
+//	                    dataKey1: dataValue1
+//	                  }
+//	          }
+//	}
+//
 // In the above example, if `key1` and `dataKey1` are passed as input,
-//   `dataValue1` will be returned.
+//
+//	`dataValue1` will be returned.
 func (c *VolumeConfig) getData(key string, dataKey string) string {
 	if configData, ok := util.GetNestedField(c.configData, key).(map[string]string); ok {
 		if val, p := configData[dataKey]; p {
@@ -449,11 +457,11 @@ func hookConfigFileExist() (bool, error) {
 
 // initializeHook read the hook config file and update the given hook variable
 // return value:
-// 	- nil
-// 		- If hook config file doesn't exists
-// 		- If hook config file is parsed and given hook variable is updated
-// 	- error
-// 		- If hook config is invalid
+//   - nil
+//   - If hook config file doesn't exists
+//   - If hook config file is parsed and given hook variable is updated
+//   - error
+//   - If hook config is invalid
 func initializeHook(hook **nfshook.Hook) error {
 	hookFileExists, err := hookConfigFileExist()
 	if err != nil {

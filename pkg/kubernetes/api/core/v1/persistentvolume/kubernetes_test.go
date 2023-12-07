@@ -19,7 +19,6 @@ import (
 
 	errors "github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -425,7 +424,7 @@ func TestKubernetesPVCreate(t *testing.T) {
 		getClientSetForPath getClientsetForPathFn
 		kubeConfigPath      string
 		create              createFn
-		pv                  *v1.PersistentVolume
+		pv                  *corev1.PersistentVolume
 		expectErr           bool
 	}{
 		"Test 1": {
@@ -433,7 +432,7 @@ func TestKubernetesPVCreate(t *testing.T) {
 			getClientSetForPath: fakeGetClientSetForPathErr,
 			kubeConfigPath:      "",
 			create:              fakeCreateFnOk,
-			pv:                  &v1.PersistentVolume{ObjectMeta: metav1.ObjectMeta{Name: "PV-1"}},
+			pv:                  &corev1.PersistentVolume{ObjectMeta: metav1.ObjectMeta{Name: "PV-1"}},
 			expectErr:           true,
 		},
 		"Test 2": {
@@ -441,7 +440,7 @@ func TestKubernetesPVCreate(t *testing.T) {
 			getClientSetForPath: fakeGetClientSetForPathOk,
 			kubeConfigPath:      "",
 			create:              fakeCreateFnErr,
-			pv:                  &v1.PersistentVolume{ObjectMeta: metav1.ObjectMeta{Name: "PV-2"}},
+			pv:                  &corev1.PersistentVolume{ObjectMeta: metav1.ObjectMeta{Name: "PV-2"}},
 			expectErr:           true,
 		},
 		"Test 3": {

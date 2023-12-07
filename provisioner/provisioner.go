@@ -45,9 +45,9 @@ import (
 	pvController "sigs.k8s.io/sig-storage-lib-external-provisioner/v7/controller"
 
 	"github.com/openebs/dynamic-nfs-provisioner/pkg/metrics"
+	analytics "github.com/openebs/google-analytics-4/usage"
 	mconfig "github.com/openebs/maya/pkg/apis/openebs.io/v1alpha1"
 	menv "github.com/openebs/maya/pkg/env/v1alpha1"
-	analytics "github.com/openebs/maya/pkg/usage"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	kubeinformers "k8s.io/client-go/informers"
@@ -58,12 +58,22 @@ import (
 	clientset "k8s.io/client-go/kubernetes"
 )
 
+const (
+	// Ping message
+	Ping string = "ping"
+	// DefaultCASType Event application name constant for volume event
+	DefaultCASType string = "nfs"
+	// Default replica count unknown action
+	DefaultUnknownReplicaCount string = "replica:<N/A>"
+)
+
 var (
 	NodeAffinityRulesMismatchEvent = "No matching nodes found for given affinity rules"
 )
 
 // NewProvisioner will create a new Provisioner object and initialize
-//  it with global information used across PV create and delete operations.
+//
+//	it with global information used across PV create and delete operations.
 func NewProvisioner(ctx context.Context, kubeClient *clientset.Clientset) (*Provisioner, error) {
 
 	namespace := getOpenEBSNamespace()
@@ -116,20 +126,32 @@ func NewProvisioner(ctx context.Context, kubeClient *clientset.Clientset) (*Prov
 	// and maintain it in cache
 	go k8sNodeInformer.Run(ctx.Done())
 
-	// Running garbage collector to perform cleanup for stale NFS resources
-	go RunGarbageCollector(ctx, kubeClient, pvTracker, nfsServerNs)
+	gcStr := getNfsGarbageCollectionEnable()
+	gcEnable, err := strconv.ParseBool(gcStr)
+	if err != nil {
+		klog.Warningf("Invalid %s value=%s, using default value=true", NFSGarbageCollectionEnable, gcStr)
+		gcEnable = true
+	}
+	if gcEnable {
+		// Running garbage collector to perform cleanup for stale NFS resources
+		go RunGarbageCollector(ctx, kubeClient, pvTracker, nfsServerNs)
+	} else {
+		klog.Warning("Garbage collector is disabled")
+	}
 
 	return p, nil
 }
 
 // SupportsBlock will be used by controller to determine if block mode is
-//  supported by the host path provisioner.
+//
+//	supported by the host path provisioner.
 func (p *Provisioner) SupportsBlock() bool {
 	return false
 }
 
 // Provision is invoked by the PVC controller which expect the PV
-//  to be provisioned and a valid PV spec returned.
+//
+//	to be provisioned and a valid PV spec returned.
 func (p *Provisioner) Provision(ctx context.Context, opts pvController.ProvisionOptions) (*v1.PersistentVolume, pvController.ProvisioningState, error) {
 	pvc := opts.PVC
 
@@ -191,9 +213,10 @@ func (p *Provisioner) Provision(ctx context.Context, opts pvController.Provision
 }
 
 // Delete is invoked by the PVC controller to perform clean-up
-//  activities before deleteing the PV object. If reclaim policy is
-//  set to not-retain, then this function will create a helper pod
-//  to delete the host path from the node.
+//
+//	activities before deleteing the PV object. If reclaim policy is
+//	set to not-retain, then this function will create a helper pod
+//	to delete the host path from the node.
 func (p *Provisioner) Delete(ctx context.Context, pv *v1.PersistentVolume) (err error) {
 	p.pvTracker.Add(pv.Name)
 	defer p.pvTracker.Delete(pv.Name)
@@ -285,12 +308,20 @@ func sendEventOrIgnore(pvcName, pvName, capacity, stgType, method string) {
 		stgType = "nfs-" + stgType
 	}
 
-	analytics.New().Build().ApplicationBuilder().
-		SetVolumeType(stgType, method).
-		SetDocumentTitle(pvName).
-		SetCampaignName(pvcName).
+	analytics.New().CommonBuild(GetEngineName(stgType, method)).ApplicationBuilder().
+		SetVolumeName(pvName).
+		SetVolumeClaimName(pvcName).
 		SetLabel(analytics.EventLabelCapacity).
-		SetReplicaCount("", method).
+		SetAction(DefaultUnknownReplicaCount).
 		SetCategory(method).
 		SetVolumeCapacity(capacity).Send()
+}
+
+// Wrapper for setting the default storage-engine for volume-provision event
+func GetEngineName(volType, method string) string {
+	if method == analytics.VolumeProvision && volType == "" {
+		return DefaultCASType
+	} else {
+		return volType
+	}
 }

@@ -25,8 +25,9 @@ import (
 	"k8s.io/klog/v2"
 
 	mKube "github.com/openebs/dynamic-nfs-provisioner/pkg/kubernetes/client"
+	analytics "github.com/openebs/google-analytics-4/usage"
 	menv "github.com/openebs/maya/pkg/env/v1alpha1"
-	analytics "github.com/openebs/maya/pkg/usage"
+	"github.com/openebs/maya/pkg/version"
 	pvController "sigs.k8s.io/sig-storage-lib-external-provisioner/v7/controller"
 )
 
@@ -79,8 +80,9 @@ func Start(ctx context.Context) error {
 	go pc.Run(ctx)
 
 	if menv.Truthy(menv.OpenEBSEnableAnalytics) {
-		analytics.New().Build().InstallBuilder(true).Send()
-		go analytics.PingCheck()
+		analytics.RegisterVersionGetter(version.GetVersionDetails)
+		analytics.New().CommonBuild(DefaultCASType).InstallBuilder(true).Send()
+		go analytics.PingCheck(DefaultCASType, Ping)
 	}
 
 	<-ctx.Done()

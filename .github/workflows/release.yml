@@ -54,7 +54,7 @@ jobs:
             ghcr.io/${{ env.IMAGE_ORG }}/provisioner-nfs
           tags: |
             type=raw,value=latest,enable=true
-            type=raw,value={{version}}
+            type=raw,pattern={{version}}
 
       - name: Print Tags
         run: |
@@ -141,7 +141,7 @@ jobs:
             ghcr.io/${{ env.IMAGE_ORG }}/nfs-server-alpine
           tags: |
             type=raw,value=latest,enable=true
-            type=raw,value={{version}}
+            type=raw,pattern={{version}}
 
       - name: Print Tags
         run: |

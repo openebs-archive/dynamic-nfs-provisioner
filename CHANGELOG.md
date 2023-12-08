@@ -1,3 +1,9 @@
+0.11.0 / 2023-12-08
+========================
+* add support for specifying mountOptions to default StorageClass ([#164](https://github.com/openebs/dynamic-nfs-provisioner/pull/164),[@pentago](https://github.com/farcaller) [@dsharma-dc](https://github.com/dsharma-dc))
+* update documentation on backend storage prerequisite ([#165](https://github.com/openebs/dynamic-nfs-provisioner/pull/165),[@matthew-williams](https://github.com/matthew-williams) [@dsharma-dc](https://github.com/dsharma-dc))
+* update google analytics to use GA4 ([#174](https://github.com/openebs/dynamic-nfs-provisioner/pull/174),[@Abhinandan-Purkait](https://github.com/Abhinandan-Purkait))
+  
 0.10.0 / 2023-02-09
 ========================
 * add original PVC context to the nfs server deployment labels ([#151](https://github.com/openebs/dynamic-nfs-provisioner/pull/151),[@farcaller](https://github.com/farcaller))

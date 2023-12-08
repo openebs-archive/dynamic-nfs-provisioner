@@ -53,7 +53,6 @@ jobs:
             quay.io/${{ env.IMAGE_ORG }}/provisioner-nfs
             ghcr.io/${{ env.IMAGE_ORG }}/provisioner-nfs
           tags: |
-            type=raw,value=latest,enable=true
             type=semver,pattern={{version}}
 
       - name: Print Tags
@@ -140,7 +139,6 @@ jobs:
             quay.io/${{ env.IMAGE_ORG }}/nfs-server-alpine
             ghcr.io/${{ env.IMAGE_ORG }}/nfs-server-alpine
           tags: |
-            type=raw,value=latest,enable=true
             type=semver,pattern={{version}}
 
       - name: Print Tags

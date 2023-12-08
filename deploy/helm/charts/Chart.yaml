@@ -4,10 +4,10 @@ description: Helm chart for OpenEBS Dynamic NFS PV. For instructions to install 
 type: application
 # This is the chart version. This version number should be incremented each time you make changes
 # to the chart and its templates, including the app version.
-version: 0.10.2
+version: 0.11.0
 # This is the version number of the application being deployed. This version number should be
 # incremented each time you make changes to the application.
-appVersion: 0.10.0
+appVersion: 0.11.0
 icon: https://raw.githubusercontent.com/cncf/artwork/master/projects/openebs/icon/color/openebs-icon-color.png
 home: http://www.openebs.io/
 keywords:

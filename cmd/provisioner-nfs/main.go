@@ -19,8 +19,9 @@ package main
 import (
 	"os"
 
-	"github.com/openebs/dynamic-nfs-provisioner/cmd/provisioner-nfs/app"
 	logger "github.com/openebs/maya/pkg/logs"
+
+	"github.com/openebs/dynamic-nfs-provisioner/cmd/provisioner-nfs/app"
 )
 
 func main() {

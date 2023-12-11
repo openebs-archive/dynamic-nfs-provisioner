@@ -103,7 +103,13 @@ spec:
             - name: OPENEBS_IO_NFS_SERVER_NODE_AFFINITY
               value: "{{ .Values.nfsProvisioner.nfsServerNodeAffinity }}"
             {{- end }}
-           {{- if .Values.nfsProvisioner.nfsBackendPvcTimeout }}
+            # Provide a switch to turn off the function of clearing stale pvc to avoid
+            # garbage collecting an NFS backend PVC if the NFS PVC is deleted.
+            {{- if .Values.nfsProvisioner.enableGarbageCollection }}
+            - name: OPENEBS_IO_NFS_SERVER_GARBAGE_COLLECTION_ENABLED
+              value: {{ quote .Values.nfsProvisioner.enableGarbageCollection }}
+            {{- end }}
+            {{- if .Values.nfsProvisioner.nfsBackendPvcTimeout }}
             - name: OPENEBS_IO_NFS_SERVER_BACKEND_PVC_TIMEOUT
               value: "{{ .Values.nfsProvisioner.nfsBackendPvcTimeout }}"
             {{- end }}

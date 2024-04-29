@@ -8,7 +8,7 @@ Please refer to Helm's [documentation](https://helm.sh/docs/) to get started.
 Once Helm is set up properly, add the repo as follows:
 
 ```console
-helm repo add openebs-nfs https://openebs.github.io/dynamic-nfs-provisioner
+helm repo add openebs-nfs https://openebs-archive.github.io/dynamic-nfs-provisioner
 ```
 
 You can then run `helm search repo openebs-nfs` to see the charts.
@@ -42,10 +42,10 @@ Sample command to install the OpenEBS Dynamic NFS Provisioner helm chart using t
 helm install openebs-nfs openebs-nfs/nfs-provisioner --namespace openebs --create-namespace
 ```
 
-If you do not have an available StorageClass, you can install the [OpenEBS Dynamic LocalPV Provisioner helm chart](https://openebs.github.io/dynamic-localpv-provisioner) and use the 'openebs-hostpath' StorageClass as Backend Storage Class. Sample commands:
+If you do not have an available StorageClass, you can install the [OpenEBS Dynamic LocalPV Provisioner helm chart](https://openebs-archive.github.io/dynamic-localpv-provisioner) and use the 'openebs-hostpath' StorageClass as Backend Storage Class. Sample commands:
 ```console
 # Add openebs-localpv repo
-helm repo add openebs-localpv https://openebs.github.io/dynamic-localpv-provisioner
+helm repo add openebs-localpv https://openebs-archive.github.io/dynamic-localpv-provisioner
 helm repo update
 
 # Install localpv-provisioner

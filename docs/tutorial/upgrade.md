@@ -28,13 +28,13 @@ helm upgrade nfs  openebs-nfs/nfs-provisioner -n openebs  --version=<DESIRED_VER
 If you have installed the nfs-provisioner through kubectl, then you can upgrade the nfs-provisioner deployment to latest version by running the below command:
 
 ```bash
-kubectl apply -f https://openebs.github.io/charts/nfs-operator.yaml
+kubectl apply -f https://openebs-archive.github.io/charts/nfs-operator.yaml
 ```
 
 Above command will upgrade the nfs-provisioner to latest version. You can also upgrade to specific version by running the below command:
 
 ```bash
-kubectl apply -f https://openebs.github.io/charts/versioned/<OPENEBS VERSION>/nfs-operator.yaml
+kubectl apply -f https://openebs-archive.github.io/charts/versioned/<OPENEBS VERSION>/nfs-operator.yaml
 ```
 
 ## Upgrading NFS server Deployment

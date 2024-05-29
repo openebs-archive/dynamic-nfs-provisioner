@@ -15,8 +15,8 @@
 # limitations under the License.
 
 mkdir -p /tmp/openebs
-kubectl apply -f https://openebs-archive.github.io/charts/versioned/3.4.0/hostpath-operator.yaml
-wget https://openebs-archive.github.io/charts/versioned/3.4.0/openebs-lite-sc.yaml -O /tmp/openebs-lite-sc.yaml
+kubectl apply -f https://openebs.github.io/charts/versioned/3.4.0/hostpath-operator.yaml
+wget https://openebs.github.io/charts/versioned/3.4.0/openebs-lite-sc.yaml -O /tmp/openebs-lite-sc.yaml
 sed -i  's/value\: \"\/var\/openebs\/local\/\"/value\: \"\/tmp\/openebs\/\"/' /tmp/openebs-lite-sc.yaml
 kubectl apply -f /tmp/openebs-lite-sc.yaml
 
